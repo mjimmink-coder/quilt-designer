@@ -64,11 +64,15 @@
 
   <svg id="quilt-canvas" style="border:1px solid #ccc;"></svg>
 
+  <br><br>
+  <button id="downloadBtn">Download Design as PNG</button>
+
   <div id="yardageResults"></div>
 
   <script>
     const svg = document.getElementById('quilt-canvas');
     const yardageResults = document.getElementById('yardageResults');
+    const downloadBtn = document.getElementById('downloadBtn');
 
     const patternSelect = document.getElementById('patternSelect');
     const blockSizeInchesInput = document.getElementById('blockSizeInchesInput');
@@ -249,6 +253,37 @@
 
     [patternSelect, blockSizeInchesInput, blocksAcrossInput, blocksDownInput, sashingWidthInput, sashingColorInput, borderWidthInput, borderColorInput, colorAInput, colorBInput]
       .forEach(input => input.addEventListener('input', redraw));
+
+    // Converts the current SVG to a PNG and triggers a browser download
+    downloadBtn.addEventListener('click', () => {
+      const svgWidth = svg.getAttribute('width');
+      const svgHeight = svg.getAttribute('height');
+
+      // serialize the live SVG element into a standalone SVG string
+      const svgString = new XMLSerializer().serializeToString(svg);
+      const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+      const svgUrl = URL.createObjectURL(svgBlob);
+
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = svgWidth;
+        canvas.height = svgHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, svgWidth, svgHeight);
+        URL.revokeObjectURL(svgUrl);
+
+        canvas.toBlob((pngBlob) => {
+          const pngUrl = URL.createObjectURL(pngBlob);
+          const link = document.createElement('a');
+          link.href = pngUrl;
+          link.download = 'quilt-design.png';
+          link.click();
+          URL.revokeObjectURL(pngUrl);
+        }, 'image/png');
+      };
+      img.src = svgUrl;
+    });
 
     redraw();
   </script>
