@@ -6,25 +6,30 @@
 </head>
 <body>
   <h1>Quilt Designer</h1>
+
+  <div>
+    <label>Rows: <input type="number" id="rowsInput" value="3" min="1" max="12"></label>
+    <label>Columns: <input type="number" id="colsInput" value="3" min="1" max="12"></label>
+    <label>Color A: <input type="color" id="colorAInput" value="#2b4c7e"></label>
+    <label>Color B: <input type="color" id="colorBInput" value="#e8dcc4"></label>
+  </div>
+
+  <br>
+
   <svg id="quilt-canvas" style="border:1px solid #ccc;"></svg>
 
   <script>
     const svg = document.getElementById('quilt-canvas');
+    const rowsInput = document.getElementById('rowsInput');
+    const colsInput = document.getElementById('colsInput');
+    const colorAInput = document.getElementById('colorAInput');
+    const colorBInput = document.getElementById('colorBInput');
 
-    // --- Adjustable settings ---
-    const rows = 3;
-    const cols = 3;
-    const squareSize = 100; // px per patch
-    const colorA = '#2b4c7e'; // dark blue
-    const colorB = '#e8dcc4'; // cream
-    // ---------------------------
+    const squareSize = 100; // px per patch, fixed for now
 
     function drawNinePatch(rows, cols, squareSize, colorA, colorB) {
-      // size the SVG canvas to fit the grid exactly
       svg.setAttribute('width', cols * squareSize);
       svg.setAttribute('height', rows * squareSize);
-
-      // clear any existing squares before redrawing
       svg.innerHTML = '';
 
       for (let row = 0; row < rows; row++) {
@@ -43,7 +48,22 @@
       }
     }
 
-    drawNinePatch(rows, cols, squareSize, colorA, colorB);
+    function redraw() {
+      const rows = parseInt(rowsInput.value, 10);
+      const cols = parseInt(colsInput.value, 10);
+      const colorA = colorAInput.value;
+      const colorB = colorBInput.value;
+      drawNinePatch(rows, cols, squareSize, colorA, colorB);
+    }
+
+    // redraw whenever any control changes
+    rowsInput.addEventListener('input', redraw);
+    colsInput.addEventListener('input', redraw);
+    colorAInput.addEventListener('input', redraw);
+    colorBInput.addEventListener('input', redraw);
+
+    // initial draw on page load
+    redraw();
   </script>
 </body>
 </html>
