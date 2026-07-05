@@ -1,291 +1,595 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Quilt Designer</title>
-  <style>
-    .palette-swatch {
-      display: inline-block;
-      width: 50px;
-      height: 30px;
-      margin-right: 6px;
-      border: 2px solid #888;
-      cursor: pointer;
-      vertical-align: middle;
-    }
-    .palette-swatch:hover {
-      border-color: #000;
-    }
-    #yardageResults {
-      margin-top: 10px;
-      padding: 10px;
-      background: #f5f5f5;
-      border: 1px solid #ccc;
-      max-width: 350px;
-    }
-    #yardageResults div {
-      margin: 4px 0;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quilt Designer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bitter:wght@500;700&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --linen: #F5F0E6;
+    --panel: #FBF8F2;
+    --ink: #2A2825;
+    --navy: #2F4858;
+    --gold: #C9A227;
+    --rust: #A8461E;
+    --stitch: #8C8474;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--linen);
+    color: var(--ink);
+    font-family: 'Work Sans', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  header {
+    padding: 32px 24px 20px;
+    text-align: center;
+    border-bottom: 2px dashed var(--stitch);
+  }
+
+  h1 {
+    font-family: 'Bitter', serif;
+    font-weight: 700;
+    font-size: clamp(28px, 5vw, 42px);
+    margin: 0 0 4px;
+    letter-spacing: -0.01em;
+  }
+
+  header p {
+    margin: 0;
+    color: var(--stitch);
+    font-size: 14px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 28px;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 28px 24px 60px;
+    align-items: start;
+  }
+
+  @media (max-width: 800px) {
+    .layout { grid-template-columns: 1fr; }
+    .canvas-panel { order: -1; }
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 2px dashed var(--stitch);
+    border-radius: 4px;
+    padding: 20px;
+  }
+
+  .controls-panel > * + * { margin-top: 20px; }
+
+  fieldset {
+    border: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  legend {
+    font-family: 'Bitter', serif;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--navy);
+    margin-bottom: 10px;
+    padding: 0;
+  }
+
+  label {
+    display: block;
+    font-size: 13px;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+
+  .field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .field-row + .field-row { margin-top: 12px; }
+
+  select, input[type="number"] {
+    width: 100%;
+    padding: 7px 8px;
+    border: 1px solid #cfc6b3;
+    border-radius: 3px;
+    background: #fff;
+    font-family: 'Work Sans', sans-serif;
+    font-size: 14px;
+    color: var(--ink);
+  }
+
+  input[type="color"] {
+    width: 100%;
+    height: 34px;
+    border: 1px solid #cfc6b3;
+    border-radius: 3px;
+    padding: 2px;
+    background: #fff;
+    cursor: pointer;
+  }
+
+  .checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .checkbox-row input { width: auto; margin: 0; }
+  .checkbox-row label { margin: 0; }
+
+  .divider {
+    border: none;
+    border-top: 2px dashed var(--stitch);
+    margin: 20px 0 0;
+  }
+
+  .palette-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .palette-swatch {
+    height: 34px;
+    border: 2px solid #cfc6b3;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: border-color 0.15s ease, transform 0.1s ease;
+  }
+  .palette-swatch:hover {
+    border-color: var(--navy);
+    transform: translateY(-1px);
+  }
+
+  .canvas-panel {
+    text-align: center;
+  }
+
+  svg#quilt-canvas {
+    width: 100%;
+    height: auto;
+    max-width: 560px;
+    display: block;
+    margin: 0 auto;
+  }
+
+  button#downloadBtn {
+    margin-top: 20px;
+    background: var(--navy);
+    color: #fff;
+    border: none;
+    padding: 11px 22px;
+    border-radius: 3px;
+    font-family: 'Work Sans', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+  }
+  button#downloadBtn:hover { background: #263e4c; }
+  button#downloadBtn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+  #yardageResults {
+    margin-top: 20px;
+    text-align: left;
+    border: 2px dashed var(--stitch);
+    border-radius: 4px;
+    padding: 16px 18px;
+    background: var(--panel);
+  }
+
+  #yardageResults .yardage-title {
+    font-family: 'Bitter', serif;
+    font-weight: 700;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--navy);
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  #yardageResults .yardage-note {
+    font-size: 11px;
+    color: var(--stitch);
+    display: block;
+    margin-bottom: 10px;
+  }
+
+  #yardageResults .yardage-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    padding: 4px 0;
+  }
+
+  .yardage-row .swatch-dot {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 1px solid #999;
+    border-radius: 2px;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+</style>
 </head>
 <body>
-  <h1>Quilt Designer</h1>
 
-  <div>
-    <label>Block Pattern:
+<header>
+  <h1>Quilt Designer</h1>
+  <p>Piece a pattern, choose your fabrics, see what it takes to sew</p>
+</header>
+
+<div class="layout">
+
+  <div class="panel controls-panel">
+
+    <fieldset>
+      <legend>Pattern</legend>
       <select id="patternSelect">
         <option value="ninepatch">Nine Patch</option>
         <option value="logcabin">Log Cabin</option>
+        <option value="pinwheel">Pinwheel</option>
       </select>
-    </label>
-    <label style="margin-left:20px;">Block Size (inches): <input type="number" id="blockSizeInchesInput" value="12" min="4" max="24"></label>
-    <br><br>
-    <label>Blocks Across: <input type="number" id="blocksAcrossInput" value="3" min="1" max="10"></label>
-    <label>Blocks Down: <input type="number" id="blocksDownInput" value="3" min="1" max="10"></label>
-    <br><br>
-    <label>Sashing Width: <input type="number" id="sashingWidthInput" value="10" min="0" max="40"></label>
-    <label>Sashing Color: <input type="color" id="sashingColorInput" value="#ffffff"></label>
-    <br><br>
-    <label>Border Width: <input type="number" id="borderWidthInput" value="20" min="0" max="60"></label>
-    <label>Border Color: <input type="color" id="borderColorInput" value="#2b4c7e"></label>
-    <br><br>
+      <div class="checkbox-row" style="margin-top:10px;">
+        <input type="checkbox" id="alternateRotationInput">
+        <label for="alternateRotationInput">Alternate block rotation</label>
+      </div>
+    </fieldset>
 
-    <div>
-      <strong>Color Presets:</strong><br>
-      <div id="presetContainer"></div>
-    </div>
-    <br>
+    <hr class="divider">
 
-    <label>Block Color A: <input type="color" id="colorAInput" value="#2b4c7e"></label>
-    <label>Block Color B: <input type="color" id="colorBInput" value="#e8dcc4"></label>
+    <fieldset>
+      <legend>Size &amp; Layout</legend>
+      <label for="blockSizeInchesInput">Block size (inches)</label>
+      <input type="number" id="blockSizeInchesInput" value="12" min="4" max="24">
+      <div class="field-row">
+        <div>
+          <label for="blocksAcrossInput">Blocks across</label>
+          <input type="number" id="blocksAcrossInput" value="3" min="1" max="10">
+        </div>
+        <div>
+          <label for="blocksDownInput">Blocks down</label>
+          <input type="number" id="blocksDownInput" value="3" min="1" max="10">
+        </div>
+      </div>
+    </fieldset>
+
+    <hr class="divider">
+
+    <fieldset>
+      <legend>Sashing</legend>
+      <div class="field-row">
+        <div>
+          <label for="sashingWidthInput">Width</label>
+          <input type="number" id="sashingWidthInput" value="10" min="0" max="40">
+        </div>
+        <div>
+          <label for="sashingColorInput">Color</label>
+          <input type="color" id="sashingColorInput" value="#ffffff">
+        </div>
+      </div>
+    </fieldset>
+
+    <hr class="divider">
+
+    <fieldset>
+      <legend>Border</legend>
+      <div class="field-row">
+        <div>
+          <label for="borderWidthInput">Width</label>
+          <input type="number" id="borderWidthInput" value="20" min="0" max="60">
+        </div>
+        <div>
+          <label for="borderColorInput">Color</label>
+          <input type="color" id="borderColorInput" value="#2b4c7e">
+        </div>
+      </div>
+    </fieldset>
+
+    <hr class="divider">
+
+    <fieldset>
+      <legend>Fabric Colors</legend>
+      <div class="palette-grid" id="presetContainer"></div>
+      <div class="field-row" style="margin-top:14px;">
+        <div>
+          <label for="colorAInput">Color A</label>
+          <input type="color" id="colorAInput" value="#2b4c7e">
+        </div>
+        <div>
+          <label for="colorBInput">Color B</label>
+          <input type="color" id="colorBInput" value="#e8dcc4">
+        </div>
+      </div>
+    </fieldset>
+
   </div>
 
-  <br>
+  <div class="panel canvas-panel">
+    <svg id="quilt-canvas"></svg>
+    <button id="downloadBtn">Download design</button>
+    <div id="yardageResults"></div>
+  </div>
 
-  <svg id="quilt-canvas" style="border:1px solid #ccc;"></svg>
+</div>
 
-  <br><br>
-  <button id="downloadBtn">Download Design as PNG</button>
+<script>
+  const svg = document.getElementById('quilt-canvas');
+  const yardageResults = document.getElementById('yardageResults');
+  const downloadBtn = document.getElementById('downloadBtn');
+  const SVG_NS = 'http://www.w3.org/2000/svg';
 
-  <div id="yardageResults"></div>
+  const patternSelect = document.getElementById('patternSelect');
+  const alternateRotationInput = document.getElementById('alternateRotationInput');
+  const blockSizeInchesInput = document.getElementById('blockSizeInchesInput');
+  const blocksAcrossInput = document.getElementById('blocksAcrossInput');
+  const blocksDownInput = document.getElementById('blocksDownInput');
+  const sashingWidthInput = document.getElementById('sashingWidthInput');
+  const sashingColorInput = document.getElementById('sashingColorInput');
+  const borderWidthInput = document.getElementById('borderWidthInput');
+  const borderColorInput = document.getElementById('borderColorInput');
+  const colorAInput = document.getElementById('colorAInput');
+  const colorBInput = document.getElementById('colorBInput');
+  const presetContainer = document.getElementById('presetContainer');
 
-  <script>
-    const svg = document.getElementById('quilt-canvas');
-    const yardageResults = document.getElementById('yardageResults');
-    const downloadBtn = document.getElementById('downloadBtn');
+  const squareSize = 100;
+  const blockGrid = 3;
+  const blockSize = squareSize * blockGrid; // 300px design unit, scaled to "Block Size (inches)"
 
-    const patternSelect = document.getElementById('patternSelect');
-    const blockSizeInchesInput = document.getElementById('blockSizeInchesInput');
-    const blocksAcrossInput = document.getElementById('blocksAcrossInput');
-    const blocksDownInput = document.getElementById('blocksDownInput');
-    const sashingWidthInput = document.getElementById('sashingWidthInput');
-    const sashingColorInput = document.getElementById('sashingColorInput');
-    const borderWidthInput = document.getElementById('borderWidthInput');
-    const borderColorInput = document.getElementById('borderColorInput');
-    const colorAInput = document.getElementById('colorAInput');
-    const colorBInput = document.getElementById('colorBInput');
-    const presetContainer = document.getElementById('presetContainer');
+  const FABRIC_USABLE_WIDTH_IN = 42;
+  const SQ_IN_PER_YARD = FABRIC_USABLE_WIDTH_IN * 36;
 
-    const squareSize = 100;
-    const blockGrid = 3;
-    const blockSize = squareSize * blockGrid; // 300px — represents whatever "Block Size (inches)" is set to
+  let areaTotals = { colorA: 0, colorB: 0, sashing: 0, border: 0 };
 
-    // Standard quilting fabric: ~42" usable width per yard (after selvage trim), 36" per yard length
-    const FABRIC_USABLE_WIDTH_IN = 42;
-    const SQ_IN_PER_YARD = FABRIC_USABLE_WIDTH_IN * 36;
+  const palettes = [
+    { name: 'Classic Navy', colorA: '#2b4c7e', colorB: '#e8dcc4' },
+    { name: 'Amish Solids', colorA: '#8b1a1a', colorB: '#1a1a1a' },
+    { name: 'Soft Pastel', colorA: '#f4c2c2', colorB: '#c2e0f4' },
+    { name: 'Autumn', colorA: '#a5502e', colorB: '#e0a458' },
+    { name: 'Forest', colorA: '#2d4a2b', colorB: '#d9c9a3' },
+    { name: 'Modern Mono', colorA: '#333333', colorB: '#f2f2f2' },
+    { name: 'Antique Gold', colorA: '#8c6d1f', colorB: '#f3e4c2' },
+    { name: 'Slate & Cream', colorA: '#4a5a63', colorB: '#f1ebdd' },
+    { name: 'Berry', colorA: '#6b1f3b', colorB: '#e9c9c9' }
+  ];
 
-    // Accumulates area (in px^2) drawn for each role, reset at the start of every redraw
-    let areaTotals = { colorA: 0, colorB: 0, sashing: 0, border: 0 };
+  palettes.forEach(p => {
+    const swatch = document.createElement('div');
+    swatch.className = 'palette-swatch';
+    swatch.title = p.name;
+    swatch.style.background = `linear-gradient(to right, ${p.colorA} 50%, ${p.colorB} 50%)`;
+    swatch.addEventListener('click', () => {
+      colorAInput.value = p.colorA;
+      colorBInput.value = p.colorB;
+      redraw();
+    });
+    presetContainer.appendChild(swatch);
+  });
 
-    const palettes = [
-      { name: 'Classic Navy', colorA: '#2b4c7e', colorB: '#e8dcc4' },
-      { name: 'Amish Solids', colorA: '#8b1a1a', colorB: '#1a1a1a' },
-      { name: 'Soft Pastel', colorA: '#f4c2c2', colorB: '#c2e0f4' },
-      { name: 'Autumn', colorA: '#a5502e', colorB: '#e0a458' },
-      { name: 'Forest', colorA: '#2d4a2b', colorB: '#d9c9a3' },
-      { name: 'Modern Mono', colorA: '#333333', colorB: '#f2f2f2' }
+  function addRect(group, x, y, w, h, fill, role) {
+    const rect = document.createElementNS(SVG_NS, 'rect');
+    rect.setAttribute('x', x);
+    rect.setAttribute('y', y);
+    rect.setAttribute('width', w);
+    rect.setAttribute('height', h);
+    rect.setAttribute('fill', fill);
+    group.appendChild(rect);
+    if (role) areaTotals[role] += w * h;
+  }
+
+  // points: array of [x, y] pairs. Area via shoelace formula.
+  function addPolygon(group, points, fill, role) {
+    const poly = document.createElementNS(SVG_NS, 'polygon');
+    poly.setAttribute('points', points.map(p => p.join(',')).join(' '));
+    poly.setAttribute('fill', fill);
+    group.appendChild(poly);
+
+    if (role) {
+      let area = 0;
+      for (let i = 0; i < points.length; i++) {
+        const [x1, y1] = points[i];
+        const [x2, y2] = points[(i + 1) % points.length];
+        area += x1 * y2 - x2 * y1;
+      }
+      areaTotals[role] += Math.abs(area) / 2;
+    }
+  }
+
+  function drawNinePatchBlock(group, offsetX, offsetY, colorA, colorB) {
+    for (let row = 0; row < blockGrid; row++) {
+      for (let col = 0; col < blockGrid; col++) {
+        const isEven = (row + col) % 2 === 0;
+        addRect(group, offsetX + col * squareSize, offsetY + row * squareSize, squareSize, squareSize, isEven ? colorA : colorB, isEven ? 'colorA' : 'colorB');
+      }
+    }
+  }
+
+  function drawLogCabinBlock(group, offsetX, offsetY, colorA, colorB) {
+    const rounds = 4;
+    const stripWidth = 25;
+    const centerSize = blockSize - 2 * rounds * stripWidth;
+
+    let x = (blockSize - centerSize) / 2;
+    let y = (blockSize - centerSize) / 2;
+    let w = centerSize;
+    let h = centerSize;
+
+    addRect(group, offsetX + x, offsetY + y, w, h, colorB, 'colorB');
+
+    for (let r = 0; r < rounds; r++) {
+      addRect(group, offsetX + x + w, offsetY + y, stripWidth, h, colorA, 'colorA');
+      w += stripWidth;
+
+      addRect(group, offsetX + x, offsetY + y + h, w, stripWidth, colorA, 'colorA');
+      h += stripWidth;
+
+      addRect(group, offsetX + x - stripWidth, offsetY + y, stripWidth, h, colorB, 'colorB');
+      x -= stripWidth;
+      w += stripWidth;
+
+      addRect(group, offsetX + x, offsetY + y - stripWidth, w, stripWidth, colorB, 'colorB');
+      y -= stripWidth;
+      h += stripWidth;
+    }
+  }
+
+  // Built from one quadrant's diagonal split, rotated 3 times around the block
+  // center — the rotational repetition IS the pinwheel effect.
+  function drawPinwheelBlock(group, offsetX, offsetY, colorA, colorB) {
+    const half = blockSize / 2;
+    const cx = offsetX + half;
+    const cy = offsetY + half;
+
+    for (let i = 0; i < 4; i++) {
+      const quad = document.createElementNS(SVG_NS, 'g');
+      quad.setAttribute('transform', `rotate(${90 * i} ${cx} ${cy})`);
+      group.appendChild(quad);
+
+      addPolygon(quad, [[offsetX, offsetY], [offsetX + half, offsetY], [offsetX, offsetY + half]], colorA, 'colorA');
+      addPolygon(quad, [[offsetX + half, offsetY], [offsetX + half, offsetY + half], [offsetX, offsetY + half]], colorB, 'colorB');
+    }
+  }
+
+  function drawQuiltBody(group, offsetX, offsetY, blockDrawFn, blocksAcross, blocksDown, sashingWidth, sashingColor, colorA, colorB, alternateRotation) {
+    const bodyWidth = blocksAcross * blockSize + (blocksAcross + 1) * sashingWidth;
+    const bodyHeight = blocksDown * blockSize + (blocksDown + 1) * sashingWidth;
+
+    addRect(group, offsetX, offsetY, bodyWidth, bodyHeight, sashingColor, 'sashing');
+
+    for (let by = 0; by < blocksDown; by++) {
+      for (let bx = 0; bx < blocksAcross; bx++) {
+        const blockX = offsetX + sashingWidth + bx * (blockSize + sashingWidth);
+        const blockY = offsetY + sashingWidth + by * (blockSize + sashingWidth);
+
+        const rotateDeg = (alternateRotation && (bx + by) % 2 === 1) ? 90 : 0;
+        const blockGroup = document.createElementNS(SVG_NS, 'g');
+        blockGroup.setAttribute('transform', `translate(${blockX} ${blockY}) rotate(${rotateDeg} ${blockSize / 2} ${blockSize / 2})`);
+        group.appendChild(blockGroup);
+
+        blockDrawFn(blockGroup, 0, 0, colorA, colorB);
+      }
+    }
+
+    const blockCount = blocksAcross * blocksDown;
+    areaTotals.sashing -= blockCount * blockSize * blockSize;
+
+    return { bodyWidth, bodyHeight };
+  }
+
+  function drawQuilt(blockDrawFn, blocksAcross, blocksDown, sashingWidth, sashingColor, borderWidth, borderColor, colorA, colorB, alternateRotation) {
+    const bodyWidth = blocksAcross * blockSize + (blocksAcross + 1) * sashingWidth;
+    const bodyHeight = blocksDown * blockSize + (blocksDown + 1) * sashingWidth;
+
+    const totalWidth = bodyWidth + borderWidth * 2;
+    const totalHeight = bodyHeight + borderWidth * 2;
+
+    svg.setAttribute('viewBox', `0 0 ${totalWidth} ${totalHeight}`);
+    svg.setAttribute('width', totalWidth);
+    svg.setAttribute('height', totalHeight);
+    svg.innerHTML = '';
+
+    addRect(svg, 0, 0, totalWidth, totalHeight, borderColor, 'border');
+    drawQuiltBody(svg, borderWidth, borderWidth, blockDrawFn, blocksAcross, blocksDown, sashingWidth, sashingColor, colorA, colorB, alternateRotation);
+    areaTotals.border -= bodyWidth * bodyHeight;
+  }
+
+  function updateYardage(blockSizeInches) {
+    const pixelsPerInch = blockSize / blockSizeInches;
+    const sqPxPerSqIn = pixelsPerInch * pixelsPerInch;
+
+    const rows = [
+      { label: 'Color A', px: areaTotals.colorA, color: colorAInput.value },
+      { label: 'Color B', px: areaTotals.colorB, color: colorBInput.value },
+      { label: 'Sashing', px: areaTotals.sashing, color: sashingColorInput.value },
+      { label: 'Border', px: areaTotals.border, color: borderColorInput.value }
     ];
 
-    palettes.forEach(p => {
-      const swatch = document.createElement('div');
-      swatch.className = 'palette-swatch';
-      swatch.title = p.name;
-      swatch.style.background = `linear-gradient(to right, ${p.colorA} 50%, ${p.colorB} 50%)`;
-      swatch.addEventListener('click', () => {
-        colorAInput.value = p.colorA;
-        colorBInput.value = p.colorB;
-        redraw();
-      });
-      presetContainer.appendChild(swatch);
+    let html = '<span class="yardage-title">Fabric needed</span>';
+    html += '<span class="yardage-note">Based on 42" usable width, no waste margin</span>';
+    rows.forEach(r => {
+      if (r.px <= 0) return;
+      const sqIn = r.px / sqPxPerSqIn;
+      const yards = sqIn / SQ_IN_PER_YARD;
+      html += `<div class="yardage-row"><span><span class="swatch-dot" style="background:${r.color};"></span>${r.label}</span><span>${yards.toFixed(2)} yd</span></div>`;
     });
+    yardageResults.innerHTML = html;
+  }
 
-    // role = 'colorA' | 'colorB' | 'sashing' | 'border' | null — used to track fabric area, not just draw
-    function addRect(group, x, y, w, h, fill, role) {
-      const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-      rect.setAttribute('x', x);
-      rect.setAttribute('y', y);
-      rect.setAttribute('width', w);
-      rect.setAttribute('height', h);
-      rect.setAttribute('fill', fill);
-      group.appendChild(rect);
+  function redraw() {
+    areaTotals = { colorA: 0, colorB: 0, sashing: 0, border: 0 };
 
-      if (role) {
-        areaTotals[role] += w * h;
-      }
-    }
+    const patternMap = { ninepatch: drawNinePatchBlock, logcabin: drawLogCabinBlock, pinwheel: drawPinwheelBlock };
+    const blockDrawFn = patternMap[patternSelect.value];
+    const alternateRotation = alternateRotationInput.checked;
+    const blockSizeInches = parseFloat(blockSizeInchesInput.value);
+    const blocksAcross = parseInt(blocksAcrossInput.value, 10);
+    const blocksDown = parseInt(blocksDownInput.value, 10);
+    const sashingWidth = parseInt(sashingWidthInput.value, 10);
+    const sashingColor = sashingColorInput.value;
+    const borderWidth = parseInt(borderWidthInput.value, 10);
+    const borderColor = borderColorInput.value;
+    const colorA = colorAInput.value;
+    const colorB = colorBInput.value;
 
-    function drawNinePatchBlock(group, offsetX, offsetY, colorA, colorB) {
-      for (let row = 0; row < blockGrid; row++) {
-        for (let col = 0; col < blockGrid; col++) {
-          const isEven = (row + col) % 2 === 0;
-          addRect(group, offsetX + col * squareSize, offsetY + row * squareSize, squareSize, squareSize, isEven ? colorA : colorB, isEven ? 'colorA' : 'colorB');
-        }
-      }
-    }
+    drawQuilt(blockDrawFn, blocksAcross, blocksDown, sashingWidth, sashingColor, borderWidth, borderColor, colorA, colorB, alternateRotation);
+    updateYardage(blockSizeInches);
+  }
 
-    function drawLogCabinBlock(group, offsetX, offsetY, colorA, colorB) {
-      const rounds = 4;
-      const stripWidth = 25;
-      const centerSize = blockSize - 2 * rounds * stripWidth;
+  [patternSelect, alternateRotationInput, blockSizeInchesInput, blocksAcrossInput, blocksDownInput, sashingWidthInput, sashingColorInput, borderWidthInput, borderColorInput, colorAInput, colorBInput]
+    .forEach(input => input.addEventListener('input', redraw));
 
-      let x = (blockSize - centerSize) / 2;
-      let y = (blockSize - centerSize) / 2;
-      let w = centerSize;
-      let h = centerSize;
+  downloadBtn.addEventListener('click', () => {
+    const svgWidth = svg.getAttribute('width');
+    const svgHeight = svg.getAttribute('height');
 
-      addRect(group, offsetX + x, offsetY + y, w, h, colorB, 'colorB');
+    const svgString = new XMLSerializer().serializeToString(svg);
+    const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+    const svgUrl = URL.createObjectURL(svgBlob);
 
-      for (let r = 0; r < rounds; r++) {
-        addRect(group, offsetX + x + w, offsetY + y, stripWidth, h, colorA, 'colorA');
-        w += stripWidth;
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = svgWidth;
+      canvas.height = svgHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, svgWidth, svgHeight);
+      URL.revokeObjectURL(svgUrl);
 
-        addRect(group, offsetX + x, offsetY + y + h, w, stripWidth, colorA, 'colorA');
-        h += stripWidth;
+      canvas.toBlob((pngBlob) => {
+        const pngUrl = URL.createObjectURL(pngBlob);
+        const link = document.createElement('a');
+        link.href = pngUrl;
+        link.download = 'quilt-design.png';
+        link.click();
+        URL.revokeObjectURL(pngUrl);
+      }, 'image/png');
+    };
+    img.src = svgUrl;
+  });
 
-        addRect(group, offsetX + x - stripWidth, offsetY + y, stripWidth, h, colorB, 'colorB');
-        x -= stripWidth;
-        w += stripWidth;
-
-        addRect(group, offsetX + x, offsetY + y - stripWidth, w, stripWidth, colorB, 'colorB');
-        y -= stripWidth;
-        h += stripWidth;
-      }
-    }
-
-    function drawQuiltBody(group, offsetX, offsetY, blockDrawFn, blocksAcross, blocksDown, sashingWidth, sashingColor, colorA, colorB) {
-      const bodyWidth = blocksAcross * blockSize + (blocksAcross + 1) * sashingWidth;
-      const bodyHeight = blocksDown * blockSize + (blocksDown + 1) * sashingWidth;
-
-      // sashing background fills the whole body first; block area drawn on top "reclaims" that area
-      // for colorA/colorB, so subtract block area from sashing's running total afterward
-      addRect(group, offsetX, offsetY, bodyWidth, bodyHeight, sashingColor, 'sashing');
-
-      for (let by = 0; by < blocksDown; by++) {
-        for (let bx = 0; bx < blocksAcross; bx++) {
-          const blockX = offsetX + sashingWidth + bx * (blockSize + sashingWidth);
-          const blockY = offsetY + sashingWidth + by * (blockSize + sashingWidth);
-          blockDrawFn(group, blockX, blockY, colorA, colorB);
-        }
-      }
-
-      // correct sashing total: it was credited for the full body area, but blocks cover blockSize*blockSize each
-      const blockCount = blocksAcross * blocksDown;
-      areaTotals.sashing -= blockCount * blockSize * blockSize;
-
-      return { bodyWidth, bodyHeight };
-    }
-
-    function drawQuilt(blockDrawFn, blocksAcross, blocksDown, sashingWidth, sashingColor, borderWidth, borderColor, colorA, colorB) {
-      const bodyWidth = blocksAcross * blockSize + (blocksAcross + 1) * sashingWidth;
-      const bodyHeight = blocksDown * blockSize + (blocksDown + 1) * sashingWidth;
-
-      const totalWidth = bodyWidth + borderWidth * 2;
-      const totalHeight = bodyHeight + borderWidth * 2;
-
-      svg.setAttribute('width', totalWidth);
-      svg.setAttribute('height', totalHeight);
-      svg.innerHTML = '';
-
-      // border fills the whole canvas first, then gets "reclaimed" by the body area drawn on top
-      addRect(svg, 0, 0, totalWidth, totalHeight, borderColor, 'border');
-      drawQuiltBody(svg, borderWidth, borderWidth, blockDrawFn, blocksAcross, blocksDown, sashingWidth, sashingColor, colorA, colorB);
-      areaTotals.border -= bodyWidth * bodyHeight;
-    }
-
-    function updateYardage(blockSizeInches) {
-      const pixelsPerInch = blockSize / blockSizeInches;
-      const sqPxPerSqIn = pixelsPerInch * pixelsPerInch;
-
-      const rows = [
-        { label: 'Color A', px: areaTotals.colorA, color: colorAInput.value },
-        { label: 'Color B', px: areaTotals.colorB, color: colorBInput.value },
-        { label: 'Sashing', px: areaTotals.sashing, color: sashingColorInput.value },
-        { label: 'Border', px: areaTotals.border, color: borderColorInput.value }
-      ];
-
-      let html = '<strong>Estimated Fabric Needed</strong> <span style="font-size:0.85em;color:#666;">(based on 42" usable width, no waste margin)</span>';
-      rows.forEach(r => {
-        if (r.px <= 0) return; // skip if that element isn't in use (e.g. 0-width sashing)
-        const sqIn = r.px / sqPxPerSqIn;
-        const yards = sqIn / SQ_IN_PER_YARD;
-        html += `<div><span style="display:inline-block;width:14px;height:14px;background:${r.color};border:1px solid #999;vertical-align:middle;margin-right:6px;"></span>${r.label}: ${yards.toFixed(2)} yards</div>`;
-      });
-      yardageResults.innerHTML = html;
-    }
-
-    function redraw() {
-      areaTotals = { colorA: 0, colorB: 0, sashing: 0, border: 0 }; // reset before each draw
-
-      const blockDrawFn = patternSelect.value === 'logcabin' ? drawLogCabinBlock : drawNinePatchBlock;
-      const blockSizeInches = parseFloat(blockSizeInchesInput.value);
-      const blocksAcross = parseInt(blocksAcrossInput.value, 10);
-      const blocksDown = parseInt(blocksDownInput.value, 10);
-      const sashingWidth = parseInt(sashingWidthInput.value, 10);
-      const sashingColor = sashingColorInput.value;
-      const borderWidth = parseInt(borderWidthInput.value, 10);
-      const borderColor = borderColorInput.value;
-      const colorA = colorAInput.value;
-      const colorB = colorBInput.value;
-
-      drawQuilt(blockDrawFn, blocksAcross, blocksDown, sashingWidth, sashingColor, borderWidth, borderColor, colorA, colorB);
-      updateYardage(blockSizeInches);
-    }
-
-    [patternSelect, blockSizeInchesInput, blocksAcrossInput, blocksDownInput, sashingWidthInput, sashingColorInput, borderWidthInput, borderColorInput, colorAInput, colorBInput]
-      .forEach(input => input.addEventListener('input', redraw));
-
-    // Converts the current SVG to a PNG and triggers a browser download
-    downloadBtn.addEventListener('click', () => {
-      const svgWidth = svg.getAttribute('width');
-      const svgHeight = svg.getAttribute('height');
-
-      // serialize the live SVG element into a standalone SVG string
-      const svgString = new XMLSerializer().serializeToString(svg);
-      const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
-      const svgUrl = URL.createObjectURL(svgBlob);
-
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = svgWidth;
-        canvas.height = svgHeight;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, svgWidth, svgHeight);
-        URL.revokeObjectURL(svgUrl);
-
-        canvas.toBlob((pngBlob) => {
-          const pngUrl = URL.createObjectURL(pngBlob);
-          const link = document.createElement('a');
-          link.href = pngUrl;
-          link.download = 'quilt-design.png';
-          link.click();
-          URL.revokeObjectURL(pngUrl);
-        }, 'image/png');
-      };
-      img.src = svgUrl;
-    });
-
-    redraw();
-  </script>
+  redraw();
+</script>
 </body>
 </html>
