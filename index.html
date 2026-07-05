@@ -296,6 +296,11 @@
         <option value="ninepatch">Nine Patch</option>
         <option value="logcabin">Log Cabin</option>
         <option value="pinwheel">Pinwheel</option>
+        <option value="railfence">Rail Fence</option>
+        <option value="courthousesteps">Courthouse Steps</option>
+        <option value="ohiostar">Ohio Star</option>
+        <option value="flyinggeese">Flying Geese</option>
+        <option value="bearspaw">Bear's Paw</option>
       </select>
       <div class="checkbox-row" style="margin-top:10px;">
         <input type="checkbox" id="alternateRotationInput">
@@ -527,6 +532,122 @@
     }
   }
 
+  // Simple parallel strips alternating color, running the full height of the block.
+  function drawRailFenceBlock(group, offsetX, offsetY, colorA, colorB) {
+    const stripCount = 6;
+    const stripW = blockSize / stripCount;
+    for (let i = 0; i < stripCount; i++) {
+      const color = i % 2 === 0 ? colorA : colorB;
+      addRect(group, offsetX + i * stripW, offsetY, stripW, blockSize, color, i % 2 === 0 ? 'colorA' : 'colorB');
+    }
+  }
+
+  // Log Cabin variant: strips added top/bottom (colorA) then left/right (colorB) each
+  // round, instead of rotating around all four sides — creates opposing "wings" rather
+  // than a diagonal split.
+  function drawCourthouseStepsBlock(group, offsetX, offsetY, colorA, colorB) {
+    const rounds = 4;
+    const stripWidth = 25;
+    const centerSize = blockSize - 2 * rounds * stripWidth;
+
+    let x = (blockSize - centerSize) / 2;
+    let y = (blockSize - centerSize) / 2;
+    let w = centerSize;
+    let h = centerSize;
+
+    addRect(group, offsetX + x, offsetY + y, w, h, colorA, 'colorA');
+
+    for (let r = 0; r < rounds; r++) {
+      addRect(group, offsetX + x, offsetY + y - stripWidth, w, stripWidth, colorA, 'colorA');
+      y -= stripWidth;
+      h += stripWidth;
+
+      addRect(group, offsetX + x, offsetY + y + h, w, stripWidth, colorA, 'colorA');
+      h += stripWidth;
+
+      addRect(group, offsetX + x - stripWidth, offsetY + y, stripWidth, h, colorB, 'colorB');
+      x -= stripWidth;
+      w += stripWidth;
+
+      addRect(group, offsetX + x + w, offsetY + y, stripWidth, h, colorB, 'colorB');
+      w += stripWidth;
+    }
+  }
+
+  // Center accent square + background corners, with half-square-triangle "points" on
+  // each edge. One corner and one edge unit are drawn once, then each rotated 3 times
+  // around the block center to complete the star.
+  function drawOhioStarBlock(group, offsetX, offsetY, colorA, colorB) {
+    const unit = blockSize / 3;
+    const cx = offsetX + blockSize / 2;
+    const cy = offsetY + blockSize / 2;
+
+    addRect(group, offsetX + unit, offsetY + unit, unit, unit, colorA, 'colorA');
+
+    for (let i = 0; i < 4; i++) {
+      const g = document.createElementNS(SVG_NS, 'g');
+      g.setAttribute('transform', `rotate(${90 * i} ${cx} ${cy})`);
+      group.appendChild(g);
+      addRect(g, offsetX, offsetY, unit, unit, colorB, 'colorB');
+    }
+
+    for (let i = 0; i < 4; i++) {
+      const g = document.createElementNS(SVG_NS, 'g');
+      g.setAttribute('transform', `rotate(${90 * i} ${cx} ${cy})`);
+      group.appendChild(g);
+      const sx = offsetX + unit, sy = offsetY;
+      addPolygon(g, [[sx, sy], [sx + unit, sy], [sx + unit, sy + unit]], colorB, 'colorB');
+      addPolygon(g, [[sx, sy], [sx + unit, sy + unit], [sx, sy + unit]], colorA, 'colorA');
+    }
+  }
+
+  // A stacked column of "goose" units: a large point triangle (colorA) flanked by two
+  // corner triangles (colorB) filling the rest of each rectangular unit.
+  function drawFlyingGeeseBlock(group, offsetX, offsetY, colorA, colorB) {
+    const geeseCount = 4;
+    const unitH = blockSize / geeseCount;
+    for (let i = 0; i < geeseCount; i++) {
+      const y = offsetY + i * unitH;
+      const x = offsetX;
+      addPolygon(group, [[x + blockSize / 2, y], [x, y + unitH], [x + blockSize, y + unitH]], colorA, 'colorA');
+      addPolygon(group, [[x, y], [x + blockSize / 2, y], [x, y + unitH]], colorB, 'colorB');
+      addPolygon(group, [[x + blockSize, y], [x + blockSize / 2, y], [x + blockSize, y + unitH]], colorB, 'colorB');
+    }
+  }
+
+  // Simplified interpretation: a solid center pad, plain squares on each edge, and a
+  // "claw" of 3 small half-square-triangle cells in each corner. One edge unit and one
+  // corner unit are drawn once, then rotated 3 times each around the block center.
+  function drawBearsPawBlock(group, offsetX, offsetY, colorA, colorB) {
+    const unit = blockSize / 3;
+    const sub = unit / 2;
+    const cx = offsetX + blockSize / 2;
+    const cy = offsetY + blockSize / 2;
+
+    addRect(group, offsetX + unit, offsetY + unit, unit, unit, colorA, 'colorA');
+
+    for (let i = 0; i < 4; i++) {
+      const g = document.createElementNS(SVG_NS, 'g');
+      g.setAttribute('transform', `rotate(${90 * i} ${cx} ${cy})`);
+      group.appendChild(g);
+      addRect(g, offsetX + unit, offsetY, unit, unit, colorB, 'colorB');
+    }
+
+    const claws = [[0, 0], [sub, 0], [0, sub]];
+    for (let i = 0; i < 4; i++) {
+      const g = document.createElementNS(SVG_NS, 'g');
+      g.setAttribute('transform', `rotate(${90 * i} ${cx} ${cy})`);
+      group.appendChild(g);
+
+      claws.forEach(([sx, sy]) => {
+        const ax = offsetX + sx, ay = offsetY + sy;
+        addPolygon(g, [[ax, ay], [ax + sub, ay], [ax, ay + sub]], colorA, 'colorA');
+        addPolygon(g, [[ax + sub, ay], [ax + sub, ay + sub], [ax, ay + sub]], colorB, 'colorB');
+      });
+      addRect(g, offsetX + sub, offsetY + sub, sub, sub, colorB, 'colorB');
+    }
+  }
+
   function drawQuiltBody(group, offsetX, offsetY, blockDrawFn, blocksAcross, blocksDown, sashingWidth, sashingColor, colorA, colorB, alternateRotation) {
     const bodyWidth = blocksAcross * blockSize + (blocksAcross + 1) * sashingWidth;
     const bodyHeight = blocksDown * blockSize + (blocksDown + 1) * sashingWidth;
@@ -595,7 +716,16 @@
   function redraw() {
     areaTotals = { colorA: 0, colorB: 0, sashing: 0, border: 0 };
 
-    const patternMap = { ninepatch: drawNinePatchBlock, logcabin: drawLogCabinBlock, pinwheel: drawPinwheelBlock };
+    const patternMap = {
+      ninepatch: drawNinePatchBlock,
+      logcabin: drawLogCabinBlock,
+      pinwheel: drawPinwheelBlock,
+      railfence: drawRailFenceBlock,
+      courthousesteps: drawCourthouseStepsBlock,
+      ohiostar: drawOhioStarBlock,
+      flyinggeese: drawFlyingGeeseBlock,
+      bearspaw: drawBearsPawBlock
+    };
     const blockDrawFn = patternMap[patternSelect.value];
     const alternateRotation = alternateRotationInput.checked;
     const blockSizeInches = parseFloat(blockSizeInchesInput.value);
