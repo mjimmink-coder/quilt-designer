@@ -6,6 +6,30 @@
 </head>
 <body>
   <h1>Quilt Designer</h1>
-  <svg id="quilt-canvas" width="400" height="400" style="border:1px solid #ccc;"></svg>
+  <svg id="quilt-canvas" width="300" height="300" style="border:1px solid #ccc;"></svg>
+
+  <script>
+    const svg = document.getElementById('quilt-canvas');
+    const squareSize = 100; // each patch is 100x100 px
+    const colorA = '#2b4c7e'; // dark blue
+    const colorB = '#e8dcc4'; // cream
+
+    // 3x3 grid, checkerboard pattern
+    for (let row = 0; row < 3; row++) {
+      for (let col = 0; col < 3; col++) {
+        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        rect.setAttribute('x', col * squareSize);
+        rect.setAttribute('y', row * squareSize);
+        rect.setAttribute('width', squareSize);
+        rect.setAttribute('height', squareSize);
+
+        // checkerboard: alternate color based on row+col parity
+        const isEven = (row + col) % 2 === 0;
+        rect.setAttribute('fill', isEven ? colorA : colorB);
+
+        svg.appendChild(rect);
+      }
+    }
+  </script>
 </body>
 </html>
