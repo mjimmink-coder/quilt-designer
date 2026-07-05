@@ -14,6 +14,9 @@
     <label>Sashing Width: <input type="number" id="sashingWidthInput" value="10" min="0" max="40"></label>
     <label>Sashing Color: <input type="color" id="sashingColorInput" value="#ffffff"></label>
     <br><br>
+    <label>Border Width: <input type="number" id="borderWidthInput" value="20" min="0" max="60"></label>
+    <label>Border Color: <input type="color" id="borderColorInput" value="#2b4c7e"></label>
+    <br><br>
     <label>Block Color A: <input type="color" id="colorAInput" value="#2b4c7e"></label>
     <label>Block Color B: <input type="color" id="colorBInput" value="#e8dcc4"></label>
   </div>
@@ -29,14 +32,15 @@
     const blocksDownInput = document.getElementById('blocksDownInput');
     const sashingWidthInput = document.getElementById('sashingWidthInput');
     const sashingColorInput = document.getElementById('sashingColorInput');
+    const borderWidthInput = document.getElementById('borderWidthInput');
+    const borderColorInput = document.getElementById('borderColorInput');
     const colorAInput = document.getElementById('colorAInput');
     const colorBInput = document.getElementById('colorBInput');
 
-    const squareSize = 100;    // px per patch within a block
-    const blockGrid = 3;       // each Nine Patch block is always 3x3 patches
-    const blockSize = squareSize * blockGrid; // pixel size of one block
+    const squareSize = 100;
+    const blockGrid = 3;
+    const blockSize = squareSize * blockGrid;
 
-    // Draws a single Nine Patch block, offset by (offsetX, offsetY), into the given group
     function drawNinePatchBlock(group, offsetX, offsetY, colorA, colorB) {
       for (let row = 0; row < blockGrid; row++) {
         for (let col = 0; col < blockGrid; col++) {
@@ -54,32 +58,53 @@
       }
     }
 
-    // Draws the full quilt: a grid of blocks with sashing between and around them
-    function drawQuilt(blocksAcross, blocksDown, sashingWidth, sashingColor, colorA, colorB) {
-      const totalWidth = blocksAcross * blockSize + (blocksAcross + 1) * sashingWidth;
-      const totalHeight = blocksDown * blockSize + (blocksDown + 1) * sashingWidth;
+    // Draws the sashed block grid into the given group, starting at (offsetX, offsetY)
+    function drawQuiltBody(group, offsetX, offsetY, blocksAcross, blocksDown, sashingWidth, sashingColor, colorA, colorB) {
+      const bodyWidth = blocksAcross * blockSize + (blocksAcross + 1) * sashingWidth;
+      const bodyHeight = blocksDown * blockSize + (blocksDown + 1) * sashingWidth;
+
+      const background = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      background.setAttribute('x', offsetX);
+      background.setAttribute('y', offsetY);
+      background.setAttribute('width', bodyWidth);
+      background.setAttribute('height', bodyHeight);
+      background.setAttribute('fill', sashingColor);
+      group.appendChild(background);
+
+      for (let by = 0; by < blocksDown; by++) {
+        for (let bx = 0; bx < blocksAcross; bx++) {
+          const blockX = offsetX + sashingWidth + bx * (blockSize + sashingWidth);
+          const blockY = offsetY + sashingWidth + by * (blockSize + sashingWidth);
+          drawNinePatchBlock(group, blockX, blockY, colorA, colorB);
+        }
+      }
+
+      return { bodyWidth, bodyHeight };
+    }
+
+    function drawQuilt(blocksAcross, blocksDown, sashingWidth, sashingColor, borderWidth, borderColor, colorA, colorB) {
+      // first figure out how big the sashed body will be, so we know the total canvas size
+      const bodyWidth = blocksAcross * blockSize + (blocksAcross + 1) * sashingWidth;
+      const bodyHeight = blocksDown * blockSize + (blocksDown + 1) * sashingWidth;
+
+      const totalWidth = bodyWidth + borderWidth * 2;
+      const totalHeight = bodyHeight + borderWidth * 2;
 
       svg.setAttribute('width', totalWidth);
       svg.setAttribute('height', totalHeight);
       svg.innerHTML = '';
 
-      // background = sashing color, fills the whole canvas first
-      const background = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-      background.setAttribute('x', 0);
-      background.setAttribute('y', 0);
-      background.setAttribute('width', totalWidth);
-      background.setAttribute('height', totalHeight);
-      background.setAttribute('fill', sashingColor);
-      svg.appendChild(background);
+      // border fills the entire canvas first
+      const borderRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      borderRect.setAttribute('x', 0);
+      borderRect.setAttribute('y', 0);
+      borderRect.setAttribute('width', totalWidth);
+      borderRect.setAttribute('height', totalHeight);
+      borderRect.setAttribute('fill', borderColor);
+      svg.appendChild(borderRect);
 
-      // place each block on top, leaving sashing-width gaps
-      for (let by = 0; by < blocksDown; by++) {
-        for (let bx = 0; bx < blocksAcross; bx++) {
-          const offsetX = sashingWidth + bx * (blockSize + sashingWidth);
-          const offsetY = sashingWidth + by * (blockSize + sashingWidth);
-          drawNinePatchBlock(svg, offsetX, offsetY, colorA, colorB);
-        }
-      }
+      // quilt body drawn on top, inset by the border width
+      drawQuiltBody(svg, borderWidth, borderWidth, blocksAcross, blocksDown, sashingWidth, sashingColor, colorA, colorB);
     }
 
     function redraw() {
@@ -87,12 +112,14 @@
       const blocksDown = parseInt(blocksDownInput.value, 10);
       const sashingWidth = parseInt(sashingWidthInput.value, 10);
       const sashingColor = sashingColorInput.value;
+      const borderWidth = parseInt(borderWidthInput.value, 10);
+      const borderColor = borderColorInput.value;
       const colorA = colorAInput.value;
       const colorB = colorBInput.value;
-      drawQuilt(blocksAcross, blocksDown, sashingWidth, sashingColor, colorA, colorB);
+      drawQuilt(blocksAcross, blocksDown, sashingWidth, sashingColor, borderWidth, borderColor, colorA, colorB);
     }
 
-    [blocksAcrossInput, blocksDownInput, sashingWidthInput, sashingColorInput, colorAInput, colorBInput]
+    [blocksAcrossInput, blocksDownInput, sashingWidthInput, sashingColorInput, borderWidthInput, borderColorInput, colorAInput, colorBInput]
       .forEach(input => input.addEventListener('input', redraw));
 
     redraw();
