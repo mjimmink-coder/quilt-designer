@@ -16,6 +16,16 @@
     .palette-swatch:hover {
       border-color: #000;
     }
+    #yardageResults {
+      margin-top: 10px;
+      padding: 10px;
+      background: #f5f5f5;
+      border: 1px solid #ccc;
+      max-width: 350px;
+    }
+    #yardageResults div {
+      margin: 4px 0;
+    }
   </style>
 </head>
 <body>
@@ -28,6 +38,7 @@
         <option value="logcabin">Log Cabin</option>
       </select>
     </label>
+    <label style="margin-left:20px;">Block Size (inches): <input type="number" id="blockSizeInchesInput" value="12" min="4" max="24"></label>
     <br><br>
     <label>Blocks Across: <input type="number" id="blocksAcrossInput" value="3" min="1" max="10"></label>
     <label>Blocks Down: <input type="number" id="blocksDownInput" value="3" min="1" max="10"></label>
@@ -53,10 +64,14 @@
 
   <svg id="quilt-canvas" style="border:1px solid #ccc;"></svg>
 
+  <div id="yardageResults"></div>
+
   <script>
     const svg = document.getElementById('quilt-canvas');
+    const yardageResults = document.getElementById('yardageResults');
 
     const patternSelect = document.getElementById('patternSelect');
+    const blockSizeInchesInput = document.getElementById('blockSizeInchesInput');
     const blocksAcrossInput = document.getElementById('blocksAcrossInput');
     const blocksDownInput = document.getElementById('blocksDownInput');
     const sashingWidthInput = document.getElementById('sashingWidthInput');
@@ -69,7 +84,14 @@
 
     const squareSize = 100;
     const blockGrid = 3;
-    const blockSize = squareSize * blockGrid; // 300 — shared by all block patterns
+    const blockSize = squareSize * blockGrid; // 300px — represents whatever "Block Size (inches)" is set to
+
+    // Standard quilting fabric: ~42" usable width per yard (after selvage trim), 36" per yard length
+    const FABRIC_USABLE_WIDTH_IN = 42;
+    const SQ_IN_PER_YARD = FABRIC_USABLE_WIDTH_IN * 36;
+
+    // Accumulates area (in px^2) drawn for each role, reset at the start of every redraw
+    let areaTotals = { colorA: 0, colorB: 0, sashing: 0, border: 0 };
 
     const palettes = [
       { name: 'Classic Navy', colorA: '#2b4c7e', colorB: '#e8dcc4' },
@@ -93,7 +115,8 @@
       presetContainer.appendChild(swatch);
     });
 
-    function addRect(group, x, y, w, h, fill) {
+    // role = 'colorA' | 'colorB' | 'sashing' | 'border' | null — used to track fabric area, not just draw
+    function addRect(group, x, y, w, h, fill, role) {
       const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
       rect.setAttribute('x', x);
       rect.setAttribute('y', y);
@@ -101,51 +124,45 @@
       rect.setAttribute('height', h);
       rect.setAttribute('fill', fill);
       group.appendChild(rect);
+
+      if (role) {
+        areaTotals[role] += w * h;
+      }
     }
 
-    // --- Block pattern: Nine Patch ---
     function drawNinePatchBlock(group, offsetX, offsetY, colorA, colorB) {
       for (let row = 0; row < blockGrid; row++) {
         for (let col = 0; col < blockGrid; col++) {
           const isEven = (row + col) % 2 === 0;
-          addRect(group, offsetX + col * squareSize, offsetY + row * squareSize, squareSize, squareSize, isEven ? colorA : colorB);
+          addRect(group, offsetX + col * squareSize, offsetY + row * squareSize, squareSize, squareSize, isEven ? colorA : colorB, isEven ? 'colorA' : 'colorB');
         }
       }
     }
 
-    // --- Block pattern: Log Cabin ---
-    // Builds outward from a center square by adding strips in rotation:
-    // right, bottom (colorA), then left, top (colorB) — repeated per round.
     function drawLogCabinBlock(group, offsetX, offsetY, colorA, colorB) {
       const rounds = 4;
       const stripWidth = 25;
-      const centerSize = blockSize - 2 * rounds * stripWidth; // 100, matches Nine Patch patch size
+      const centerSize = blockSize - 2 * rounds * stripWidth;
 
-      // current bounding box of the block built so far, relative to offsetX/offsetY
       let x = (blockSize - centerSize) / 2;
       let y = (blockSize - centerSize) / 2;
       let w = centerSize;
       let h = centerSize;
 
-      // center square
-      addRect(group, offsetX + x, offsetY + y, w, h, colorB);
+      addRect(group, offsetX + x, offsetY + y, w, h, colorB, 'colorB');
 
       for (let r = 0; r < rounds; r++) {
-        // right strip (colorA)
-        addRect(group, offsetX + x + w, offsetY + y, stripWidth, h, colorA);
+        addRect(group, offsetX + x + w, offsetY + y, stripWidth, h, colorA, 'colorA');
         w += stripWidth;
 
-        // bottom strip (colorA)
-        addRect(group, offsetX + x, offsetY + y + h, w, stripWidth, colorA);
+        addRect(group, offsetX + x, offsetY + y + h, w, stripWidth, colorA, 'colorA');
         h += stripWidth;
 
-        // left strip (colorB)
-        addRect(group, offsetX + x - stripWidth, offsetY + y, stripWidth, h, colorB);
+        addRect(group, offsetX + x - stripWidth, offsetY + y, stripWidth, h, colorB, 'colorB');
         x -= stripWidth;
         w += stripWidth;
 
-        // top strip (colorB)
-        addRect(group, offsetX + x, offsetY + y - stripWidth, w, stripWidth, colorB);
+        addRect(group, offsetX + x, offsetY + y - stripWidth, w, stripWidth, colorB, 'colorB');
         y -= stripWidth;
         h += stripWidth;
       }
@@ -155,7 +172,9 @@
       const bodyWidth = blocksAcross * blockSize + (blocksAcross + 1) * sashingWidth;
       const bodyHeight = blocksDown * blockSize + (blocksDown + 1) * sashingWidth;
 
-      addRect(group, offsetX, offsetY, bodyWidth, bodyHeight, sashingColor);
+      // sashing background fills the whole body first; block area drawn on top "reclaims" that area
+      // for colorA/colorB, so subtract block area from sashing's running total afterward
+      addRect(group, offsetX, offsetY, bodyWidth, bodyHeight, sashingColor, 'sashing');
 
       for (let by = 0; by < blocksDown; by++) {
         for (let bx = 0; bx < blocksAcross; bx++) {
@@ -164,6 +183,10 @@
           blockDrawFn(group, blockX, blockY, colorA, colorB);
         }
       }
+
+      // correct sashing total: it was credited for the full body area, but blocks cover blockSize*blockSize each
+      const blockCount = blocksAcross * blocksDown;
+      areaTotals.sashing -= blockCount * blockSize * blockSize;
 
       return { bodyWidth, bodyHeight };
     }
@@ -179,12 +202,38 @@
       svg.setAttribute('height', totalHeight);
       svg.innerHTML = '';
 
-      addRect(svg, 0, 0, totalWidth, totalHeight, borderColor);
+      // border fills the whole canvas first, then gets "reclaimed" by the body area drawn on top
+      addRect(svg, 0, 0, totalWidth, totalHeight, borderColor, 'border');
       drawQuiltBody(svg, borderWidth, borderWidth, blockDrawFn, blocksAcross, blocksDown, sashingWidth, sashingColor, colorA, colorB);
+      areaTotals.border -= bodyWidth * bodyHeight;
+    }
+
+    function updateYardage(blockSizeInches) {
+      const pixelsPerInch = blockSize / blockSizeInches;
+      const sqPxPerSqIn = pixelsPerInch * pixelsPerInch;
+
+      const rows = [
+        { label: 'Color A', px: areaTotals.colorA, color: colorAInput.value },
+        { label: 'Color B', px: areaTotals.colorB, color: colorBInput.value },
+        { label: 'Sashing', px: areaTotals.sashing, color: sashingColorInput.value },
+        { label: 'Border', px: areaTotals.border, color: borderColorInput.value }
+      ];
+
+      let html = '<strong>Estimated Fabric Needed</strong> <span style="font-size:0.85em;color:#666;">(based on 42" usable width, no waste margin)</span>';
+      rows.forEach(r => {
+        if (r.px <= 0) return; // skip if that element isn't in use (e.g. 0-width sashing)
+        const sqIn = r.px / sqPxPerSqIn;
+        const yards = sqIn / SQ_IN_PER_YARD;
+        html += `<div><span style="display:inline-block;width:14px;height:14px;background:${r.color};border:1px solid #999;vertical-align:middle;margin-right:6px;"></span>${r.label}: ${yards.toFixed(2)} yards</div>`;
+      });
+      yardageResults.innerHTML = html;
     }
 
     function redraw() {
+      areaTotals = { colorA: 0, colorB: 0, sashing: 0, border: 0 }; // reset before each draw
+
       const blockDrawFn = patternSelect.value === 'logcabin' ? drawLogCabinBlock : drawNinePatchBlock;
+      const blockSizeInches = parseFloat(blockSizeInchesInput.value);
       const blocksAcross = parseInt(blocksAcrossInput.value, 10);
       const blocksDown = parseInt(blocksDownInput.value, 10);
       const sashingWidth = parseInt(sashingWidthInput.value, 10);
@@ -193,10 +242,12 @@
       const borderColor = borderColorInput.value;
       const colorA = colorAInput.value;
       const colorB = colorBInput.value;
+
       drawQuilt(blockDrawFn, blocksAcross, blocksDown, sashingWidth, sashingColor, borderWidth, borderColor, colorA, colorB);
+      updateYardage(blockSizeInches);
     }
 
-    [patternSelect, blocksAcrossInput, blocksDownInput, sashingWidthInput, sashingColorInput, borderWidthInput, borderColorInput, colorAInput, colorBInput]
+    [patternSelect, blockSizeInchesInput, blocksAcrossInput, blocksDownInput, sashingWidthInput, sashingColorInput, borderWidthInput, borderColorInput, colorAInput, colorBInput]
       .forEach(input => input.addEventListener('input', redraw));
 
     redraw();
