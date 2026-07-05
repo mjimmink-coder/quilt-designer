@@ -6,30 +6,44 @@
 </head>
 <body>
   <h1>Quilt Designer</h1>
-  <svg id="quilt-canvas" width="300" height="300" style="border:1px solid #ccc;"></svg>
+  <svg id="quilt-canvas" style="border:1px solid #ccc;"></svg>
 
   <script>
     const svg = document.getElementById('quilt-canvas');
-    const squareSize = 100; // each patch is 100x100 px
+
+    // --- Adjustable settings ---
+    const rows = 3;
+    const cols = 3;
+    const squareSize = 100; // px per patch
     const colorA = '#2b4c7e'; // dark blue
     const colorB = '#e8dcc4'; // cream
+    // ---------------------------
 
-    // 3x3 grid, checkerboard pattern
-    for (let row = 0; row < 3; row++) {
-      for (let col = 0; col < 3; col++) {
-        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        rect.setAttribute('x', col * squareSize);
-        rect.setAttribute('y', row * squareSize);
-        rect.setAttribute('width', squareSize);
-        rect.setAttribute('height', squareSize);
+    function drawNinePatch(rows, cols, squareSize, colorA, colorB) {
+      // size the SVG canvas to fit the grid exactly
+      svg.setAttribute('width', cols * squareSize);
+      svg.setAttribute('height', rows * squareSize);
 
-        // checkerboard: alternate color based on row+col parity
-        const isEven = (row + col) % 2 === 0;
-        rect.setAttribute('fill', isEven ? colorA : colorB);
+      // clear any existing squares before redrawing
+      svg.innerHTML = '';
 
-        svg.appendChild(rect);
+      for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+          const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+          rect.setAttribute('x', col * squareSize);
+          rect.setAttribute('y', row * squareSize);
+          rect.setAttribute('width', squareSize);
+          rect.setAttribute('height', squareSize);
+
+          const isEven = (row + col) % 2 === 0;
+          rect.setAttribute('fill', isEven ? colorA : colorB);
+
+          svg.appendChild(rect);
+        }
       }
     }
+
+    drawNinePatch(rows, cols, squareSize, colorA, colorB);
   </script>
 </body>
 </html>
