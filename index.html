@@ -696,6 +696,7 @@
     <div style="text-align:center; margin-top:16px;">
       <div id="roomPreviewStatus" class="swatch-hint" style="display:none;"></div>
       <img id="roomPreviewImage" style="display:none; max-width:100%; border-radius:4px; border:1px solid #cfc6b3;">
+      <button type="button" class="swatch-clear-btn" id="downloadRoomPreviewBtn" style="display:none; margin-top:10px;">Download this preview</button>
     </div>
     <div style="text-align:center; margin-top:12px;">
       <button type="button" class="swatch-clear-btn" id="buyRoomCreditsBtn" style="display:none;">Buy 10 more credits — $2.99</button>
@@ -730,11 +731,13 @@
   const roomCreditsNote = document.getElementById('roomCreditsNote');
   const roomPreviewStatus = document.getElementById('roomPreviewStatus');
   const roomPreviewImage = document.getElementById('roomPreviewImage');
+  const downloadRoomPreviewBtn = document.getElementById('downloadRoomPreviewBtn');
   const buyRoomCreditsBtn = document.getElementById('buyRoomCreditsBtn');
 
   const ROOM_CREDITS_KEY = 'quiltDesignerRoomCredits';
   const ROOM_CREDITS_INITIALIZED_KEY = 'quiltDesignerRoomCreditsInitialized';
   const FREE_ROOM_CREDITS = 12;
+  let currentRoomPreviewUrl = null;
 
   const ROOM_PROMPTS = {
     baby: 'a cozy nursery with a wooden baby crib, soft natural window light, the crib neatly made with a folded quilt draped over the crib rail',
@@ -850,12 +853,13 @@
     }
     if (getRoomCredits() <= 0) {
       roomPreviewStatus.style.display = 'block';
-      roomPreviewStatus.textContent = 'Out of preview credits — buy 5 more below to continue.';
+      roomPreviewStatus.textContent = 'Out of preview credits — buy 10 more below to continue.';
       return;
     }
 
     generateRoomPreviewBtn.disabled = true;
     roomPreviewImage.style.display = 'none';
+    downloadRoomPreviewBtn.style.display = 'none';
     roomPreviewStatus.style.display = 'block';
     roomPreviewStatus.textContent = 'Starting generation...';
 
@@ -879,6 +883,8 @@
       roomPreviewImage.src = imageUrl;
       roomPreviewImage.style.display = 'block';
       roomPreviewStatus.style.display = 'none';
+      currentRoomPreviewUrl = imageUrl;
+      downloadRoomPreviewBtn.style.display = 'inline-block';
     } catch (err) {
       console.error('Room preview error:', err);
       setRoomCredits(getRoomCredits() + 1); // refund the credit since generation didn't succeed
@@ -889,6 +895,36 @@
   });
 
   buyRoomCreditsBtn.addEventListener('click', () => startCheckout('credits'));
+
+  downloadRoomPreviewBtn.addEventListener('click', async () => {
+    if (!currentRoomPreviewUrl) return;
+    const originalText = downloadRoomPreviewBtn.textContent;
+    downloadRoomPreviewBtn.disabled = true;
+    downloadRoomPreviewBtn.textContent = 'Downloading...';
+    try {
+      // Fetching to a blob (rather than a plain <a href download>) is what makes this
+      // reliably save the file instead of just opening the image in a new tab, since
+      // the image is hosted cross-origin on Replicate's CDN.
+      const res = await fetch(currentRoomPreviewUrl);
+      if (!res.ok) throw new Error('Download failed.');
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = `quilt-room-preview-${Date.now()}.png`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      console.error('Room preview download error:', err);
+      // Fall back to opening it directly so the person can right-click and save.
+      window.open(currentRoomPreviewUrl, '_blank');
+    } finally {
+      downloadRoomPreviewBtn.disabled = false;
+      downloadRoomPreviewBtn.textContent = originalText;
+    }
+  });
 
   const cutListResults = document.getElementById('cutListResults');
   let lastFreePattern = 'ninepatch';
