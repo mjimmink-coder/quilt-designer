@@ -1332,6 +1332,80 @@
         h += stripWidthPx;
       }
       return rows;
+    },
+
+    courthousesteps(blockSizeInches) {
+      const toIn = (px) => px / CUT_LIST_DESIGN_BLOCK * blockSizeInches;
+      const rounds = 4;
+      const stripWidthPx = 25;
+      const centerSizePx = blockSize - 2 * rounds * stripWidthPx;
+      const rows = [];
+      let w = centerSizePx, h = centerSizePx;
+
+      rows.push({ piece: 'Center square', color: 'colorA', cutW: toIn(w) + 0.5, cutH: toIn(h) + 0.5, qtyPerBlock: 1 });
+
+      for (let r = 0; r < rounds; r++) {
+        rows.push({ piece: `Round ${r + 1} — top strip`, color: 'colorA', cutW: toIn(w) + 0.5, cutH: toIn(stripWidthPx) + 0.5, qtyPerBlock: 1 });
+        h += stripWidthPx;
+        rows.push({ piece: `Round ${r + 1} — bottom strip`, color: 'colorA', cutW: toIn(w) + 0.5, cutH: toIn(stripWidthPx) + 0.5, qtyPerBlock: 1 });
+        h += stripWidthPx;
+        rows.push({ piece: `Round ${r + 1} — left strip`, color: 'colorB', cutW: toIn(stripWidthPx) + 0.5, cutH: toIn(h) + 0.5, qtyPerBlock: 1 });
+        w += stripWidthPx;
+        rows.push({ piece: `Round ${r + 1} — right strip`, color: 'colorB', cutW: toIn(stripWidthPx) + 0.5, cutH: toIn(h) + 0.5, qtyPerBlock: 1 });
+        w += stripWidthPx;
+      }
+      return rows;
+    },
+
+    ohiostar(blockSizeInches) {
+      const toIn = (px) => px / CUT_LIST_DESIGN_BLOCK * blockSizeInches;
+      const unitFinished = toIn(blockSize / 3);
+      const plainCut = unitFinished + 0.5;
+      const hstCut = unitFinished + 0.875;
+      return [
+        { piece: 'Center square', color: 'colorA', cutW: plainCut, cutH: plainCut, qtyPerBlock: 1 },
+        { piece: 'Corner square', color: 'colorB', cutW: plainCut, cutH: plainCut, qtyPerBlock: 4 },
+        {
+          piece: 'Star point HST square (before cutting)', color: 'colorA', cutW: hstCut, cutH: hstCut, qtyPerBlock: 2,
+          note: 'Layer each Color A square with a Color B square of the same size, mark one diagonal, sew 1/4" on both sides of the line, cut apart on the line — each pair makes 2 half-square-triangle units. This block needs 4 star-point units total.'
+        },
+        { piece: 'Star point HST square (before cutting)', color: 'colorB', cutW: hstCut, cutH: hstCut, qtyPerBlock: 2 }
+      ];
+    },
+
+    shoofly(blockSizeInches) {
+      const toIn = (px) => px / CUT_LIST_DESIGN_BLOCK * blockSizeInches;
+      const unitFinished = toIn(blockSize / 3);
+      const plainCut = unitFinished + 0.5;
+      const hstCut = unitFinished + 0.875;
+      return [
+        { piece: 'Center square', color: 'colorA', cutW: plainCut, cutH: plainCut, qtyPerBlock: 1 },
+        { piece: 'Edge square', color: 'colorB', cutW: plainCut, cutH: plainCut, qtyPerBlock: 4 },
+        {
+          piece: 'Corner HST square (before cutting)', color: 'colorA', cutW: hstCut, cutH: hstCut, qtyPerBlock: 2,
+          note: 'Layer each Color A square with a Color B square of the same size, mark one diagonal, sew 1/4" on both sides of the line, cut apart on the line — each pair makes 2 half-square-triangle units. This block needs 4 corner units total.'
+        },
+        { piece: 'Corner HST square (before cutting)', color: 'colorB', cutW: hstCut, cutH: hstCut, qtyPerBlock: 2 }
+      ];
+    },
+
+    bearspaw(blockSizeInches) {
+      const toIn = (px) => px / CUT_LIST_DESIGN_BLOCK * blockSizeInches;
+      const unitFinished = toIn(blockSize / 3);
+      const subFinished = unitFinished / 2;
+      const plainCut = unitFinished + 0.5;
+      const subPlainCut = subFinished + 0.5;
+      const subHstCut = subFinished + 0.875;
+      return [
+        { piece: 'Center square', color: 'colorA', cutW: plainCut, cutH: plainCut, qtyPerBlock: 1 },
+        { piece: 'Edge square', color: 'colorB', cutW: plainCut, cutH: plainCut, qtyPerBlock: 4 },
+        { piece: 'Claw corner square', color: 'colorB', cutW: subPlainCut, cutH: subPlainCut, qtyPerBlock: 4 },
+        {
+          piece: 'Claw HST square (before cutting)', color: 'colorA', cutW: subHstCut, cutH: subHstCut, qtyPerBlock: 6,
+          note: 'Layer each Color A square with a Color B square of the same size, mark one diagonal, sew 1/4" on both sides of the line, cut apart on the line — each pair makes 2 half-square-triangle units. This block needs 12 claw units total (3 per corner).'
+        },
+        { piece: 'Claw HST square (before cutting)', color: 'colorB', cutW: subHstCut, cutH: subHstCut, qtyPerBlock: 6 }
+      ];
     }
   };
 
