@@ -1742,6 +1742,11 @@
           <tr><th colspan="2">Backing fabric</th></tr>
         </table>
       </div>
+      <div class="cutlist-section-print">
+        <table>
+          <tr><th>Piece</th><th>Color</th><th>Cut size</th><th>Total qty</th></tr>
+        </table>
+      </div>
       <div class="print-note">Yardage is based on 42" usable fabric width with no waste margin, and does not include seam allowance — add your standard seam allowance (typically 1/4") when cutting each piece.</div>
     `;
 
@@ -1788,6 +1793,33 @@
     const backingRow3 = document.createElement('tr');
     backingRow3.innerHTML = `<td>Total backing yardage</td><td>${backingCalc.yards.toFixed(2)} yd</td>`;
     backingTable.appendChild(backingRow3);
+
+    const cutListSection = printSheet.querySelector('.cutlist-section-print');
+    const cutListTable = cutListSection.querySelector('table');
+    const generator = CUT_LIST_GENERATORS[patternSelect.value];
+    if (generator) {
+      const totalBlocks = parseInt(blocksAcross, 10) * parseInt(blocksDown, 10);
+      const colorLabel = { colorA: 'Color A', colorB: 'Color B' };
+      const headerRow = document.createElement('tr');
+      headerRow.innerHTML = '<th colspan="4">Cut list</th>';
+      cutListTable.insertBefore(headerRow, cutListTable.firstChild);
+      const rows = generator(blockSizeInches);
+      rows.forEach(row => {
+        const totalQty = row.qtyPerBlock * totalBlocks;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${row.piece}</td><td>${colorLabel[row.color] || row.color}</td><td>${formatInches(row.cutW)} × ${formatInches(row.cutH)}</td><td>${totalQty}</td>`;
+        cutListTable.appendChild(tr);
+      });
+      const notes = rows.filter(r => r.note).map(r => r.note);
+      notes.forEach(note => {
+        const noteEl = document.createElement('div');
+        noteEl.className = 'print-note';
+        noteEl.textContent = note;
+        cutListSection.appendChild(noteEl);
+      });
+    } else {
+      cutListSection.style.display = 'none';
+    }
 
     window.print();
   });
