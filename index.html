@@ -329,6 +329,10 @@
         <option value="ohiostar">Ohio Star</option>
         <option value="flyinggeese">Flying Geese</option>
         <option value="bearspaw">Bear's Paw</option>
+        <option value="shoofly">Shoo Fly</option>
+        <option value="churndash">Churn Dash</option>
+        <option value="friendshipstar">Friendship Star</option>
+        <option value="sawtoothstar">Sawtooth Star</option>
       </select>
       <div class="checkbox-row" style="margin-top:10px;">
         <input type="checkbox" id="alternateRotationInput">
@@ -829,6 +833,111 @@
     svg.appendChild(defs);
   }
 
+  // Nine-patch relative: center and edge squares solid, but the four corner squares
+  // are split into half-square triangles instead of staying solid. The diagonal split
+  // is drawn once at the block's own top-left corner, then rotated three times around
+  // the block center to complete all four corners.
+  function drawShooFlyBlock(group, offsetX, offsetY, colorA, colorB) {
+    const unit = blockSize / 3;
+    const cx = offsetX + blockSize / 2;
+    const cy = offsetY + blockSize / 2;
+
+    addRect(group, offsetX + unit, offsetY + unit, unit, unit, colorA, 'colorA');
+    addRect(group, offsetX + unit, offsetY, unit, unit, colorB, 'colorB');
+    addRect(group, offsetX + unit, offsetY + 2 * unit, unit, unit, colorB, 'colorB');
+    addRect(group, offsetX, offsetY + unit, unit, unit, colorB, 'colorB');
+    addRect(group, offsetX + 2 * unit, offsetY + unit, unit, unit, colorB, 'colorB');
+
+    for (let i = 0; i < 4; i++) {
+      const g = document.createElementNS(SVG_NS, 'g');
+      g.setAttribute('transform', `rotate(${90 * i} ${cx} ${cy})`);
+      group.appendChild(g);
+      const x = offsetX, y = offsetY;
+      addPolygon(g, [[x, y], [x + unit, y], [x, y + unit]], colorA, 'colorA');
+      addPolygon(g, [[x + unit, y], [x + unit, y + unit], [x, y + unit]], colorB, 'colorB');
+    }
+  }
+
+  // Center and corners solid; each edge unit is a "goose" triangle (colorA apex
+  // pointing toward the block center, flanked by two colorB corner triangles) drawn
+  // once at the top edge and rotated three times to complete the ring.
+  function drawChurnDashBlock(group, offsetX, offsetY, colorA, colorB) {
+    const unit = blockSize / 3;
+    const cx = offsetX + blockSize / 2;
+    const cy = offsetY + blockSize / 2;
+
+    addRect(group, offsetX + unit, offsetY + unit, unit, unit, colorA, 'colorA');
+
+    const corners = [[0, 0], [2, 0], [0, 2], [2, 2]];
+    corners.forEach(([gx, gy]) => {
+      addRect(group, offsetX + gx * unit, offsetY + gy * unit, unit, unit, colorB, 'colorB');
+    });
+
+    for (let i = 0; i < 4; i++) {
+      const g = document.createElementNS(SVG_NS, 'g');
+      g.setAttribute('transform', `rotate(${90 * i} ${cx} ${cy})`);
+      group.appendChild(g);
+      const x = offsetX + unit, y = offsetY;
+      addPolygon(g, [[x + unit / 2, y + unit], [x, y], [x + unit, y]], colorA, 'colorA');
+      addPolygon(g, [[x, y], [x + unit / 2, y + unit], [x, y + unit]], colorB, 'colorB');
+      addPolygon(g, [[x + unit, y], [x + unit / 2, y + unit], [x + unit, y + unit]], colorB, 'colorB');
+    }
+  }
+
+  // Structurally close to Ohio Star, but each star point is a true isoceles triangle
+  // with its apex pointing outward (away from the block center) rather than a simple
+  // diagonal half-square-triangle split, giving a sharper star silhouette.
+  function drawFriendshipStarBlock(group, offsetX, offsetY, colorA, colorB) {
+    const unit = blockSize / 3;
+    const cx = offsetX + blockSize / 2;
+    const cy = offsetY + blockSize / 2;
+
+    addRect(group, offsetX + unit, offsetY + unit, unit, unit, colorA, 'colorA');
+
+    const corners = [[0, 0], [2, 0], [0, 2], [2, 2]];
+    corners.forEach(([gx, gy]) => {
+      addRect(group, offsetX + gx * unit, offsetY + gy * unit, unit, unit, colorB, 'colorB');
+    });
+
+    for (let i = 0; i < 4; i++) {
+      const g = document.createElementNS(SVG_NS, 'g');
+      g.setAttribute('transform', `rotate(${90 * i} ${cx} ${cy})`);
+      group.appendChild(g);
+      const x = offsetX + unit, y = offsetY;
+      addPolygon(g, [[x + unit / 2, y], [x, y + unit], [x + unit, y + unit]], colorA, 'colorA');
+      addPolygon(g, [[x, y], [x + unit / 2, y], [x, y + unit]], colorB, 'colorB');
+      addPolygon(g, [[x + unit, y], [x + unit / 2, y], [x + unit, y + unit]], colorB, 'colorB');
+    }
+  }
+
+  // Same outward-pointing star construction as Friendship Star, but the corner
+  // squares are split into half-square triangles instead of staying solid, adding
+  // the small pieced "teeth" accents sawtooth star blocks are known for.
+  function drawSawtoothStarBlock(group, offsetX, offsetY, colorA, colorB) {
+    const unit = blockSize / 3;
+    const cx = offsetX + blockSize / 2;
+    const cy = offsetY + blockSize / 2;
+
+    addRect(group, offsetX + unit, offsetY + unit, unit, unit, colorA, 'colorA');
+
+    for (let i = 0; i < 4; i++) {
+      const gCorner = document.createElementNS(SVG_NS, 'g');
+      gCorner.setAttribute('transform', `rotate(${90 * i} ${cx} ${cy})`);
+      group.appendChild(gCorner);
+      const ux = offsetX, uy = offsetY;
+      addPolygon(gCorner, [[ux, uy], [ux + unit, uy], [ux, uy + unit]], colorB, 'colorB');
+      addPolygon(gCorner, [[ux + unit, uy], [ux + unit, uy + unit], [ux, uy + unit]], colorA, 'colorA');
+
+      const gEdge = document.createElementNS(SVG_NS, 'g');
+      gEdge.setAttribute('transform', `rotate(${90 * i} ${cx} ${cy})`);
+      group.appendChild(gEdge);
+      const x = offsetX + unit, y = offsetY;
+      addPolygon(gEdge, [[x + unit / 2, y], [x, y + unit], [x + unit, y + unit]], colorA, 'colorA');
+      addPolygon(gEdge, [[x, y], [x + unit / 2, y], [x, y + unit]], colorB, 'colorB');
+      addPolygon(gEdge, [[x + unit, y], [x + unit / 2, y], [x + unit, y + unit]], colorB, 'colorB');
+    }
+  }
+
   function drawQuiltBody(group, offsetX, offsetY, blockDrawFn, blocksAcross, blocksDown, sashingWidth, sashingColor, colorA, colorB, alternateRotation) {
     const bodyWidth = blocksAcross * blockSize + (blocksAcross + 1) * sashingWidth;
     const bodyHeight = blocksDown * blockSize + (blocksDown + 1) * sashingWidth;
@@ -918,7 +1027,11 @@
       courthousesteps: drawCourthouseStepsBlock,
       ohiostar: drawOhioStarBlock,
       flyinggeese: drawFlyingGeeseBlock,
-      bearspaw: drawBearsPawBlock
+      bearspaw: drawBearsPawBlock,
+      shoofly: drawShooFlyBlock,
+      churndash: drawChurnDashBlock,
+      friendshipstar: drawFriendshipStarBlock,
+      sawtoothstar: drawSawtoothStarBlock
     };
     const blockDrawFn = patternMap[patternSelect.value];
     const alternateRotation = alternateRotationInput.checked;
