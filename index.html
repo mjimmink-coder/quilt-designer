@@ -579,6 +579,27 @@
 
 </div>
 
+<div style="max-width:1100px; margin:0 auto 40px; padding:0 24px;">
+  <div class="panel">
+    <fieldset>
+      <legend>Preview In A Room</legend>
+      <label for="roomSceneSelect">Show this design on a...</label>
+      <select id="roomSceneSelect">
+        <option value="">None</option>
+        <option value="baby">Baby crib</option>
+        <option value="throw">Chair / throw</option>
+        <option value="twin">Twin bed</option>
+        <option value="queen">Full / Queen bed</option>
+        <option value="king">King bed</option>
+      </select>
+      <span class="swatch-hint">A simple illustrated scene to get a sense of scale — not a photo-realistic mockup.</span>
+    </fieldset>
+    <div style="text-align:center; margin-top:16px;">
+      <svg id="roomPreviewSvg" viewBox="0 0 600 420" style="width:100%; max-width:560px; height:auto; display:none;"></svg>
+    </div>
+  </div>
+</div>
+
 <div id="printSheet"></div>
 
 <script>
@@ -621,6 +642,79 @@
   const deleteDesignBtn = document.getElementById('deleteDesignBtn');
   const designStatusNote = document.getElementById('designStatusNote');
   const backingOverhangInput = document.getElementById('backingOverhangInput');
+  const roomSceneSelect = document.getElementById('roomSceneSelect');
+  const roomPreviewSvg = document.getElementById('roomPreviewSvg');
+
+  // Simple original line-art furniture scenes (no photos, no external assets) with a
+  // "quiltArea" rect marking where the design gets embedded flat, cropped to fill.
+  const ROOM_SCENES = {
+    baby: {
+      quiltArea: { x: 205, y: 150, w: 190, h: 130 },
+      background: `
+        <rect x="0" y="0" width="600" height="260" fill="#FBF8F2"/>
+        <rect x="0" y="260" width="600" height="160" fill="#E8DCC4"/>
+        <rect x="190" y="120" width="220" height="180" rx="6" fill="none" stroke="#8C8474" stroke-width="4"/>
+        <line x1="205" y1="120" x2="205" y2="150" stroke="#8C8474" stroke-width="3"/>
+        <line x1="235" y1="120" x2="235" y2="150" stroke="#8C8474" stroke-width="3"/>
+        <line x1="365" y1="120" x2="365" y2="150" stroke="#8C8474" stroke-width="3"/>
+        <line x1="395" y1="120" x2="395" y2="150" stroke="#8C8474" stroke-width="3"/>
+        <rect x="196" y="292" width="14" height="20" fill="#8C8474"/>
+        <rect x="390" y="292" width="14" height="20" fill="#8C8474"/>
+      `
+    },
+    throw: {
+      quiltArea: { x: 170, y: 225, w: 260, h: 110 },
+      background: `
+        <rect x="0" y="0" width="600" height="260" fill="#FBF8F2"/>
+        <rect x="0" y="260" width="600" height="160" fill="#E8DCC4"/>
+        <rect x="170" y="90" width="260" height="150" rx="14" fill="#2F4858"/>
+        <rect x="120" y="180" width="50" height="140" rx="10" fill="#2F4858"/>
+        <rect x="430" y="180" width="50" height="140" rx="10" fill="#2F4858"/>
+        <rect x="150" y="220" width="300" height="90" rx="14" fill="#FBF8F2" stroke="#8C8474" stroke-width="2"/>
+        <rect x="130" y="316" width="14" height="18" fill="#8C8474"/>
+        <rect x="456" y="316" width="14" height="18" fill="#8C8474"/>
+      `
+    },
+    twin: {
+      quiltArea: { x: 150, y: 215, w: 300, h: 155 },
+      background: `
+        <rect x="0" y="0" width="600" height="260" fill="#FBF8F2"/>
+        <rect x="0" y="260" width="600" height="160" fill="#E8DCC4"/>
+        <rect x="150" y="55" width="300" height="85" rx="8" fill="#2F4858"/>
+        <rect x="140" y="140" width="320" height="240" rx="10" fill="#FBF8F2" stroke="#8C8474" stroke-width="2"/>
+        <rect x="200" y="150" width="200" height="55" rx="14" fill="#fff" stroke="#cfc6b3"/>
+        <rect x="145" y="372" width="16" height="20" fill="#8C8474"/>
+        <rect x="439" y="372" width="16" height="20" fill="#8C8474"/>
+      `
+    },
+    queen: {
+      quiltArea: { x: 90, y: 215, w: 420, h: 165 },
+      background: `
+        <rect x="0" y="0" width="600" height="260" fill="#FBF8F2"/>
+        <rect x="0" y="260" width="600" height="160" fill="#E8DCC4"/>
+        <rect x="90" y="50" width="420" height="90" rx="8" fill="#2F4858"/>
+        <rect x="80" y="140" width="440" height="250" rx="10" fill="#FBF8F2" stroke="#8C8474" stroke-width="2"/>
+        <rect x="120" y="150" width="170" height="55" rx="14" fill="#fff" stroke="#cfc6b3"/>
+        <rect x="310" y="150" width="170" height="55" rx="14" fill="#fff" stroke="#cfc6b3"/>
+        <rect x="85" y="382" width="16" height="20" fill="#8C8474"/>
+        <rect x="499" y="382" width="16" height="20" fill="#8C8474"/>
+      `
+    },
+    king: {
+      quiltArea: { x: 40, y: 215, w: 520, h: 170 },
+      background: `
+        <rect x="0" y="0" width="600" height="260" fill="#FBF8F2"/>
+        <rect x="0" y="260" width="600" height="160" fill="#E8DCC4"/>
+        <rect x="40" y="45" width="520" height="95" rx="8" fill="#2F4858"/>
+        <rect x="30" y="140" width="540" height="255" rx="10" fill="#FBF8F2" stroke="#8C8474" stroke-width="2"/>
+        <rect x="70" y="150" width="150" height="55" rx="14" fill="#fff" stroke="#cfc6b3"/>
+        <rect x="225" y="150" width="150" height="55" rx="14" fill="#fff" stroke="#cfc6b3"/>
+        <rect x="380" y="150" width="150" height="55" rx="14" fill="#fff" stroke="#cfc6b3"/>
+        <rect x="35" y="387" width="16" height="20" fill="#8C8474"/>
+        <rect x="549" y="387" width="16" height="20" fill="#8C8474"/>
+      `
+    }
+  };
   const DESIGNS_STORAGE_KEY = 'quiltDesignerSavedDesigns';
 
   const QUILT_SIZE_PRESETS = {
@@ -1143,6 +1237,32 @@
     return { finishedWidthIn, finishedHeightIn, backingWidthIn, backingHeightIn, panelsNeeded, yards };
   }
 
+  // Renders the chosen furniture illustration, then embeds a live copy of the current
+  // quilt design as a nested <svg> cropped to fill the scene's designated "quiltArea"
+  // rect — a flat overlay, not a perspective-warped mockup.
+  function drawRoomScene(key) {
+    if (!key || !ROOM_SCENES[key]) {
+      roomPreviewSvg.style.display = 'none';
+      roomPreviewSvg.innerHTML = '';
+      return;
+    }
+    const scene = ROOM_SCENES[key];
+    roomPreviewSvg.style.display = 'block';
+    roomPreviewSvg.innerHTML = scene.background;
+
+    const nested = document.createElementNS(SVG_NS, 'svg');
+    nested.setAttribute('x', scene.quiltArea.x);
+    nested.setAttribute('y', scene.quiltArea.y);
+    nested.setAttribute('width', scene.quiltArea.w);
+    nested.setAttribute('height', scene.quiltArea.h);
+    nested.setAttribute('viewBox', svg.getAttribute('viewBox'));
+    nested.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+    Array.from(svg.childNodes).forEach(node => nested.appendChild(node.cloneNode(true)));
+    roomPreviewSvg.appendChild(nested);
+  }
+
+  roomSceneSelect.addEventListener('change', () => drawRoomScene(roomSceneSelect.value));
+
   function redraw() {
     areaTotals = { colorA: 0, colorB: 0, sashing: 0, border: 0 };
 
@@ -1176,6 +1296,7 @@
     updateYardage(blockSizeInches);
     updateBackingYardage(blockSizeInches, blocksAcross, blocksDown, sashingWidth, borderWidth);
     updateActivePreset();
+    if (roomSceneSelect.value) drawRoomScene(roomSceneSelect.value);
   }
 
   [patternSelect, alternateRotationInput, blockSizeInchesInput, blocksAcrossInput, blocksDownInput, sashingWidthInput, sashingColorInput, borderWidthInput, borderColorInput, colorAInput, colorBInput, swatchScaleInput, directionalAInput, directionalBInput, backingOverhangInput]
