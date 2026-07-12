@@ -586,11 +586,11 @@
       <div class="field-row" style="margin-top:14px;">
         <div>
           <label for="colorAInput">Color A</label>
-          <input type="color" id="colorAInput" value="#2b4c7e">
+          <input type="color" id="colorAInput" value="#1F3A5F">
         </div>
         <div>
           <label for="colorBInput">Color B</label>
-          <input type="color" id="colorBInput" value="#e8dcc4">
+          <input type="color" id="colorBInput" value="#F0E6D2">
         </div>
       </div>
 
@@ -773,7 +773,7 @@
     // Warm, light-to-mid tones in this hue range read as cream/tan/beige fabric to
     // a human, but a plain hue-bucket name like "pale orange" gets taken literally
     // by the image model and rendered as actual orange — so name these explicitly.
-    if (hue >= 20 && hue < 55) {
+    if (hue >= 20 && hue < 55 && sat < 0.55) {
       if (lightness > 0.8) return 'cream';
       if (lightness > 0.6) return sat < 0.4 ? 'beige' : 'tan';
       if (lightness > 0.4) return sat < 0.3 ? 'taupe' : 'tan';
@@ -818,7 +818,7 @@
     const roomDescription = ROOM_PROMPTS[roomPreviewSelect.value];
     const colorAName = nameColorFromHex(colorAInput.value);
     const colorBName = nameColorFromHex(colorBInput.value);
-    return `A professional interior photograph of ${roomDescription}. The quilt uses a "${patternLabel}" quilt block pattern, repeated in a grid across the whole quilt. The quilt is pieced from exactly two fabric colors only: ${colorAName} and ${colorBName} — do not use any other colors, tones, or accent fabrics anywhere on the quilt, every piece must be either ${colorAName} or ${colorBName}. Realistic quilted fabric texture and stitching, soft natural lighting, photorealistic, high quality home decor photography.`;
+    return `A professional interior photograph of ${roomDescription}. The quilt has a "${patternLabel}" quilt block pattern, pieced in ${colorAName} and ${colorBName} fabric. Realistic fabric texture, soft natural lighting, photorealistic, high quality home decor photography.`;
   }
 
   async function pollRoomPreview(predictionId) {
@@ -950,15 +950,15 @@
   let areaTotals = { colorA: 0, colorB: 0, sashing: 0, border: 0 };
 
   const palettes = [
-    { name: 'Classic Navy', colorA: '#2b4c7e', colorB: '#e8dcc4' },
-    { name: 'Amish Solids', colorA: '#8b1a1a', colorB: '#1a1a1a' },
-    { name: 'Soft Pastel', colorA: '#f4c2c2', colorB: '#c2e0f4' },
-    { name: 'Autumn', colorA: '#a5502e', colorB: '#e0a458' },
-    { name: 'Forest', colorA: '#2d4a2b', colorB: '#d9c9a3' },
-    { name: 'Modern Mono', colorA: '#333333', colorB: '#f2f2f2' },
-    { name: 'Antique Gold', colorA: '#8c6d1f', colorB: '#f3e4c2' },
-    { name: 'Slate & Cream', colorA: '#4a5a63', colorB: '#f1ebdd' },
-    { name: 'Berry', colorA: '#6b1f3b', colorB: '#e9c9c9' }
+    { name: 'Navy & Cream', colorA: '#1F3A5F', colorB: '#F0E6D2' },
+    { name: 'Terracotta & Sand', colorA: '#C1602E', colorB: '#E8D5B7' },
+    { name: 'Sage & Ivory', colorA: '#7C8B6F', colorB: '#F5F1E8' },
+    { name: 'Charcoal & Blush', colorA: '#3A3A3A', colorB: '#E8C4C4' },
+    { name: 'Dusty Blue & Linen', colorA: '#6B8CAE', colorB: '#EDE4D3' },
+    { name: 'Mustard & Charcoal', colorA: '#BFA030', colorB: '#2E2E2E' },
+    { name: 'Forest & Cream', colorA: '#2F4F3E', colorB: '#F2ECD9' },
+    { name: 'Berry & Blush', colorA: '#7A2048', colorB: '#F0D9D9' },
+    { name: 'Black & White', colorA: '#1A1A1A', colorB: '#FAFAFA' }
   ];
 
   palettes.forEach((p, i) => {
