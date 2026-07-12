@@ -289,7 +289,7 @@
     padding: 4px 0;
   }
 
-  .yardage-row .swatch-dot {
+  #yardageResults .yardage-row .swatch-dot {
     display: inline-block;
     width: 12px;
     height: 12px;
@@ -297,6 +297,82 @@
     border-radius: 2px;
     margin-right: 8px;
     vertical-align: middle;
+  }
+
+  button#printSheetBtn {
+    margin-top: 12px;
+    margin-left: 8px;
+    background: #fff;
+    color: var(--navy);
+    border: 1px solid var(--navy);
+    padding: 10px 20px;
+    border-radius: 3px;
+    font-family: 'Work Sans', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+  }
+  button#printSheetBtn:hover { background: #eef1f3; }
+  button#printSheetBtn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+  #printSheet { display: none; }
+
+  @media print {
+    header, .layout > .controls-panel, button#downloadBtn, button#printSheetBtn { display: none !important; }
+    .layout { display: block !important; }
+    .canvas-panel { display: none !important; }
+    #printSheet { display: block !important; }
+  }
+
+  #printSheet {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: 'Work Sans', sans-serif;
+    color: #000;
+  }
+  #printSheet h2 {
+    font-family: 'Bitter', serif;
+    margin: 0 0 2px;
+  }
+  #printSheet .print-meta {
+    font-size: 12px;
+    color: #555;
+    margin-bottom: 18px;
+  }
+  #printSheet .print-image {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  #printSheet .print-image svg {
+    max-width: 4.5in;
+    width: 100%;
+    height: auto;
+  }
+  #printSheet table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    font-size: 13px;
+  }
+  #printSheet th {
+    text-align: left;
+    font-family: 'Bitter', serif;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.03em;
+    border-bottom: 1px solid #000;
+    padding: 4px 8px 6px 0;
+  }
+  #printSheet td {
+    padding: 5px 8px 5px 0;
+    border-bottom: 1px solid #ddd;
+  }
+  #printSheet .print-note {
+    font-size: 11px;
+    color: #555;
+    margin-top: 4px;
   }
 </style>
 </head>
@@ -487,15 +563,20 @@
   <div class="panel canvas-panel">
     <svg id="quilt-canvas"></svg>
     <button id="downloadBtn">Download design</button>
+    <button id="printSheetBtn">Download pattern sheet</button>
     <div id="yardageResults"></div>
   </div>
 
 </div>
 
+<div id="printSheet"></div>
+
 <script>
   const svg = document.getElementById('quilt-canvas');
   const yardageResults = document.getElementById('yardageResults');
   const downloadBtn = document.getElementById('downloadBtn');
+  const printSheetBtn = document.getElementById('printSheetBtn');
+  const printSheet = document.getElementById('printSheet');
   const SVG_NS = 'http://www.w3.org/2000/svg';
 
   const patternSelect = document.getElementById('patternSelect');
@@ -1327,6 +1408,83 @@
       }, 'image/png');
     };
     img.src = svgUrl;
+  });
+
+  // Builds a print-friendly summary page — the design image, its specs, and the
+  // fabric yardage table — then hands off to the browser's print dialog, where
+  // "Save as PDF" gives the quilter a document they can take to the fabric store.
+  printSheetBtn.addEventListener('click', () => {
+    const patternLabel = patternSelect.options[patternSelect.selectedIndex].text;
+    const blockSizeInches = parseFloat(blockSizeInchesInput.value) || 12;
+    const pixelsPerInch = blockSize / blockSizeInches;
+    const sashingIn = (parseInt(sashingWidthInput.value, 10) || 0) / pixelsPerInch;
+    const borderIn = (parseInt(borderWidthInput.value, 10) || 0) / pixelsPerInch;
+    const blocksAcross = blocksAcrossInput.value;
+    const blocksDown = blocksDownInput.value;
+    const designName = designNameInput.value.trim() || 'Untitled quilt design';
+    const dateStr = new Date().toLocaleDateString();
+
+    const svgClone = svg.cloneNode(true);
+    svgClone.removeAttribute('id');
+
+    const specRows = [
+      ['Pattern', patternLabel],
+      ['Block size', `${blockSizeInches}"`],
+      ['Blocks across × down', `${blocksAcross} × ${blocksDown}`],
+      ['Alternate block rotation', alternateRotationInput.checked ? 'Yes' : 'No'],
+      ['Sashing', sashingIn > 0 ? `${sashingIn.toFixed(1)}" wide` : 'None'],
+      ['Border', borderIn > 0 ? `${borderIn.toFixed(1)}" wide` : 'None']
+    ];
+
+    printSheet.innerHTML = `
+      <h2>${designName}</h2>
+      <div class="print-meta">Quilt Designer pattern sheet — generated ${dateStr}</div>
+      <div class="print-image"></div>
+      <table>
+        <tr><th colspan="2">Design specs</th></tr>
+        ${specRows.map(([label, value]) => `<tr><td>${label}</td><td>${value}</td></tr>`).join('')}
+      </table>
+      <div class="yardage-section">
+        <table>
+          <tr><th colspan="2">Fabric needed</th></tr>
+        </table>
+      </div>
+      <div class="print-note">Yardage is based on 42" usable fabric width with no waste margin, and does not include seam allowance — add your standard seam allowance (typically 1/4") when cutting each piece.</div>
+    `;
+
+    printSheet.querySelector('.print-image').appendChild(svgClone);
+
+    // Rebuild the yardage rows directly (rather than reusing the live yardageResults
+    // markup) so swatch-photo backgrounds and directional-print notes still render
+    // correctly on a fresh, isolated print page.
+    const yardageTable = printSheet.querySelector('.yardage-section table');
+    const pixelsPerInchYardage = blockSize / blockSizeInches;
+    const sqPxPerSqIn = pixelsPerInchYardage * pixelsPerInchYardage;
+    const rows = [
+      { label: 'Color A', px: areaTotals.colorA, color: colorAInput.value, image: swatchImages.colorA, directional: swatchImages.colorA && directionalAInput.checked },
+      { label: 'Color B', px: areaTotals.colorB, color: colorBInput.value, image: swatchImages.colorB, directional: swatchImages.colorB && directionalBInput.checked },
+      { label: 'Sashing', px: areaTotals.sashing, color: sashingColorInput.value },
+      { label: 'Border', px: areaTotals.border, color: borderColorInput.value }
+    ];
+    let anyDirectional = false;
+    rows.forEach(r => {
+      if (r.px <= 0) return;
+      const sqIn = r.px / sqPxPerSqIn;
+      let yards = sqIn / SQ_IN_PER_YARD;
+      if (r.directional) { yards *= DIRECTIONAL_YARDAGE_BUFFER; anyDirectional = true; }
+      const label = r.directional ? `${r.label}*` : r.label;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${label}</td><td>${yards.toFixed(2)} yd</td>`;
+      yardageTable.appendChild(tr);
+    });
+    if (anyDirectional) {
+      const note = document.createElement('div');
+      note.className = 'print-note';
+      note.textContent = '*Includes ~40% extra for directional print matching — a rule-of-thumb estimate, not exact.';
+      printSheet.querySelector('.yardage-section').appendChild(note);
+    }
+
+    window.print();
   });
 
   redraw();
