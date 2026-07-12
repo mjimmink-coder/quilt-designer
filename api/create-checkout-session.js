@@ -3,7 +3,7 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 // Live Price IDs, created in the Stripe Dashboard.
 const PRICE_IDS = {
   pro: 'price_1TsRCEPonndQkh7uS8gCONIo', // Quilt Designer Pro, one-time
-  credits: 'price_1TsU1rPonndQkh7uHOf9hHZn' // 10 Room Preview Credits, one-time
+  credits: 'price_1TsUdfPonndQkh7uKozmCM5D' // 10 Room Preview Credits, one-time
 };
 
 module.exports = async function handler(req, res) {
