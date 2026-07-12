@@ -818,7 +818,9 @@
     const roomDescription = ROOM_PROMPTS[roomPreviewSelect.value];
     const colorAName = nameColorFromHex(colorAInput.value);
     const colorBName = nameColorFromHex(colorBInput.value);
-    return `A professional interior photograph of ${roomDescription}. The quilt has a "${patternLabel}" quilt block pattern, pieced in ${colorAName} and ${colorBName} fabric. Realistic fabric texture, soft natural lighting, photorealistic, high quality home decor photography.`;
+    const across = parseInt(blocksAcrossInput.value, 10) || 3;
+    const down = parseInt(blocksDownInput.value, 10) || 3;
+    return `A professional interior photograph of ${roomDescription}. The quilt is made of many small identical "${patternLabel}" quilt blocks repeated across the whole quilt in a grid of roughly ${across} blocks wide by ${down} blocks tall — it is NOT one single large star or motif covering the whole quilt, it is a tessellated grid of small repeating blocks, each block the same small size, separated by visible seam lines between blocks. The quilt is pieced in ${colorAName} and ${colorBName} fabric. Realistic fabric texture, soft natural lighting, photorealistic, high quality home decor photography.`;
   }
 
   async function pollRoomPreview(predictionId) {
