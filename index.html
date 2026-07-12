@@ -674,6 +674,35 @@
 
 </div>
 
+<div style="max-width:1100px; margin:0 auto 40px; padding:0 24px;">
+  <div class="panel pro-feature" id="proFeatureRoomPreview">
+    <div class="pro-lock-banner">🔒 AI room previews are part of Quilt Designer Pro (5 free generations included, more available in bundles of 10).</div>
+    <fieldset>
+      <legend>Preview In A Room (AI-generated)</legend>
+      <label for="roomPreviewSelect">Show this design on a...</label>
+      <select id="roomPreviewSelect">
+        <option value="baby">Baby crib</option>
+        <option value="throw">Chair / throw</option>
+        <option value="twin">Twin bed</option>
+        <option value="queen">Full / Queen bed</option>
+        <option value="king">King bed</option>
+      </select>
+      <div class="field-row" style="margin-top:12px; align-items:center;">
+        <button type="button" class="swatch-clear-btn" id="generateRoomPreviewBtn" style="margin-top:0;">Generate preview</button>
+        <span class="swatch-hint" id="roomCreditsNote" style="margin-top:0;"></span>
+      </div>
+      <span class="swatch-hint">AI-generated image — a realistic mockup, not a pixel-exact reproduction of your design.</span>
+    </fieldset>
+    <div style="text-align:center; margin-top:16px;">
+      <div id="roomPreviewStatus" class="swatch-hint" style="display:none;"></div>
+      <img id="roomPreviewImage" style="display:none; max-width:100%; border-radius:4px; border:1px solid #cfc6b3;">
+    </div>
+    <div style="text-align:center; margin-top:12px;">
+      <button type="button" class="swatch-clear-btn" id="buyRoomCreditsBtn" style="display:none;">Buy 10 more credits — $3.99</button>
+    </div>
+  </div>
+</div>
+
 <div id="printSheet"></div>
 
 <script>
@@ -695,6 +724,161 @@
   const proFeatureDesigns = document.getElementById('proFeatureDesigns');
   const proFeatureBacking = document.getElementById('proFeatureBacking');
   const proFeatureCutList = document.getElementById('proFeatureCutList');
+  const proFeatureRoomPreview = document.getElementById('proFeatureRoomPreview');
+  const roomPreviewSelect = document.getElementById('roomPreviewSelect');
+  const generateRoomPreviewBtn = document.getElementById('generateRoomPreviewBtn');
+  const roomCreditsNote = document.getElementById('roomCreditsNote');
+  const roomPreviewStatus = document.getElementById('roomPreviewStatus');
+  const roomPreviewImage = document.getElementById('roomPreviewImage');
+  const buyRoomCreditsBtn = document.getElementById('buyRoomCreditsBtn');
+
+  const ROOM_CREDITS_KEY = 'quiltDesignerRoomCredits';
+  const ROOM_CREDITS_INITIALIZED_KEY = 'quiltDesignerRoomCreditsInitialized';
+  const FREE_ROOM_CREDITS = 5;
+
+  const ROOM_PROMPTS = {
+    baby: 'a cozy nursery with a wooden baby crib, soft natural window light, the crib neatly made with a folded quilt draped over the crib rail',
+    throw: 'a comfortable armchair in a warm living room, soft natural light, a quilt draped casually over the seat and armrest',
+    twin: 'a neatly made twin bed in a simple bedroom, soft natural window light, a quilt laid flat across the bed with two pillows at the headboard',
+    queen: 'a neatly made queen size bed in a warm, tastefully furnished bedroom, soft natural window light, a quilt laid flat across the bed with two pillows at the headboard',
+    king: 'a neatly made king size bed in a spacious, tastefully furnished bedroom, soft natural window light, a quilt laid flat across the bed with three pillows at the headboard'
+  };
+
+  // Rough hex-to-color-name mapping so the AI prompt describes colors in words
+  // rather than hex codes, which image models don't interpret reliably.
+  function nameColorFromHex(hex) {
+    const r = parseInt(hex.slice(1, 3), 16) / 255;
+    const g = parseInt(hex.slice(3, 5), 16) / 255;
+    const b = parseInt(hex.slice(5, 7), 16) / 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    const lightness = (max + min) / 2;
+    const delta = max - min;
+
+    if (delta < 0.04) {
+      if (lightness > 0.9) return 'white';
+      if (lightness > 0.7) return 'light gray';
+      if (lightness > 0.35) return 'gray';
+      return 'charcoal black';
+    }
+
+    let hue = 0;
+    if (max === r) hue = ((g - b) / delta) % 6;
+    else if (max === g) hue = (b - r) / delta + 2;
+    else hue = (r - g) / delta + 4;
+    hue *= 60;
+    if (hue < 0) hue += 360;
+
+    const sat = delta / (1 - Math.abs(2 * lightness - 1));
+
+    let base;
+    if (hue < 15 || hue >= 345) base = 'red';
+    else if (hue < 45) base = 'orange';
+    else if (hue < 65) base = 'yellow';
+    else if (hue < 80) base = 'yellow-green';
+    else if (hue < 170) base = 'green';
+    else if (hue < 200) base = 'teal';
+    else if (hue < 250) base = 'blue';
+    else if (hue < 290) base = 'purple';
+    else if (hue < 330) base = 'magenta';
+    else base = 'pink';
+
+    if (sat < 0.22) return (lightness > 0.65 ? 'pale muted ' : lightness < 0.35 ? 'deep muted ' : 'muted ') + base;
+    if (lightness > 0.82) return 'pale ' + base;
+    if (lightness < 0.32) return 'deep ' + base;
+    return base;
+  }
+
+  function getRoomCredits() {
+    return parseInt(localStorage.getItem(ROOM_CREDITS_KEY), 10) || 0;
+  }
+
+  function setRoomCredits(n) {
+    localStorage.setItem(ROOM_CREDITS_KEY, String(Math.max(0, n)));
+    updateRoomCreditsUI();
+  }
+
+  function updateRoomCreditsUI() {
+    const credits = getRoomCredits();
+    roomCreditsNote.textContent = `${credits} preview${credits === 1 ? '' : 's'} remaining`;
+    generateRoomPreviewBtn.disabled = credits <= 0;
+    buyRoomCreditsBtn.style.display = credits <= 0 ? 'inline-block' : 'none';
+  }
+
+  function buildRoomPreviewPrompt() {
+    const patternLabel = patternSelect.options[patternSelect.selectedIndex].dataset.baseLabel || patternSelect.options[patternSelect.selectedIndex].text;
+    const roomDescription = ROOM_PROMPTS[roomPreviewSelect.value];
+    const colorAName = nameColorFromHex(colorAInput.value);
+    const colorBName = nameColorFromHex(colorBInput.value);
+    return `A professional interior photograph of ${roomDescription}. The quilt has a "${patternLabel}" quilt block pattern, pieced in ${colorAName} and ${colorBName} fabric. Realistic fabric texture, soft natural lighting, photorealistic, high quality home decor photography.`;
+  }
+
+  async function pollRoomPreview(predictionId) {
+    const maxAttempts = 40; // ~80 seconds at 2s intervals
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const res = await fetch(`/api/room-preview-status?id=${encodeURIComponent(predictionId)}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Status check failed.');
+      if (data.status === 'succeeded') {
+        const output = Array.isArray(data.output) ? data.output[0] : data.output;
+        if (!output) throw new Error('No image was returned.');
+        return output;
+      }
+      if (data.status === 'failed' || data.status === 'canceled') {
+        throw new Error(data.error || 'Image generation failed.');
+      }
+      roomPreviewStatus.textContent = `Generating your room preview... (${data.status})`;
+    }
+    throw new Error('Generation took too long. Please try again.');
+  }
+
+  generateRoomPreviewBtn.addEventListener('click', async () => {
+    if (!isPro()) {
+      flashUnlockPrompt('AI room previews are part of Quilt Designer Pro.');
+      return;
+    }
+    if (getRoomCredits() <= 0) {
+      roomPreviewStatus.style.display = 'block';
+      roomPreviewStatus.textContent = 'Out of preview credits — buy 5 more below to continue.';
+      return;
+    }
+
+    generateRoomPreviewBtn.disabled = true;
+    roomPreviewImage.style.display = 'none';
+    roomPreviewStatus.style.display = 'block';
+    roomPreviewStatus.textContent = 'Starting generation...';
+
+    // Deduct up front to prevent repeated clicks from racking up extra generations;
+    // refunded automatically below if the generation ends up failing.
+    setRoomCredits(getRoomCredits() - 1);
+
+    try {
+      const prompt = buildRoomPreviewPrompt();
+      const startRes = await fetch('/api/room-preview-start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt })
+      });
+      const startData = await startRes.json();
+      if (!startRes.ok || !startData.id) throw new Error(startData.error || 'Unable to start generation.');
+
+      roomPreviewStatus.textContent = 'Generating your room preview...';
+      const imageUrl = await pollRoomPreview(startData.id);
+
+      roomPreviewImage.src = imageUrl;
+      roomPreviewImage.style.display = 'block';
+      roomPreviewStatus.style.display = 'none';
+    } catch (err) {
+      console.error('Room preview error:', err);
+      setRoomCredits(getRoomCredits() + 1); // refund the credit since generation didn't succeed
+      roomPreviewStatus.textContent = `Something went wrong: ${err.message || 'please try again.'}`;
+    } finally {
+      updateRoomCreditsUI();
+    }
+  });
+
+  buyRoomCreditsBtn.addEventListener('click', () => startCheckout('credits'));
+
   const cutListResults = document.getElementById('cutListResults');
   let lastFreePattern = 'ninepatch';
 
@@ -2001,9 +2185,15 @@
       unlockProBtn.textContent = 'Unlock Pro';
     }
 
-    [proFeatureTargetSize, proFeatureSwatch, proFeatureDesigns, proFeatureBacking, proFeatureCutList].forEach(el => setFeatureLock(el, !pro));
+    [proFeatureTargetSize, proFeatureSwatch, proFeatureDesigns, proFeatureBacking, proFeatureCutList, proFeatureRoomPreview].forEach(el => setFeatureLock(el, !pro));
     updatePatternOptionLabels();
     printSheetBtn.textContent = pro ? 'Download pattern sheet' : 'Download pattern sheet 🔒';
+
+    if (pro && localStorage.getItem(ROOM_CREDITS_INITIALIZED_KEY) !== 'true') {
+      localStorage.setItem(ROOM_CREDITS_INITIALIZED_KEY, 'true');
+      setRoomCredits(FREE_ROOM_CREDITS);
+    }
+    updateRoomCreditsUI();
 
     // If the currently-selected pattern is a Pro pattern but Pro isn't unlocked
     // (e.g. it was set before a previous unlock check finished), fall back to free.
@@ -2023,23 +2213,30 @@
     }, 3000);
   }
 
-  async function startCheckout() {
-    unlockProBtn.disabled = true;
-    unlockProBtn.textContent = 'Redirecting...';
+  async function startCheckout(type) {
+    type = type || 'pro';
+    const btn = type === 'credits' ? buyRoomCreditsBtn : unlockProBtn;
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Redirecting...';
     try {
-      const res = await fetch('/api/create-checkout-session', { method: 'POST' });
+      const res = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type })
+      });
       const data = await res.json();
       if (!res.ok || !data.url) throw new Error(data.error || 'No checkout URL returned');
       window.location.href = data.url;
     } catch (err) {
       console.error('Checkout error:', err);
       alert('Something went wrong starting checkout. Please try again in a moment.');
-      unlockProBtn.disabled = false;
-      unlockProBtn.textContent = 'Unlock Pro';
+      btn.disabled = false;
+      btn.textContent = originalText;
     }
   }
 
-  unlockProBtn.addEventListener('click', startCheckout);
+  unlockProBtn.addEventListener('click', () => startCheckout('pro'));
 
   // On load, check whether we're returning from a completed Stripe Checkout
   // session (?session_id=... in the URL) and verify the payment server-side
@@ -2053,7 +2250,11 @@
       const res = await fetch(`/api/verify-session?session_id=${encodeURIComponent(sessionId)}`);
       const data = await res.json();
       if (data.paid) {
-        localStorage.setItem(PRO_STORAGE_KEY, 'true');
+        if (data.type === 'credits') {
+          setRoomCredits(getRoomCredits() + 10);
+        } else {
+          localStorage.setItem(PRO_STORAGE_KEY, 'true');
+        }
       }
     } catch (err) {
       console.error('Session verification error:', err);
