@@ -253,13 +253,40 @@
   button#downloadBtn:hover { background: #263e4c; }
   button#downloadBtn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 
-  #yardageResults, #backingResults {
+  #yardageResults, #backingResults, #cutListResults {
     margin-top: 20px;
     text-align: left;
     border: 2px dashed var(--stitch);
     border-radius: 4px;
     padding: 16px 18px;
     background: var(--panel);
+  }
+
+  #cutListResults table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    font-size: 12px;
+  }
+  #cutListResults th {
+    text-align: left;
+    font-family: 'Bitter', serif;
+    text-transform: uppercase;
+    font-size: 10px;
+    letter-spacing: 0.03em;
+    border-bottom: 1px solid var(--stitch);
+    padding: 4px 6px 6px 0;
+  }
+  #cutListResults td {
+    padding: 5px 6px 5px 0;
+    border-bottom: 1px solid #e6ded0;
+    vertical-align: top;
+  }
+  #cutListResults .cutlist-note {
+    font-size: 11px;
+    color: var(--stitch);
+    margin-top: 10px;
+    display: block;
   }
 
   #yardageResults .yardage-title, #backingResults .yardage-title {
@@ -639,6 +666,10 @@
     <button id="printSheetBtn">Download pattern sheet 🔒</button>
     <div id="yardageResults"></div>
     <div id="backingResults"></div>
+    <div class="pro-feature" id="proFeatureCutList">
+      <div class="pro-lock-banner">🔒 The piece-by-piece cut list is part of Quilt Designer Pro.</div>
+      <div id="cutListResults"></div>
+    </div>
   </div>
 
 </div>
@@ -663,6 +694,8 @@
   const proFeatureSwatch = document.getElementById('proFeatureSwatch');
   const proFeatureDesigns = document.getElementById('proFeatureDesigns');
   const proFeatureBacking = document.getElementById('proFeatureBacking');
+  const proFeatureCutList = document.getElementById('proFeatureCutList');
+  const cutListResults = document.getElementById('cutListResults');
   let lastFreePattern = 'ninepatch';
 
   function isPro() {
@@ -1228,6 +1261,112 @@
     return { finishedWidthIn, finishedHeightIn, backingWidthIn, backingHeightIn, panelsNeeded, yards };
   }
 
+  // --- Piece-by-piece cut lists. Only implemented for patterns whose pieces map to ---
+  // genuine, standard quilting techniques (plain squares/rectangles, or classic
+  // half-square-triangle units) so the numbers are ones a quilter can actually trust.
+  // Design-space is always a fixed 300-unit block regardless of block size in inches.
+  const CUT_LIST_DESIGN_BLOCK = 300;
+
+  function formatInches(value) {
+    const whole = Math.floor(value + 1e-6);
+    const eighths = Math.round((value - whole) * 8);
+    if (eighths <= 0) return `${whole}"`;
+    if (eighths >= 8) return `${whole + 1}"`;
+    const fracMap = { 1: '1/8', 2: '1/4', 3: '3/8', 4: '1/2', 5: '5/8', 6: '3/4', 7: '7/8' };
+    return whole > 0 ? `${whole}-${fracMap[eighths]}"` : `${fracMap[eighths]}"`;
+  }
+
+  const CUT_LIST_GENERATORS = {
+    ninepatch(blockSizeInches) {
+      const toIn = (px) => px / CUT_LIST_DESIGN_BLOCK * blockSizeInches;
+      const finished = toIn(squareSize);
+      const cut = finished + 0.5;
+      return [
+        { piece: 'Square', color: 'colorA', cutW: cut, cutH: cut, qtyPerBlock: 5 },
+        { piece: 'Square', color: 'colorB', cutW: cut, cutH: cut, qtyPerBlock: 4 }
+      ];
+    },
+
+    railfence(blockSizeInches) {
+      const toIn = (px) => px / CUT_LIST_DESIGN_BLOCK * blockSizeInches;
+      const stripCount = 6;
+      const stripWFinished = toIn(blockSize / stripCount);
+      const stripHFinished = toIn(blockSize);
+      return [
+        { piece: 'Strip', color: 'colorA', cutW: stripWFinished + 0.5, cutH: stripHFinished + 0.5, qtyPerBlock: 3 },
+        { piece: 'Strip', color: 'colorB', cutW: stripWFinished + 0.5, cutH: stripHFinished + 0.5, qtyPerBlock: 3 }
+      ];
+    },
+
+    pinwheel(blockSizeInches) {
+      const toIn = (px) => px / CUT_LIST_DESIGN_BLOCK * blockSizeInches;
+      const finishedHst = toIn(blockSize / 2);
+      const cutSquare = finishedHst + 0.875;
+      return [
+        {
+          piece: 'HST square (before cutting)', color: 'colorA', cutW: cutSquare, cutH: cutSquare, qtyPerBlock: 2,
+          note: 'Layer each Color A square with a Color B square of the same size, right sides together. Mark one diagonal, sew 1/4" from the line on both sides, then cut apart on the marked line — each pair makes 2 half-square-triangle units. This block needs 4 finished units total.'
+        },
+        { piece: 'HST square (before cutting)', color: 'colorB', cutW: cutSquare, cutH: cutSquare, qtyPerBlock: 2 }
+      ];
+    },
+
+    logcabin(blockSizeInches) {
+      const toIn = (px) => px / CUT_LIST_DESIGN_BLOCK * blockSizeInches;
+      const rounds = 4;
+      const stripWidthPx = 25;
+      const centerSizePx = blockSize - 2 * rounds * stripWidthPx;
+      const rows = [];
+      let w = centerSizePx, h = centerSizePx;
+
+      rows.push({ piece: 'Center square', color: 'colorB', cutW: toIn(w) + 0.5, cutH: toIn(h) + 0.5, qtyPerBlock: 1 });
+
+      for (let r = 0; r < rounds; r++) {
+        rows.push({ piece: `Round ${r + 1} — right strip`, color: 'colorA', cutW: toIn(stripWidthPx) + 0.5, cutH: toIn(h) + 0.5, qtyPerBlock: 1 });
+        w += stripWidthPx;
+        rows.push({ piece: `Round ${r + 1} — bottom strip`, color: 'colorA', cutW: toIn(w) + 0.5, cutH: toIn(stripWidthPx) + 0.5, qtyPerBlock: 1 });
+        h += stripWidthPx;
+        rows.push({ piece: `Round ${r + 1} — left strip`, color: 'colorB', cutW: toIn(stripWidthPx) + 0.5, cutH: toIn(h) + 0.5, qtyPerBlock: 1 });
+        w += stripWidthPx;
+        rows.push({ piece: `Round ${r + 1} — top strip`, color: 'colorB', cutW: toIn(w) + 0.5, cutH: toIn(stripWidthPx) + 0.5, qtyPerBlock: 1 });
+        h += stripWidthPx;
+      }
+      return rows;
+    }
+  };
+
+  function renderCutList(patternKey, blockSizeInches, blocksAcross, blocksDown) {
+    if (!isPro()) {
+      cutListResults.innerHTML = '';
+      return;
+    }
+    const generator = CUT_LIST_GENERATORS[patternKey];
+    if (!generator) {
+      cutListResults.innerHTML = '<span class="yardage-title">Cut list</span><span class="cutlist-note">A piece-by-piece cut list for this pattern is coming soon — for now, use the yardage total above.</span>';
+      return;
+    }
+
+    const totalBlocks = blocksAcross * blocksDown;
+    const rows = generator(blockSizeInches);
+    const colorLabel = { colorA: 'Color A', colorB: 'Color B' };
+
+    let html = '<span class="yardage-title">Cut list</span>';
+    html += '<span class="yardage-note">Sizes include a standard 1/4" seam allowance. Totals are for the whole quilt top.</span>';
+    html += '<table><tr><th>Piece</th><th>Color</th><th>Cut size</th><th>Total qty</th></tr>';
+    rows.forEach(row => {
+      const totalQty = row.qtyPerBlock * totalBlocks;
+      html += `<tr><td>${row.piece}</td><td>${colorLabel[row.color] || row.color}</td><td>${formatInches(row.cutW)} × ${formatInches(row.cutH)}</td><td>${totalQty}</td></tr>`;
+    });
+    html += '</table>';
+
+    const notes = rows.filter(r => r.note).map(r => r.note);
+    notes.forEach(note => {
+      html += `<span class="cutlist-note">${note}</span>`;
+    });
+
+    cutListResults.innerHTML = html;
+  }
+
   function redraw() {
     areaTotals = { colorA: 0, colorB: 0, sashing: 0, border: 0 };
 
@@ -1260,6 +1399,7 @@
     drawQuilt(blockDrawFn, blocksAcross, blocksDown, sashingWidth, sashingColor, borderWidth, borderColor, colorA, colorB, alternateRotation);
     updateYardage(blockSizeInches);
     updateBackingYardage(blockSizeInches, blocksAcross, blocksDown, sashingWidth, borderWidth);
+    renderCutList(patternSelect.value, blockSizeInches, blocksAcross, blocksDown);
     updateActivePreset();
   }
 
@@ -1685,7 +1825,7 @@
       unlockProBtn.textContent = 'Unlock Pro';
     }
 
-    [proFeatureTargetSize, proFeatureSwatch, proFeatureDesigns, proFeatureBacking].forEach(el => setFeatureLock(el, !pro));
+    [proFeatureTargetSize, proFeatureSwatch, proFeatureDesigns, proFeatureBacking, proFeatureCutList].forEach(el => setFeatureLock(el, !pro));
     updatePatternOptionLabels();
     printSheetBtn.textContent = pro ? 'Download pattern sheet' : 'Download pattern sheet 🔒';
 
@@ -1693,8 +1833,8 @@
     // (e.g. it was set before a previous unlock check finished), fall back to free.
     if (!pro && PRO_PATTERNS.has(patternSelect.value)) {
       patternSelect.value = lastFreePattern;
-      redraw();
     }
+    redraw();
   }
 
   function flashUnlockPrompt(message) {
