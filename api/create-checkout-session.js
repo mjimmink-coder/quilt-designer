@@ -1,7 +1,7 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 // The one-time Quilt Designer Pro price, created in the Stripe Dashboard.
-const PRO_PRICE_ID = 'price_1TsGcRQ27FHtgCkN5meMIi09';
+const PRO_PRICE_ID = 'price_1TsRCEPonndQkh7uS8gCONIo';
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
