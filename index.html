@@ -1406,6 +1406,76 @@
         },
         { piece: 'Claw HST square (before cutting)', color: 'colorB', cutW: subHstCut, cutH: subHstCut, qtyPerBlock: 6 }
       ];
+    },
+
+    // These four patterns' triangle "points" have unequal-length legs (roughly 2:1),
+    // not the simple 45-45-90 corners a plain HST or square stitch-and-flip produces.
+    // Rather than assert an unverified efficient shortcut, every triangle piece is
+    // given as a generously oversized rectangle to cut and trim to shape using the
+    // on-screen block diagram as a guide — always correct, regardless of proportions.
+    flyinggeese(blockSizeInches) {
+      const pointW = blockSizeInches;
+      const pointH = blockSizeInches / 4;
+      const wedgeW = blockSizeInches / 2;
+      const wedgeH = blockSizeInches / 4;
+      const trimNote = 'This piece is oversized on purpose. Cut it to this size, then trim to the triangle shape shown in the block diagram, leaving at least 1/4" of fabric beyond each finished point for the seam allowance.';
+      return [
+        { piece: 'Goose point (cut oversized, trim to shape)', color: 'colorA', cutW: pointW + 1, cutH: pointH + 1, qtyPerBlock: 4, note: trimNote },
+        { piece: 'Goose background wedge (cut oversized, trim to shape)', color: 'colorB', cutW: wedgeW + 1, cutH: wedgeH + 1, qtyPerBlock: 8 }
+      ];
+    },
+
+    churndash(blockSizeInches) {
+      const toIn = (px) => px / CUT_LIST_DESIGN_BLOCK * blockSizeInches;
+      const unitFinished = toIn(blockSize / 3);
+      const plainCut = unitFinished + 0.5;
+      const pointDim = unitFinished;
+      const wedgeW = unitFinished / 2;
+      const wedgeH = unitFinished;
+      const trimNote = 'This piece is oversized on purpose. Cut it to this size, then trim to the triangle shape shown in the block diagram, leaving at least 1/4" of fabric beyond each finished point for the seam allowance.';
+      return [
+        { piece: 'Center square', color: 'colorA', cutW: plainCut, cutH: plainCut, qtyPerBlock: 1 },
+        { piece: 'Corner square', color: 'colorB', cutW: plainCut, cutH: plainCut, qtyPerBlock: 4 },
+        { piece: 'Edge point (cut oversized, trim to shape)', color: 'colorA', cutW: pointDim + 1, cutH: pointDim + 1, qtyPerBlock: 4, note: trimNote },
+        { piece: 'Edge background wedge (cut oversized, trim to shape)', color: 'colorB', cutW: wedgeW + 1, cutH: wedgeH + 1, qtyPerBlock: 8 }
+      ];
+    },
+
+    friendshipstar(blockSizeInches) {
+      const toIn = (px) => px / CUT_LIST_DESIGN_BLOCK * blockSizeInches;
+      const unitFinished = toIn(blockSize / 3);
+      const plainCut = unitFinished + 0.5;
+      const pointDim = unitFinished;
+      const wedgeW = unitFinished / 2;
+      const wedgeH = unitFinished;
+      const trimNote = 'This piece is oversized on purpose. Cut it to this size, then trim to the triangle shape shown in the block diagram, leaving at least 1/4" of fabric beyond each finished point for the seam allowance.';
+      return [
+        { piece: 'Center square', color: 'colorA', cutW: plainCut, cutH: plainCut, qtyPerBlock: 1 },
+        { piece: 'Corner square', color: 'colorB', cutW: plainCut, cutH: plainCut, qtyPerBlock: 4 },
+        { piece: 'Star point (cut oversized, trim to shape)', color: 'colorA', cutW: pointDim + 1, cutH: pointDim + 1, qtyPerBlock: 4, note: trimNote },
+        { piece: 'Star point background wedge (cut oversized, trim to shape)', color: 'colorB', cutW: wedgeW + 1, cutH: wedgeH + 1, qtyPerBlock: 8 }
+      ];
+    },
+
+    sawtoothstar(blockSizeInches) {
+      const toIn = (px) => px / CUT_LIST_DESIGN_BLOCK * blockSizeInches;
+      const unitFinished = toIn(blockSize / 3);
+      const plainCut = unitFinished + 0.5;
+      const hstCut = unitFinished + 0.875;
+      const pointDim = unitFinished;
+      const wedgeW = unitFinished / 2;
+      const wedgeH = unitFinished;
+      const trimNote = 'This piece is oversized on purpose. Cut it to this size, then trim to the triangle shape shown in the block diagram, leaving at least 1/4" of fabric beyond each finished point for the seam allowance.';
+      return [
+        { piece: 'Center square', color: 'colorA', cutW: plainCut, cutH: plainCut, qtyPerBlock: 1 },
+        {
+          piece: 'Corner HST square (before cutting)', color: 'colorA', cutW: hstCut, cutH: hstCut, qtyPerBlock: 2,
+          note: 'Layer each Color A square with a Color B square of the same size, mark one diagonal, sew 1/4" on both sides of the line, cut apart on the line — each pair makes 2 half-square-triangle units. This block needs 4 corner units total.'
+        },
+        { piece: 'Corner HST square (before cutting)', color: 'colorB', cutW: hstCut, cutH: hstCut, qtyPerBlock: 2 },
+        { piece: 'Star point (cut oversized, trim to shape)', color: 'colorA', cutW: pointDim + 1, cutH: pointDim + 1, qtyPerBlock: 4, note: trimNote },
+        { piece: 'Star point background wedge (cut oversized, trim to shape)', color: 'colorB', cutW: wedgeW + 1, cutH: wedgeH + 1, qtyPerBlock: 8 }
+      ];
     }
   };
 
