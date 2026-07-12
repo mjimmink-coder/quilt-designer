@@ -816,14 +816,33 @@
     buyRoomCreditsBtn.style.display = credits <= 0 ? 'inline-block' : 'none';
   }
 
+  // Literal geometric descriptions of each block's actual shapes, built from the same
+  // piece geometry used for the cut lists — giving the AI a concrete shape to render
+  // rather than relying on it to correctly picture a named pattern like "Ohio Star".
+  const PATTERN_SHAPE_DESCRIPTIONS = {
+    ninepatch: 'a 3x3 grid of small solid-color squares within the block, alternating between the two fabric colors in a checkerboard pattern',
+    logcabin: 'a small solid center square surrounded by concentric rectangular fabric strips, alternating between the two colors on opposite sides, building outward in rings like a log cabin',
+    pinwheel: 'four right-triangle shapes meeting at the exact center of the block, arranged in a rotational pinwheel, alternating between the two colors',
+    railfence: 'six equal-width straight vertical fabric strips running the full height of the block, alternating between the two colors',
+    courthousesteps: 'a small solid center square surrounded by rectangular fabric strips added symmetrically top-and-bottom then left-and-right, alternating between the two colors',
+    ohiostar: 'a solid center square, four solid corner squares in the second color, and four star-point units (each a diagonally-split pair of triangles) forming a single 4-pointed star centered in the block',
+    flyinggeese: 'a column of stacked "flying geese" triangle units, each one large point triangle in one color flanked by two smaller background triangles in the second color',
+    bearspaw: 'a solid center square, four solid edge squares, and four corner "claw" units, each made of three small diagonally-split triangle pairs plus one small solid square',
+    shoofly: 'a solid center square, four solid edge squares in the second color, and four corner units made of diagonally-split triangle pairs',
+    churndash: 'a solid center square, four solid corner squares, and four edge units shaped like a large triangle point flanked by two smaller triangles, forming an accent ring around the center square',
+    friendshipstar: 'a solid center square, four solid corner squares, and four star-point triangle units pointing outward toward the block edges, forming a single 4-pointed star centered in the block',
+    sawtoothstar: 'a solid center square, four corner units made of diagonally-split triangle pairs, and four star-point triangle units pointing outward, forming a 4-pointed star with small triangle "teeth" accents at the corners'
+  };
+
   function buildRoomPreviewPrompt() {
     const patternLabel = patternSelect.options[patternSelect.selectedIndex].dataset.baseLabel || patternSelect.options[patternSelect.selectedIndex].text;
+    const shapeDescription = PATTERN_SHAPE_DESCRIPTIONS[patternSelect.value] || `a "${patternLabel}" quilt block pattern`;
     const roomDescription = ROOM_PROMPTS[roomPreviewSelect.value];
     const colorAName = nameColorFromHex(colorAInput.value);
     const colorBName = nameColorFromHex(colorBInput.value);
     const across = parseInt(blocksAcrossInput.value, 10) || 3;
     const down = parseInt(blocksDownInput.value, 10) || 3;
-    return `A professional interior photograph of ${roomDescription}. The quilt is made of many small identical "${patternLabel}" quilt blocks repeated across the whole quilt in a grid of roughly ${across} blocks wide by ${down} blocks tall — it is NOT one single large star or motif covering the whole quilt, it is a tessellated grid of small repeating blocks, each block the same small size, separated by visible seam lines between blocks. The quilt is pieced in ${colorAName} and ${colorBName} fabric. Realistic fabric texture, soft natural lighting, photorealistic, high quality home decor photography.`;
+    return `A professional interior photograph of ${roomDescription}. The quilt is made of many small identical blocks repeated across the whole quilt in a grid of roughly ${across} blocks wide by ${down} blocks tall — it is NOT one single large motif covering the whole quilt, it is a tessellated grid of small repeating blocks separated by visible seam lines. Each individual block shows this exact design: ${shapeDescription}. The quilt is pieced in ${colorAName} and ${colorBName} fabric, with sharp precise geometric machine-pieced seams, crisp straight edges and points, no rounded or soft shapes. Realistic quilted fabric texture, soft natural lighting, photorealistic, high quality home decor photography.`;
   }
 
   async function pollRoomPreview(predictionId) {
