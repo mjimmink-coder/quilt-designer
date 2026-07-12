@@ -339,6 +339,33 @@
     <hr class="divider">
 
     <fieldset>
+      <legend>Target Quilt Size</legend>
+      <label for="targetSizeSelect">Quilt size</label>
+      <select id="targetSizeSelect">
+        <option value="">Custom (set blocks manually)</option>
+        <option value="baby">Baby / Crib (approx 36×52")</option>
+        <option value="throw">Throw / Lap (approx 50×65")</option>
+        <option value="twin">Twin (approx 65×88")</option>
+        <option value="queen">Full / Queen (approx 90×90")</option>
+        <option value="king">King (approx 108×108")</option>
+      </select>
+      <div class="field-row" style="margin-top:10px;">
+        <div>
+          <label for="targetWidthInput">Target width (in)</label>
+          <input type="number" id="targetWidthInput" min="10" max="200" step="1">
+        </div>
+        <div>
+          <label for="targetHeightInput">Target height (in)</label>
+          <input type="number" id="targetHeightInput" min="10" max="200" step="1">
+        </div>
+      </div>
+      <button type="button" class="swatch-clear-btn" id="fitBlocksBtn" style="margin-top:10px;">Fit blocks to this size</button>
+      <span class="swatch-hint" id="actualSizeNote"></span>
+    </fieldset>
+
+    <hr class="divider">
+
+    <fieldset>
       <legend>Size &amp; Layout</legend>
       <label for="blockSizeInchesInput">Block size (inches)</label>
       <input type="number" id="blockSizeInchesInput" value="12" min="4" max="24">
@@ -465,6 +492,19 @@
   const swatchScaleInput = document.getElementById('swatchScaleInput');
   const directionalAInput = document.getElementById('directionalAInput');
   const directionalBInput = document.getElementById('directionalBInput');
+  const targetSizeSelect = document.getElementById('targetSizeSelect');
+  const targetWidthInput = document.getElementById('targetWidthInput');
+  const targetHeightInput = document.getElementById('targetHeightInput');
+  const fitBlocksBtn = document.getElementById('fitBlocksBtn');
+  const actualSizeNote = document.getElementById('actualSizeNote');
+
+  const QUILT_SIZE_PRESETS = {
+    baby: { width: 36, height: 52 },
+    throw: { width: 50, height: 65 },
+    twin: { width: 65, height: 88 },
+    queen: { width: 90, height: 90 },
+    king: { width: 108, height: 108 }
+  };
 
   let swatchImages = { colorA: null, colorB: null };
   const MAX_SWATCH_DIMENSION = 500;
@@ -946,6 +986,55 @@
     swatchBInput.value = '';
     clearSwatchB.hidden = true;
     redraw();
+  });
+
+  targetSizeSelect.addEventListener('change', () => {
+    const preset = QUILT_SIZE_PRESETS[targetSizeSelect.value];
+    if (preset) {
+      targetWidthInput.value = preset.width;
+      targetHeightInput.value = preset.height;
+    }
+  });
+
+  // Back-calculates how many blocks (rounded to the nearest whole block, since you
+  // can't sew a fractional one) get closest to the requested finished dimensions,
+  // given the current block size, sashing, and border settings.
+  fitBlocksBtn.addEventListener('click', () => {
+    const targetWidthIn = parseFloat(targetWidthInput.value);
+    const targetHeightIn = parseFloat(targetHeightInput.value);
+    if (!targetWidthIn || !targetHeightIn) {
+      actualSizeNote.textContent = 'Enter a target width and height first.';
+      return;
+    }
+
+    const blockSizeInches = parseFloat(blockSizeInchesInput.value) || 12;
+    const pixelsPerInch = blockSize / blockSizeInches;
+    const sashingWidth = parseInt(sashingWidthInput.value, 10) || 0;
+    const borderWidth = parseInt(borderWidthInput.value, 10) || 0;
+
+    const targetBodyWidthPx = targetWidthIn * pixelsPerInch - 2 * borderWidth;
+    const targetBodyHeightPx = targetHeightIn * pixelsPerInch - 2 * borderWidth;
+
+    let blocksAcross = Math.round((targetBodyWidthPx - sashingWidth) / (blockSize + sashingWidth));
+    let blocksDown = Math.round((targetBodyHeightPx - sashingWidth) / (blockSize + sashingWidth));
+    blocksAcross = Math.max(1, Math.min(blocksAcross, 10));
+    blocksDown = Math.max(1, Math.min(blocksDown, 10));
+
+    blocksAcrossInput.value = blocksAcross;
+    blocksDownInput.value = blocksDown;
+    redraw();
+
+    const actualBodyWidthPx = blocksAcross * blockSize + (blocksAcross + 1) * sashingWidth;
+    const actualBodyHeightPx = blocksDown * blockSize + (blocksDown + 1) * sashingWidth;
+    const actualTotalWidthIn = (actualBodyWidthPx + 2 * borderWidth) / pixelsPerInch;
+    const actualTotalHeightIn = (actualBodyHeightPx + 2 * borderWidth) / pixelsPerInch;
+
+    const hitCeiling = blocksAcross === 10 || blocksDown === 10;
+    let note = `Closest fit: ${blocksAcross}×${blocksDown} blocks → approx ${actualTotalWidthIn.toFixed(1)}" × ${actualTotalHeightIn.toFixed(1)}"`;
+    if (hitCeiling) {
+      note += ' (hit the 10-block grid limit — try a larger block size for a closer match)';
+    }
+    actualSizeNote.textContent = note;
   });
 
   downloadBtn.addEventListener('click', () => {
