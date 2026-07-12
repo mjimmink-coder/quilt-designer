@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 // The one-time Quilt Designer Pro price, created in the Stripe Dashboard.
@@ -25,3 +26,6 @@ module.exports = async function handler(req, res) {
     return res.status(500).json({ error: 'Unable to start checkout.' });
   }
 };
+=======
+
+>>>>>>> 81134faccd71c2a1b75455bc788e176bbbc47e00
