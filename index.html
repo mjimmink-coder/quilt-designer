@@ -253,7 +253,7 @@
   button#downloadBtn:hover { background: #263e4c; }
   button#downloadBtn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 
-  #yardageResults {
+  #yardageResults, #backingResults {
     margin-top: 20px;
     text-align: left;
     border: 2px dashed var(--stitch);
@@ -262,7 +262,7 @@
     background: var(--panel);
   }
 
-  #yardageResults .yardage-title {
+  #yardageResults .yardage-title, #backingResults .yardage-title {
     font-family: 'Bitter', serif;
     font-weight: 700;
     font-size: 14px;
@@ -273,14 +273,14 @@
     margin-bottom: 2px;
   }
 
-  #yardageResults .yardage-note {
+  #yardageResults .yardage-note, #backingResults .yardage-note {
     font-size: 11px;
     color: var(--stitch);
     display: block;
     margin-bottom: 10px;
   }
 
-  #yardageResults .yardage-row {
+  #yardageResults .yardage-row, #backingResults .yardage-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -558,6 +558,15 @@
       <span class="swatch-hint" id="designStatusNote"></span>
     </fieldset>
 
+    <hr class="divider">
+
+    <fieldset>
+      <legend>Backing Fabric</legend>
+      <label for="backingOverhangInput">Overhang buffer per side (inches)</label>
+      <input type="number" id="backingOverhangInput" value="4" min="0" max="12" step="1">
+      <span class="swatch-hint">Extra fabric on each edge for quilting/longarm loading — 4" is a common default.</span>
+    </fieldset>
+
   </div>
 
   <div class="panel canvas-panel">
@@ -565,6 +574,7 @@
     <button id="downloadBtn">Download design</button>
     <button id="printSheetBtn">Download pattern sheet</button>
     <div id="yardageResults"></div>
+    <div id="backingResults"></div>
   </div>
 
 </div>
@@ -574,6 +584,7 @@
 <script>
   const svg = document.getElementById('quilt-canvas');
   const yardageResults = document.getElementById('yardageResults');
+  const backingResults = document.getElementById('backingResults');
   const downloadBtn = document.getElementById('downloadBtn');
   const printSheetBtn = document.getElementById('printSheetBtn');
   const printSheet = document.getElementById('printSheet');
@@ -609,6 +620,7 @@
   const loadDesignBtn = document.getElementById('loadDesignBtn');
   const deleteDesignBtn = document.getElementById('deleteDesignBtn');
   const designStatusNote = document.getElementById('designStatusNote');
+  const backingOverhangInput = document.getElementById('backingOverhangInput');
   const DESIGNS_STORAGE_KEY = 'quiltDesignerSavedDesigns';
 
   const QUILT_SIZE_PRESETS = {
@@ -1097,6 +1109,40 @@
     yardageResults.innerHTML = html;
   }
 
+  // Backing fabric almost always needs to be pieced from multiple widths of fabric
+  // seamed together, since standard fabric is only ~42" wide but a finished quilt
+  // (plus loading overhang) is very often wider than that.
+  function updateBackingYardage(blockSizeInches, blocksAcross, blocksDown, sashingWidth, borderWidth) {
+    const pixelsPerInch = blockSize / blockSizeInches;
+    const bodyWidthPx = blocksAcross * blockSize + (blocksAcross + 1) * sashingWidth;
+    const bodyHeightPx = blocksDown * blockSize + (blocksDown + 1) * sashingWidth;
+    const totalWidthPx = bodyWidthPx + borderWidth * 2;
+    const totalHeightPx = bodyHeightPx + borderWidth * 2;
+
+    const finishedWidthIn = totalWidthPx / pixelsPerInch;
+    const finishedHeightIn = totalHeightPx / pixelsPerInch;
+
+    const overhang = parseFloat(backingOverhangInput.value) || 0;
+    const backingWidthIn = finishedWidthIn + overhang * 2;
+    const backingHeightIn = finishedHeightIn + overhang * 2;
+
+    const panelsNeeded = Math.max(1, Math.ceil(backingWidthIn / FABRIC_USABLE_WIDTH_IN));
+    const totalLengthIn = panelsNeeded * backingHeightIn;
+    const rawYards = totalLengthIn / 36;
+    const yards = Math.ceil(rawYards * 4) / 4; // round up to the nearest quarter yard
+
+    let html = '<span class="yardage-title">Backing fabric</span>';
+    html += `<span class="yardage-note">Covers ${backingWidthIn.toFixed(1)}" × ${backingHeightIn.toFixed(1)}" including overhang</span>`;
+    html += `<div class="yardage-row"><span>Fabric panels (seamed together)</span><span>${panelsNeeded}</span></div>`;
+    html += `<div class="yardage-row"><span>Total backing yardage</span><span>${yards.toFixed(2)} yd</span></div>`;
+    if (panelsNeeded > 1) {
+      html += `<span class="yardage-note" style="margin-top:8px; margin-bottom:0;">Requires ${panelsNeeded - 1} horizontal seam${panelsNeeded > 2 ? 's' : ''} to reach full width — trim selvages before joining.</span>`;
+    }
+    backingResults.innerHTML = html;
+
+    return { finishedWidthIn, finishedHeightIn, backingWidthIn, backingHeightIn, panelsNeeded, yards };
+  }
+
   function redraw() {
     areaTotals = { colorA: 0, colorB: 0, sashing: 0, border: 0 };
 
@@ -1128,10 +1174,11 @@
 
     drawQuilt(blockDrawFn, blocksAcross, blocksDown, sashingWidth, sashingColor, borderWidth, borderColor, colorA, colorB, alternateRotation);
     updateYardage(blockSizeInches);
+    updateBackingYardage(blockSizeInches, blocksAcross, blocksDown, sashingWidth, borderWidth);
     updateActivePreset();
   }
 
-  [patternSelect, alternateRotationInput, blockSizeInchesInput, blocksAcrossInput, blocksDownInput, sashingWidthInput, sashingColorInput, borderWidthInput, borderColorInput, colorAInput, colorBInput, swatchScaleInput, directionalAInput, directionalBInput]
+  [patternSelect, alternateRotationInput, blockSizeInchesInput, blocksAcrossInput, blocksDownInput, sashingWidthInput, sashingColorInput, borderWidthInput, borderColorInput, colorAInput, colorBInput, swatchScaleInput, directionalAInput, directionalBInput, backingOverhangInput]
     .forEach(input => input.addEventListener('input', redraw));
 
   // Manually picking a solid color overrides an active fabric photo for that slot.
@@ -1444,9 +1491,14 @@
         <tr><th colspan="2">Design specs</th></tr>
         ${specRows.map(([label, value]) => `<tr><td>${label}</td><td>${value}</td></tr>`).join('')}
       </table>
-      <div class="yardage-section">
+      <div class="yardage-section yardage-section-fabric">
         <table>
           <tr><th colspan="2">Fabric needed</th></tr>
+        </table>
+      </div>
+      <div class="yardage-section yardage-section-backing">
+        <table>
+          <tr><th colspan="2">Backing fabric</th></tr>
         </table>
       </div>
       <div class="print-note">Yardage is based on 42" usable fabric width with no waste margin, and does not include seam allowance — add your standard seam allowance (typically 1/4") when cutting each piece.</div>
@@ -1457,7 +1509,7 @@
     // Rebuild the yardage rows directly (rather than reusing the live yardageResults
     // markup) so swatch-photo backgrounds and directional-print notes still render
     // correctly on a fresh, isolated print page.
-    const yardageTable = printSheet.querySelector('.yardage-section table');
+    const yardageTable = printSheet.querySelector('.yardage-section-fabric table');
     const pixelsPerInchYardage = blockSize / blockSizeInches;
     const sqPxPerSqIn = pixelsPerInchYardage * pixelsPerInchYardage;
     const rows = [
@@ -1481,8 +1533,20 @@
       const note = document.createElement('div');
       note.className = 'print-note';
       note.textContent = '*Includes ~40% extra for directional print matching — a rule-of-thumb estimate, not exact.';
-      printSheet.querySelector('.yardage-section').appendChild(note);
+      printSheet.querySelector('.yardage-section-fabric').appendChild(note);
     }
+
+    const backingTable = printSheet.querySelector('.yardage-section-backing table');
+    const backingCalc = updateBackingYardage(blockSizeInches, parseInt(blocksAcross, 10), parseInt(blocksDown, 10), parseInt(sashingWidthInput.value, 10) || 0, parseInt(borderWidthInput.value, 10) || 0);
+    const backingRow1 = document.createElement('tr');
+    backingRow1.innerHTML = `<td>Covers (incl. overhang)</td><td>${backingCalc.backingWidthIn.toFixed(1)}" × ${backingCalc.backingHeightIn.toFixed(1)}"</td>`;
+    backingTable.appendChild(backingRow1);
+    const backingRow2 = document.createElement('tr');
+    backingRow2.innerHTML = `<td>Fabric panels (seamed together)</td><td>${backingCalc.panelsNeeded}</td>`;
+    backingTable.appendChild(backingRow2);
+    const backingRow3 = document.createElement('tr');
+    backingRow3.innerHTML = `<td>Total backing yardage</td><td>${backingCalc.yards.toFixed(2)} yd</td>`;
+    backingTable.appendChild(backingRow3);
 
     window.print();
   });
