@@ -457,6 +457,27 @@
       </div>
     </fieldset>
 
+    <hr class="divider">
+
+    <fieldset>
+      <legend>My Designs</legend>
+      <label for="designNameInput">Design name</label>
+      <input type="text" id="designNameInput" placeholder="e.g. Baby quilt for Emma" maxlength="60">
+      <button type="button" class="swatch-clear-btn" id="saveDesignBtn" style="margin-top:8px;">Save design</button>
+
+      <div style="margin-top:16px;">
+        <label for="savedDesignsSelect">Saved designs</label>
+        <select id="savedDesignsSelect">
+          <option value="">— none saved yet —</option>
+        </select>
+        <div class="field-row" style="margin-top:8px;">
+          <button type="button" class="swatch-clear-btn" id="loadDesignBtn">Load</button>
+          <button type="button" class="swatch-clear-btn" id="deleteDesignBtn">Delete</button>
+        </div>
+      </div>
+      <span class="swatch-hint" id="designStatusNote"></span>
+    </fieldset>
+
   </div>
 
   <div class="panel canvas-panel">
@@ -497,6 +518,13 @@
   const targetHeightInput = document.getElementById('targetHeightInput');
   const fitBlocksBtn = document.getElementById('fitBlocksBtn');
   const actualSizeNote = document.getElementById('actualSizeNote');
+  const designNameInput = document.getElementById('designNameInput');
+  const saveDesignBtn = document.getElementById('saveDesignBtn');
+  const savedDesignsSelect = document.getElementById('savedDesignsSelect');
+  const loadDesignBtn = document.getElementById('loadDesignBtn');
+  const deleteDesignBtn = document.getElementById('deleteDesignBtn');
+  const designStatusNote = document.getElementById('designStatusNote');
+  const DESIGNS_STORAGE_KEY = 'quiltDesignerSavedDesigns';
 
   const QUILT_SIZE_PRESETS = {
     baby: { width: 36, height: 52 },
@@ -1036,6 +1064,128 @@
     }
     actualSizeNote.textContent = note;
   });
+
+  // --- Save / load named designs, stored in this browser's localStorage. ---
+
+  function getSavedDesigns() {
+    try {
+      const raw = localStorage.getItem(DESIGNS_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function refreshSavedDesignsList(selectName) {
+    const designs = getSavedDesigns();
+    const names = Object.keys(designs).sort((a, b) => a.localeCompare(b));
+    savedDesignsSelect.innerHTML = '';
+    if (names.length === 0) {
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = '— none saved yet —';
+      savedDesignsSelect.appendChild(opt);
+      return;
+    }
+    names.forEach(name => {
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = name;
+      savedDesignsSelect.appendChild(opt);
+    });
+    if (selectName && names.includes(selectName)) {
+      savedDesignsSelect.value = selectName;
+    }
+  }
+
+  function collectDesignState() {
+    return {
+      pattern: patternSelect.value,
+      alternateRotation: alternateRotationInput.checked,
+      blockSizeInches: blockSizeInchesInput.value,
+      blocksAcross: blocksAcrossInput.value,
+      blocksDown: blocksDownInput.value,
+      sashingWidth: sashingWidthInput.value,
+      sashingColor: sashingColorInput.value,
+      borderWidth: borderWidthInput.value,
+      borderColor: borderColorInput.value,
+      colorA: colorAInput.value,
+      colorB: colorBInput.value,
+      swatchImages: { colorA: swatchImages.colorA, colorB: swatchImages.colorB },
+      directionalA: directionalAInput.checked,
+      directionalB: directionalBInput.checked,
+      swatchScale: swatchScaleInput.value
+    };
+  }
+
+  function applyDesignState(state) {
+    patternSelect.value = state.pattern;
+    alternateRotationInput.checked = !!state.alternateRotation;
+    blockSizeInchesInput.value = state.blockSizeInches;
+    blocksAcrossInput.value = state.blocksAcross;
+    blocksDownInput.value = state.blocksDown;
+    sashingWidthInput.value = state.sashingWidth;
+    sashingColorInput.value = state.sashingColor;
+    borderWidthInput.value = state.borderWidth;
+    borderColorInput.value = state.borderColor;
+    colorAInput.value = state.colorA;
+    colorBInput.value = state.colorB;
+    swatchImages.colorA = (state.swatchImages && state.swatchImages.colorA) || null;
+    swatchImages.colorB = (state.swatchImages && state.swatchImages.colorB) || null;
+    clearSwatchA.hidden = !swatchImages.colorA;
+    clearSwatchB.hidden = !swatchImages.colorB;
+    swatchAInput.value = '';
+    swatchBInput.value = '';
+    directionalAInput.checked = !!state.directionalA;
+    directionalBInput.checked = !!state.directionalB;
+    swatchScaleInput.value = state.swatchScale || 4;
+    redraw();
+  }
+
+  saveDesignBtn.addEventListener('click', () => {
+    const name = designNameInput.value.trim();
+    if (!name) {
+      designStatusNote.textContent = 'Enter a name for this design first.';
+      return;
+    }
+    const designs = getSavedDesigns();
+    designs[name] = collectDesignState();
+    try {
+      localStorage.setItem(DESIGNS_STORAGE_KEY, JSON.stringify(designs));
+      refreshSavedDesignsList(name);
+      designStatusNote.textContent = `Saved "${name}".`;
+    } catch (e) {
+      designStatusNote.textContent = 'Could not save — your browser storage may be full. Try removing an older design first.';
+    }
+  });
+
+  loadDesignBtn.addEventListener('click', () => {
+    const name = savedDesignsSelect.value;
+    if (!name) {
+      designStatusNote.textContent = 'Pick a saved design to load first.';
+      return;
+    }
+    const designs = getSavedDesigns();
+    if (!designs[name]) return;
+    applyDesignState(designs[name]);
+    designNameInput.value = name;
+    designStatusNote.textContent = `Loaded "${name}".`;
+  });
+
+  deleteDesignBtn.addEventListener('click', () => {
+    const name = savedDesignsSelect.value;
+    if (!name) {
+      designStatusNote.textContent = 'Pick a saved design to delete first.';
+      return;
+    }
+    const designs = getSavedDesigns();
+    delete designs[name];
+    localStorage.setItem(DESIGNS_STORAGE_KEY, JSON.stringify(designs));
+    refreshSavedDesignsList();
+    designStatusNote.textContent = `Deleted "${name}".`;
+  });
+
+  refreshSavedDesignsList();
 
   downloadBtn.addEventListener('click', () => {
     const svgWidth = svg.getAttribute('width');
