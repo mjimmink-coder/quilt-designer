@@ -1,7 +1,10 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
-// The one-time Quilt Designer Pro price, created in the Stripe Dashboard.
-const PRO_PRICE_ID = 'price_1TsRCEPonndQkh7uS8gCONIo';
+// Live Price IDs, created in the Stripe Dashboard.
+const PRICE_IDS = {
+  pro: 'price_1TsRCEPonndQkh7uS8gCONIo', // Quilt Designer Pro, one-time
+  credits: 'REPLACE_WITH_LIVE_CREDITS_PRICE_ID' // 5 Room Preview Credits, one-time
+};
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -9,12 +12,19 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  const type = (req.body && req.body.type) || 'pro';
+  const priceId = PRICE_IDS[type];
+  if (!priceId) {
+    return res.status(400).json({ error: 'Unknown product type.' });
+  }
+
   try {
     const origin = req.headers.origin || `https://${req.headers.host}`;
 
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
-      line_items: [{ price: PRO_PRICE_ID, quantity: 1 }],
+      line_items: [{ price: priceId, quantity: 1 }],
+      metadata: { type },
       success_url: `${origin}/?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/`,
     });

@@ -8,7 +8,10 @@ module.exports = async function handler(req, res) {
 
   try {
     const session = await stripe.checkout.sessions.retrieve(sessionId);
-    return res.status(200).json({ paid: session.payment_status === 'paid' });
+    return res.status(200).json({
+      paid: session.payment_status === 'paid',
+      type: (session.metadata && session.metadata.type) || 'pro'
+    });
   } catch (err) {
     console.error('Stripe session verification error:', err);
     return res.status(500).json({ error: 'Unable to verify session.' });
