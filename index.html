@@ -160,6 +160,34 @@
     cursor: pointer;
   }
 
+  input[type="file"] {
+    width: 100%;
+    font-size: 11px;
+    color: var(--ink);
+    font-family: 'Work Sans', sans-serif;
+  }
+
+  .swatch-clear-btn {
+    display: block;
+    margin-top: 6px;
+    background: none;
+    border: 1px solid #cfc6b3;
+    border-radius: 3px;
+    padding: 4px 8px;
+    font-size: 11px;
+    font-family: 'Work Sans', sans-serif;
+    color: var(--navy);
+    cursor: pointer;
+  }
+  .swatch-clear-btn:hover { border-color: var(--navy); }
+
+  .swatch-hint {
+    font-size: 10px;
+    color: var(--stitch);
+    margin: 4px 0 0;
+    display: block;
+  }
+
   .checkbox-row {
     display: flex;
     align-items: center;
@@ -373,6 +401,25 @@
           <input type="color" id="colorBInput" value="#e8dcc4">
         </div>
       </div>
+
+      <div class="field-row" style="margin-top:12px;">
+        <div>
+          <label for="swatchAInput">Fabric photo (A)</label>
+          <input type="file" id="swatchAInput" accept="image/*">
+          <button type="button" class="swatch-clear-btn" id="clearSwatchA" hidden>Use solid color</button>
+        </div>
+        <div>
+          <label for="swatchBInput">Fabric photo (B)</label>
+          <input type="file" id="swatchBInput" accept="image/*">
+          <button type="button" class="swatch-clear-btn" id="clearSwatchB" hidden>Use solid color</button>
+        </div>
+      </div>
+      <span class="swatch-hint">Upload a photo of your fabric and it replaces the flat color in the design.</span>
+
+      <div style="margin-top:12px;">
+        <label for="swatchScaleInput">Fabric print scale (inches per repeat)</label>
+        <input type="number" id="swatchScaleInput" value="4" min="1" max="12" step="0.5">
+      </div>
     </fieldset>
 
   </div>
@@ -403,6 +450,14 @@
   const colorAInput = document.getElementById('colorAInput');
   const colorBInput = document.getElementById('colorBInput');
   const presetContainer = document.getElementById('presetContainer');
+  const swatchAInput = document.getElementById('swatchAInput');
+  const swatchBInput = document.getElementById('swatchBInput');
+  const clearSwatchA = document.getElementById('clearSwatchA');
+  const clearSwatchB = document.getElementById('clearSwatchB');
+  const swatchScaleInput = document.getElementById('swatchScaleInput');
+
+  let swatchImages = { colorA: null, colorB: null };
+  const MAX_SWATCH_DIMENSION = 500;
 
   const squareSize = 100;
   const blockGrid = 3;
@@ -435,6 +490,12 @@
     swatch.addEventListener('click', () => {
       colorAInput.value = p.colorA;
       colorBInput.value = p.colorB;
+      swatchImages.colorA = null;
+      swatchImages.colorB = null;
+      swatchAInput.value = '';
+      swatchBInput.value = '';
+      clearSwatchA.hidden = true;
+      clearSwatchB.hidden = true;
       redraw();
     });
     presetContainer.appendChild(swatch);
@@ -648,6 +709,44 @@
     }
   }
 
+  // Reads whatever swatch photos are currently uploaded and injects them as tiling
+  // SVG <pattern> defs so block-drawing functions can just use 'url(#fabricPatternA)'
+  // as a fill value exactly like they'd use a hex color.
+  function injectSwatchPatterns() {
+    if (!swatchImages.colorA && !swatchImages.colorB) return;
+
+    const defs = document.createElementNS(SVG_NS, 'defs');
+    const blockSizeInches = parseFloat(blockSizeInchesInput.value) || 12;
+    const pixelsPerInch = blockSize / blockSizeInches;
+    const tileInches = parseFloat(swatchScaleInput.value) || 4;
+    const tileSize = Math.max(tileInches * pixelsPerInch, 10);
+
+    function makePattern(id, dataUrl) {
+      const pattern = document.createElementNS(SVG_NS, 'pattern');
+      pattern.setAttribute('id', id);
+      pattern.setAttribute('patternUnits', 'userSpaceOnUse');
+      pattern.setAttribute('width', tileSize);
+      pattern.setAttribute('height', tileSize);
+
+      const image = document.createElementNS(SVG_NS, 'image');
+      image.setAttributeNS('http://www.w3.org/1999/xlink', 'href', dataUrl);
+      image.setAttribute('href', dataUrl);
+      image.setAttribute('x', 0);
+      image.setAttribute('y', 0);
+      image.setAttribute('width', tileSize);
+      image.setAttribute('height', tileSize);
+      image.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+
+      pattern.appendChild(image);
+      defs.appendChild(pattern);
+    }
+
+    if (swatchImages.colorA) makePattern('fabricPatternA', swatchImages.colorA);
+    if (swatchImages.colorB) makePattern('fabricPatternB', swatchImages.colorB);
+
+    svg.appendChild(defs);
+  }
+
   function drawQuiltBody(group, offsetX, offsetY, blockDrawFn, blocksAcross, blocksDown, sashingWidth, sashingColor, colorA, colorB, alternateRotation) {
     const bodyWidth = blocksAcross * blockSize + (blocksAcross + 1) * sashingWidth;
     const bodyHeight = blocksDown * blockSize + (blocksDown + 1) * sashingWidth;
@@ -685,6 +784,7 @@
     svg.setAttribute('width', totalWidth);
     svg.setAttribute('height', totalHeight);
     svg.innerHTML = '';
+    injectSwatchPatterns();
 
     addRect(svg, 0, 0, totalWidth, totalHeight, borderColor, 'border');
     drawQuiltBody(svg, borderWidth, borderWidth, blockDrawFn, blocksAcross, blocksDown, sashingWidth, sashingColor, colorA, colorB, alternateRotation);
@@ -696,8 +796,8 @@
     const sqPxPerSqIn = pixelsPerInch * pixelsPerInch;
 
     const rows = [
-      { label: 'Color A', px: areaTotals.colorA, color: colorAInput.value },
-      { label: 'Color B', px: areaTotals.colorB, color: colorBInput.value },
+      { label: 'Color A', px: areaTotals.colorA, color: colorAInput.value, image: swatchImages.colorA },
+      { label: 'Color B', px: areaTotals.colorB, color: colorBInput.value, image: swatchImages.colorB },
       { label: 'Sashing', px: areaTotals.sashing, color: sashingColorInput.value },
       { label: 'Border', px: areaTotals.border, color: borderColorInput.value }
     ];
@@ -708,7 +808,10 @@
       if (r.px <= 0) return;
       const sqIn = r.px / sqPxPerSqIn;
       const yards = sqIn / SQ_IN_PER_YARD;
-      html += `<div class="yardage-row"><span><span class="swatch-dot" style="background:${r.color};"></span>${r.label}</span><span>${yards.toFixed(2)} yd</span></div>`;
+      const dotStyle = r.image
+        ? `background-image:url(${r.image}); background-size:cover; background-position:center;`
+        : `background:${r.color};`;
+      html += `<div class="yardage-row"><span><span class="swatch-dot" style="${dotStyle}"></span>${r.label}</span><span>${yards.toFixed(2)} yd</span></div>`;
     });
     yardageResults.innerHTML = html;
   }
@@ -735,16 +838,92 @@
     const sashingColor = sashingColorInput.value;
     const borderWidth = parseInt(borderWidthInput.value, 10);
     const borderColor = borderColorInput.value;
-    const colorA = colorAInput.value;
-    const colorB = colorBInput.value;
+    const colorA = swatchImages.colorA ? 'url(#fabricPatternA)' : colorAInput.value;
+    const colorB = swatchImages.colorB ? 'url(#fabricPatternB)' : colorBInput.value;
 
     drawQuilt(blockDrawFn, blocksAcross, blocksDown, sashingWidth, sashingColor, borderWidth, borderColor, colorA, colorB, alternateRotation);
     updateYardage(blockSizeInches);
     updateActivePreset();
   }
 
-  [patternSelect, alternateRotationInput, blockSizeInchesInput, blocksAcrossInput, blocksDownInput, sashingWidthInput, sashingColorInput, borderWidthInput, borderColorInput, colorAInput, colorBInput]
+  [patternSelect, alternateRotationInput, blockSizeInchesInput, blocksAcrossInput, blocksDownInput, sashingWidthInput, sashingColorInput, borderWidthInput, borderColorInput, colorAInput, colorBInput, swatchScaleInput]
     .forEach(input => input.addEventListener('input', redraw));
+
+  // Manually picking a solid color overrides an active fabric photo for that slot.
+  colorAInput.addEventListener('input', () => {
+    if (swatchImages.colorA) {
+      swatchImages.colorA = null;
+      swatchAInput.value = '';
+      clearSwatchA.hidden = true;
+    }
+  });
+  colorBInput.addEventListener('input', () => {
+    if (swatchImages.colorB) {
+      swatchImages.colorB = null;
+      swatchBInput.value = '';
+      clearSwatchB.hidden = true;
+    }
+  });
+
+  // Reads an uploaded file, downsizes it on a canvas (keeps exports and redraws fast),
+  // and hands back a compact JPEG data URL ready to use as an SVG pattern fill.
+  function readAndResizeSwatch(file, callback) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > height && width > MAX_SWATCH_DIMENSION) {
+          height = Math.round(height * (MAX_SWATCH_DIMENSION / width));
+          width = MAX_SWATCH_DIMENSION;
+        } else if (height > MAX_SWATCH_DIMENSION) {
+          width = Math.round(width * (MAX_SWATCH_DIMENSION / height));
+          height = MAX_SWATCH_DIMENSION;
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+        callback(canvas.toDataURL('image/jpeg', 0.88));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  swatchAInput.addEventListener('change', () => {
+    const file = swatchAInput.files[0];
+    if (!file) return;
+    readAndResizeSwatch(file, (dataUrl) => {
+      swatchImages.colorA = dataUrl;
+      clearSwatchA.hidden = false;
+      redraw();
+    });
+  });
+
+  swatchBInput.addEventListener('change', () => {
+    const file = swatchBInput.files[0];
+    if (!file) return;
+    readAndResizeSwatch(file, (dataUrl) => {
+      swatchImages.colorB = dataUrl;
+      clearSwatchB.hidden = false;
+      redraw();
+    });
+  });
+
+  clearSwatchA.addEventListener('click', () => {
+    swatchImages.colorA = null;
+    swatchAInput.value = '';
+    clearSwatchA.hidden = true;
+    redraw();
+  });
+
+  clearSwatchB.addEventListener('click', () => {
+    swatchImages.colorB = null;
+    swatchBInput.value = '';
+    clearSwatchB.hidden = true;
+    redraw();
+  });
 
   downloadBtn.addEventListener('click', () => {
     const svgWidth = svg.getAttribute('width');
