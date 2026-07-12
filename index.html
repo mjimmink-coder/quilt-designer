@@ -374,6 +374,56 @@
     color: #555;
     margin-top: 4px;
   }
+
+  .pro-banner {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 14px 24px;
+    text-align: center;
+  }
+  .pro-banner-inner {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    justify-content: center;
+    background: var(--panel);
+    border: 2px dashed var(--gold);
+    border-radius: 4px;
+    padding: 10px 18px;
+  }
+  .pro-banner-inner.is-unlocked { border-color: var(--navy); }
+  .pro-banner-text {
+    font-size: 13px;
+    color: var(--ink);
+  }
+  button#unlockProBtn {
+    background: var(--gold);
+    color: var(--ink);
+    border: none;
+    padding: 9px 18px;
+    border-radius: 3px;
+    font-family: 'Work Sans', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  button#unlockProBtn:hover { background: #b48f1e; }
+  button#unlockProBtn:disabled { opacity: 0.6; cursor: default; }
+
+  .pro-feature { position: relative; transition: opacity 0.15s ease; }
+  .pro-feature.is-locked { opacity: 0.5; }
+  .pro-lock-banner {
+    display: none;
+    font-size: 11px;
+    color: var(--navy);
+    background: #fff8e6;
+    border: 1px solid var(--gold);
+    border-radius: 3px;
+    padding: 6px 8px;
+    margin-bottom: 10px;
+  }
+  .pro-feature.is-locked .pro-lock-banner { display: block; }
 </style>
 </head>
 <body>
@@ -389,6 +439,13 @@
   </div>
   <p>Piece a pattern, choose your fabrics, see what it takes to sew</p>
 </header>
+
+<div class="pro-banner">
+  <div class="pro-banner-inner" id="proBannerInner">
+    <span class="pro-banner-text" id="proBannerText">🔒 Unlock Quilt Designer Pro — all patterns, fabric swatches, and calculators, $9.99 one time</span>
+    <button id="unlockProBtn">Unlock Pro</button>
+  </div>
+</div>
 
 <div class="layout">
 
@@ -418,7 +475,8 @@
 
     <hr class="divider">
 
-    <fieldset>
+    <fieldset class="pro-feature" id="proFeatureTargetSize">
+      <div class="pro-lock-banner">🔒 Auto-fit to a target size is part of Quilt Designer Pro.</div>
       <legend>Target Quilt Size</legend>
       <label for="targetSizeSelect">Quilt size</label>
       <select id="targetSizeSelect">
@@ -509,41 +567,46 @@
         </div>
       </div>
 
-      <div class="field-row" style="margin-top:12px;">
-        <div>
-          <label for="swatchAInput">Fabric photo (A)</label>
-          <input type="file" id="swatchAInput" accept="image/*">
-          <div class="checkbox-row" style="margin-top:6px;">
-            <input type="checkbox" id="directionalAInput">
-            <label for="directionalAInput" style="margin:0; font-size:11px;">Directional print (stripe/floral)</label>
+      <div class="pro-feature" id="proFeatureSwatch">
+        <div class="pro-lock-banner">🔒 Fabric photo swatches are part of Quilt Designer Pro.</div>
+        <div class="field-row" style="margin-top:12px;">
+          <div>
+            <label for="swatchAInput">Fabric photo (A)</label>
+            <input type="file" id="swatchAInput" accept="image/*">
+            <div class="checkbox-row" style="margin-top:6px;">
+              <input type="checkbox" id="directionalAInput">
+              <label for="directionalAInput" style="margin:0; font-size:11px;">Directional print (stripe/floral)</label>
+            </div>
+            <button type="button" class="swatch-clear-btn" id="clearSwatchA" hidden>Use solid color</button>
           </div>
-          <button type="button" class="swatch-clear-btn" id="clearSwatchA" hidden>Use solid color</button>
-        </div>
-        <div>
-          <label for="swatchBInput">Fabric photo (B)</label>
-          <input type="file" id="swatchBInput" accept="image/*">
-          <div class="checkbox-row" style="margin-top:6px;">
-            <input type="checkbox" id="directionalBInput">
-            <label for="directionalBInput" style="margin:0; font-size:11px;">Directional print (stripe/floral)</label>
+          <div>
+            <label for="swatchBInput">Fabric photo (B)</label>
+            <input type="file" id="swatchBInput" accept="image/*">
+            <div class="checkbox-row" style="margin-top:6px;">
+              <input type="checkbox" id="directionalBInput">
+              <label for="directionalBInput" style="margin:0; font-size:11px;">Directional print (stripe/floral)</label>
+            </div>
+            <button type="button" class="swatch-clear-btn" id="clearSwatchB" hidden>Use solid color</button>
           </div>
-          <button type="button" class="swatch-clear-btn" id="clearSwatchB" hidden>Use solid color</button>
         </div>
-      </div>
-      <span class="swatch-hint">Upload a photo of your fabric and it replaces the flat color in the design.</span>
+        <span class="swatch-hint">Upload a photo of your fabric and it replaces the flat color in the design.</span>
 
-      <div style="margin-top:12px;">
-        <label for="swatchScaleInput">Fabric print scale (inches per repeat)</label>
-        <input type="number" id="swatchScaleInput" value="4" min="1" max="12" step="0.5">
+        <div style="margin-top:12px;">
+          <label for="swatchScaleInput">Fabric print scale (inches per repeat)</label>
+          <input type="number" id="swatchScaleInput" value="4" min="1" max="12" step="0.5">
+        </div>
       </div>
     </fieldset>
 
     <hr class="divider">
 
-    <fieldset>
+    <fieldset class="pro-feature" id="proFeatureDesigns">
+      <div class="pro-lock-banner">🔒 Saving and loading designs is part of Quilt Designer Pro.</div>
       <legend>My Designs</legend>
       <label for="designNameInput">Design name</label>
       <input type="text" id="designNameInput" placeholder="e.g. Baby quilt for Emma" maxlength="60">
       <button type="button" class="swatch-clear-btn" id="saveDesignBtn" style="margin-top:8px;">Save design</button>
+
 
       <div style="margin-top:16px;">
         <label for="savedDesignsSelect">Saved designs</label>
@@ -560,7 +623,8 @@
 
     <hr class="divider">
 
-    <fieldset>
+    <fieldset class="pro-feature" id="proFeatureBacking">
+      <div class="pro-lock-banner">🔒 The backing fabric calculator is part of Quilt Designer Pro.</div>
       <legend>Backing Fabric</legend>
       <label for="backingOverhangInput">Overhang buffer per side (inches)</label>
       <input type="number" id="backingOverhangInput" value="4" min="0" max="12" step="1">
@@ -572,7 +636,7 @@
   <div class="panel canvas-panel">
     <svg id="quilt-canvas"></svg>
     <button id="downloadBtn">Download design</button>
-    <button id="printSheetBtn">Download pattern sheet</button>
+    <button id="printSheetBtn">Download pattern sheet 🔒</button>
     <div id="yardageResults"></div>
     <div id="backingResults"></div>
   </div>
@@ -589,6 +653,21 @@
   const printSheetBtn = document.getElementById('printSheetBtn');
   const printSheet = document.getElementById('printSheet');
   const SVG_NS = 'http://www.w3.org/2000/svg';
+
+  const PRO_STORAGE_KEY = 'quiltDesignerProUnlocked';
+  const PRO_PATTERNS = new Set(['ohiostar', 'flyinggeese', 'bearspaw', 'shoofly', 'churndash', 'friendshipstar', 'sawtoothstar', 'courthousesteps']);
+  const unlockProBtn = document.getElementById('unlockProBtn');
+  const proBannerInner = document.getElementById('proBannerInner');
+  const proBannerText = document.getElementById('proBannerText');
+  const proFeatureTargetSize = document.getElementById('proFeatureTargetSize');
+  const proFeatureSwatch = document.getElementById('proFeatureSwatch');
+  const proFeatureDesigns = document.getElementById('proFeatureDesigns');
+  const proFeatureBacking = document.getElementById('proFeatureBacking');
+  let lastFreePattern = 'ninepatch';
+
+  function isPro() {
+    return localStorage.getItem(PRO_STORAGE_KEY) === 'true';
+  }
 
   const patternSelect = document.getElementById('patternSelect');
   const alternateRotationInput = document.getElementById('alternateRotationInput');
@@ -1131,12 +1210,18 @@
     const rawYards = totalLengthIn / 36;
     const yards = Math.ceil(rawYards * 4) / 4; // round up to the nearest quarter yard
 
-    let html = '<span class="yardage-title">Backing fabric</span>';
-    html += `<span class="yardage-note">Covers ${backingWidthIn.toFixed(1)}" × ${backingHeightIn.toFixed(1)}" including overhang</span>`;
-    html += `<div class="yardage-row"><span>Fabric panels (seamed together)</span><span>${panelsNeeded}</span></div>`;
-    html += `<div class="yardage-row"><span>Total backing yardage</span><span>${yards.toFixed(2)} yd</span></div>`;
-    if (panelsNeeded > 1) {
-      html += `<span class="yardage-note" style="margin-top:8px; margin-bottom:0;">Requires ${panelsNeeded - 1} horizontal seam${panelsNeeded > 2 ? 's' : ''} to reach full width — trim selvages before joining.</span>`;
+    let html;
+    if (isPro()) {
+      html = '<span class="yardage-title">Backing fabric</span>';
+      html += `<span class="yardage-note">Covers ${backingWidthIn.toFixed(1)}" × ${backingHeightIn.toFixed(1)}" including overhang</span>`;
+      html += `<div class="yardage-row"><span>Fabric panels (seamed together)</span><span>${panelsNeeded}</span></div>`;
+      html += `<div class="yardage-row"><span>Total backing yardage</span><span>${yards.toFixed(2)} yd</span></div>`;
+      if (panelsNeeded > 1) {
+        html += `<span class="yardage-note" style="margin-top:8px; margin-bottom:0;">Requires ${panelsNeeded - 1} horizontal seam${panelsNeeded > 2 ? 's' : ''} to reach full width — trim selvages before joining.</span>`;
+      }
+    } else {
+      html = '<span class="yardage-title">Backing fabric</span>';
+      html += '<span class="yardage-note">🔒 Unlock Quilt Designer Pro to see backing fabric requirements.</span>';
     }
     backingResults.innerHTML = html;
 
@@ -1178,8 +1263,20 @@
     updateActivePreset();
   }
 
-  [patternSelect, alternateRotationInput, blockSizeInchesInput, blocksAcrossInput, blocksDownInput, sashingWidthInput, sashingColorInput, borderWidthInput, borderColorInput, colorAInput, colorBInput, swatchScaleInput, directionalAInput, directionalBInput, backingOverhangInput]
+  [alternateRotationInput, blockSizeInchesInput, blocksAcrossInput, blocksDownInput, sashingWidthInput, sashingColorInput, borderWidthInput, borderColorInput, colorAInput, colorBInput, swatchScaleInput, directionalAInput, directionalBInput, backingOverhangInput]
     .forEach(input => input.addEventListener('input', redraw));
+
+  // Pattern select gets its own listener (rather than the generic redraw list above)
+  // so a Pro-only pattern can be intercepted and reverted before it ever draws.
+  patternSelect.addEventListener('change', () => {
+    if (PRO_PATTERNS.has(patternSelect.value) && !isPro()) {
+      patternSelect.value = lastFreePattern;
+      flashUnlockPrompt('This pattern is part of Quilt Designer Pro.');
+      return;
+    }
+    lastFreePattern = patternSelect.value;
+    redraw();
+  });
 
   // Manually picking a solid color overrides an active fabric photo for that slot.
   colorAInput.addEventListener('input', () => {
@@ -1461,6 +1558,10 @@
   // fabric yardage table — then hands off to the browser's print dialog, where
   // "Save as PDF" gives the quilter a document they can take to the fabric store.
   printSheetBtn.addEventListener('click', () => {
+    if (!isPro()) {
+      flashUnlockPrompt('The printable pattern sheet is part of Quilt Designer Pro.');
+      return;
+    }
     const patternLabel = patternSelect.options[patternSelect.selectedIndex].text;
     const blockSizeInches = parseFloat(blockSizeInchesInput.value) || 12;
     const pixelsPerInch = blockSize / blockSizeInches;
@@ -1550,6 +1651,104 @@
 
     window.print();
   });
+
+  // --- Pro unlock: lock state, checkout, and return-from-Stripe handling. ---
+
+  function setFeatureLock(container, locked) {
+    if (!container) return;
+    container.classList.toggle('is-locked', locked);
+    container.querySelectorAll('input, select, button, textarea').forEach(el => {
+      el.disabled = locked;
+    });
+  }
+
+  function updatePatternOptionLabels() {
+    Array.from(patternSelect.options).forEach(opt => {
+      if (!opt.dataset.baseLabel) opt.dataset.baseLabel = opt.textContent;
+      const base = opt.dataset.baseLabel;
+      opt.textContent = (PRO_PATTERNS.has(opt.value) && !isPro()) ? `${base} 🔒 Pro` : base;
+    });
+  }
+
+  function updateProUI() {
+    const pro = isPro();
+
+    if (pro) {
+      proBannerInner.classList.add('is-unlocked');
+      proBannerText.textContent = '🔓 Quilt Designer Pro unlocked — thank you!';
+      unlockProBtn.style.display = 'none';
+    } else {
+      proBannerInner.classList.remove('is-unlocked');
+      proBannerText.textContent = '🔒 Unlock Quilt Designer Pro — all patterns, fabric swatches, and calculators, $9.99 one time';
+      unlockProBtn.style.display = 'inline-block';
+      unlockProBtn.disabled = false;
+      unlockProBtn.textContent = 'Unlock Pro';
+    }
+
+    [proFeatureTargetSize, proFeatureSwatch, proFeatureDesigns, proFeatureBacking].forEach(el => setFeatureLock(el, !pro));
+    updatePatternOptionLabels();
+    printSheetBtn.textContent = pro ? 'Download pattern sheet' : 'Download pattern sheet 🔒';
+
+    // If the currently-selected pattern is a Pro pattern but Pro isn't unlocked
+    // (e.g. it was set before a previous unlock check finished), fall back to free.
+    if (!pro && PRO_PATTERNS.has(patternSelect.value)) {
+      patternSelect.value = lastFreePattern;
+      redraw();
+    }
+  }
+
+  function flashUnlockPrompt(message) {
+    proBannerText.textContent = `🔒 ${message} Unlock Pro to continue.`;
+    proBannerInner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    proBannerInner.style.borderColor = 'var(--rust)';
+    setTimeout(() => {
+      proBannerInner.style.borderColor = '';
+      if (!isPro()) proBannerText.textContent = '🔒 Unlock Quilt Designer Pro — all patterns, fabric swatches, and calculators, $9.99 one time';
+    }, 3000);
+  }
+
+  async function startCheckout() {
+    unlockProBtn.disabled = true;
+    unlockProBtn.textContent = 'Redirecting...';
+    try {
+      const res = await fetch('/api/create-checkout-session', { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok || !data.url) throw new Error(data.error || 'No checkout URL returned');
+      window.location.href = data.url;
+    } catch (err) {
+      console.error('Checkout error:', err);
+      alert('Something went wrong starting checkout. Please try again in a moment.');
+      unlockProBtn.disabled = false;
+      unlockProBtn.textContent = 'Unlock Pro';
+    }
+  }
+
+  unlockProBtn.addEventListener('click', startCheckout);
+
+  // On load, check whether we're returning from a completed Stripe Checkout
+  // session (?session_id=... in the URL) and verify the payment server-side
+  // before granting Pro access.
+  async function checkForCheckoutReturn() {
+    const params = new URLSearchParams(window.location.search);
+    const sessionId = params.get('session_id');
+    if (!sessionId) return;
+
+    try {
+      const res = await fetch(`/api/verify-session?session_id=${encodeURIComponent(sessionId)}`);
+      const data = await res.json();
+      if (data.paid) {
+        localStorage.setItem(PRO_STORAGE_KEY, 'true');
+      }
+    } catch (err) {
+      console.error('Session verification error:', err);
+    }
+
+    window.history.replaceState({}, document.title, window.location.origin + window.location.pathname);
+    updateProUI();
+  }
+
+  updateProUI();
+  checkForCheckoutReturn();
 
   redraw();
 </script>
