@@ -770,6 +770,15 @@
 
     const sat = delta / (1 - Math.abs(2 * lightness - 1));
 
+    // Warm, light-to-mid tones in this hue range read as cream/tan/beige fabric to
+    // a human, but a plain hue-bucket name like "pale orange" gets taken literally
+    // by the image model and rendered as actual orange — so name these explicitly.
+    if (hue >= 20 && hue < 55) {
+      if (lightness > 0.8) return 'cream';
+      if (lightness > 0.6) return sat < 0.4 ? 'beige' : 'tan';
+      if (lightness > 0.4) return sat < 0.3 ? 'taupe' : 'tan';
+    }
+
     let base;
     if (hue < 15 || hue >= 345) base = 'red';
     else if (hue < 45) base = 'orange';
@@ -809,7 +818,7 @@
     const roomDescription = ROOM_PROMPTS[roomPreviewSelect.value];
     const colorAName = nameColorFromHex(colorAInput.value);
     const colorBName = nameColorFromHex(colorBInput.value);
-    return `A professional interior photograph of ${roomDescription}. The quilt has a "${patternLabel}" quilt block pattern, pieced in ${colorAName} and ${colorBName} fabric. Realistic fabric texture, soft natural lighting, photorealistic, high quality home decor photography.`;
+    return `A professional interior photograph of ${roomDescription}. The quilt uses a "${patternLabel}" quilt block pattern, repeated in a grid across the whole quilt. The quilt is pieced from exactly two fabric colors only: ${colorAName} and ${colorBName} — do not use any other colors, tones, or accent fabrics anywhere on the quilt, every piece must be either ${colorAName} or ${colorBName}. Realistic quilted fabric texture and stitching, soft natural lighting, photorealistic, high quality home decor photography.`;
   }
 
   async function pollRoomPreview(predictionId) {
