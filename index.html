@@ -444,6 +444,12 @@
   <div class="pro-banner-inner" id="proBannerInner">
     <span class="pro-banner-text" id="proBannerText">🔒 Unlock Quilt Designer Pro — all patterns, fabric swatches, and calculators, $9.99 one time</span>
     <button id="unlockProBtn">Unlock Pro</button>
+    <button type="button" id="showCodeFormBtn" style="background:none; border:none; color:var(--navy); font-size:12px; text-decoration:underline; cursor:pointer; margin-left:8px;">Have a code?</button>
+  </div>
+  <div id="codeFormRow" style="display:none; margin-top:10px; text-align:center;">
+    <input type="text" id="promoCodeInput" placeholder="Enter code" style="width:160px; padding:6px 8px; border:1px solid #cfc6b3; border-radius:3px; font-size:13px; margin-right:6px;">
+    <button type="button" id="redeemCodeBtn" style="background:var(--navy); color:#fff; border:none; padding:7px 14px; border-radius:3px; font-size:13px; cursor:pointer;">Redeem</button>
+    <div id="codeStatusNote" style="font-size:12px; color:var(--stitch); margin-top:6px;"></div>
   </div>
 </div>
 
@@ -666,6 +672,11 @@
   const unlockProBtn = document.getElementById('unlockProBtn');
   const proBannerInner = document.getElementById('proBannerInner');
   const proBannerText = document.getElementById('proBannerText');
+  const showCodeFormBtn = document.getElementById('showCodeFormBtn');
+  const codeFormRow = document.getElementById('codeFormRow');
+  const promoCodeInput = document.getElementById('promoCodeInput');
+  const redeemCodeBtn = document.getElementById('redeemCodeBtn');
+  const codeStatusNote = document.getElementById('codeStatusNote');
   const proFeatureTargetSize = document.getElementById('proFeatureTargetSize');
   const proFeatureSwatch = document.getElementById('proFeatureSwatch');
   const proFeatureDesigns = document.getElementById('proFeatureDesigns');
@@ -1731,6 +1742,56 @@
   }
 
   unlockProBtn.addEventListener('click', startCheckout);
+
+  // "Have a code?" toggle + redemption — a separate path from Stripe Checkout,
+  // used for comped/promo unlocks. Verified server-side via /api/redeem-code so
+  // the valid codes never appear in this file.
+  showCodeFormBtn.addEventListener('click', () => {
+    const isHidden = codeFormRow.style.display === 'none';
+    codeFormRow.style.display = isHidden ? 'block' : 'none';
+    if (isHidden) promoCodeInput.focus();
+  });
+
+  async function redeemCode() {
+    const code = promoCodeInput.value.trim();
+    if (!code) {
+      codeStatusNote.textContent = 'Enter a code first.';
+      return;
+    }
+    redeemCodeBtn.disabled = true;
+    redeemCodeBtn.textContent = 'Checking...';
+    codeStatusNote.textContent = '';
+    try {
+      const res = await fetch('/api/redeem-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code })
+      });
+      const data = await res.json();
+      if (data.valid) {
+        localStorage.setItem(PRO_STORAGE_KEY, 'true');
+        codeStatusNote.textContent = 'Code accepted — Pro unlocked!';
+        codeStatusNote.style.color = 'var(--navy)';
+        updateProUI();
+        setTimeout(() => { codeFormRow.style.display = 'none'; }, 1500);
+      } else {
+        codeStatusNote.textContent = 'That code isn\'t valid.';
+        codeStatusNote.style.color = 'var(--rust)';
+      }
+    } catch (err) {
+      console.error('Code redemption error:', err);
+      codeStatusNote.textContent = 'Something went wrong — try again in a moment.';
+      codeStatusNote.style.color = 'var(--rust)';
+    } finally {
+      redeemCodeBtn.disabled = false;
+      redeemCodeBtn.textContent = 'Redeem';
+    }
+  }
+
+  redeemCodeBtn.addEventListener('click', redeemCode);
+  promoCodeInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') redeemCode();
+  });
 
   // On load, check whether we're returning from a completed Stripe Checkout
   // session (?session_id=... in the URL) and verify the payment server-side
