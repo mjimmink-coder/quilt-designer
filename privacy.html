@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privacy Policy — Quilt Designer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bitter:wght@500;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --linen: #F5F0E6;
+    --panel: #FBF8F2;
+    --ink: #2A2825;
+    --navy: #2F4858;
+    --gold: #C9A227;
+    --stitch: #8C8474;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background-color: var(--linen);
+    background-image:
+      repeating-linear-gradient(0deg, rgba(0,0,0,0.02) 0px, rgba(0,0,0,0.02) 1px, transparent 1px, transparent 3px),
+      repeating-linear-gradient(90deg, rgba(0,0,0,0.02) 0px, rgba(0,0,0,0.02) 1px, transparent 1px, transparent 3px);
+    color: var(--ink);
+    font-family: 'Work Sans', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  header {
+    padding: 32px 24px 20px;
+    text-align: center;
+    border-bottom: 2px dashed var(--stitch);
+  }
+  header a {
+    color: var(--navy);
+    text-decoration: none;
+    font-size: 14px;
+    letter-spacing: 0.03em;
+  }
+  h1 {
+    font-family: 'Bitter', serif;
+    font-weight: 700;
+    font-size: clamp(26px, 5vw, 36px);
+    margin: 12px 0 4px;
+  }
+  main {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 32px 24px 60px;
+  }
+  .panel {
+    background: var(--panel);
+    border: 2px dashed var(--stitch);
+    border-radius: 4px;
+    padding: 28px 32px;
+    box-shadow: 0 2px 10px rgba(42, 40, 37, 0.06);
+  }
+  h2 {
+    font-family: 'Bitter', serif;
+    color: var(--navy);
+    font-size: 18px;
+    margin-top: 28px;
+  }
+  h2::before { content: '— '; color: var(--gold); }
+  p, li { line-height: 1.6; font-size: 15px; }
+  a { color: var(--navy); }
+  .updated { color: var(--stitch); font-size: 13px; }
+  .note {
+    background: #fff;
+    border: 1px dashed var(--gold);
+    border-radius: 3px;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: var(--stitch);
+    margin-top: 8px;
+  }
+  footer {
+    text-align: center;
+    padding: 30px 24px 50px;
+    border-top: 2px dashed var(--stitch);
+    margin-top: 40px;
+    font-size: 13px;
+    color: var(--stitch);
+  }
+  footer a { color: var(--stitch); margin: 0 8px; }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="/">&larr; Back to Quilt Designer</a>
+  <h1>Privacy Policy</h1>
+</header>
+
+<main>
+  <div class="panel">
+    <p class="updated">Last updated: [add date when published]</p>
+
+    <p>This policy explains what information Quilt Designer (operated by Digital Family Insights) collects and how it's used.</p>
+
+    <h2>Design Data Stays on Your Device</h2>
+    <p>Your quilt designs — pattern choices, colors, grid size, sashing, borders — are stored locally in your own browser (using browser storage, not a server). We do not receive or store copies of your saved designs.</p>
+
+    <h2>Payment Information</h2>
+    <p>Payments for Quilt Designer Pro and AI preview credit bundles are processed by <strong>Stripe</strong>. We do not see or store your full card number. Stripe may collect your email address to send a payment receipt; this is handled under Stripe's own privacy policy, available at <a href="https://stripe.com/privacy" target="_blank" rel="noopener">stripe.com/privacy</a>.</p>
+
+    <h2>Fabric Photos and AI Previews</h2>
+    <p>If you upload a photo of your fabric, or generate an AI room preview, that image is sent to a third-party AI image generation service in order to process your request. We do not retain copies of uploaded photos or generated previews on our own servers beyond what's needed to deliver the feature to you in the moment.</p>
+    <p>Please only upload photos you have the right to use.</p>
+
+    <h2>What We Don't Collect</h2>
+    <p>We don't require account creation, and we don't collect names, addresses, or other personal details beyond what Stripe handles for payment processing.</p>
+
+    <h2>Cookies and Local Storage</h2>
+    <p>Quilt Designer uses your browser's local storage to remember things like your Pro unlock status and saved designs on that device. This is not the same as tracking cookies used for advertising — we don't use Quilt Designer to serve ads or track you across other websites.</p>
+
+    <h2>Analytics</h2>
+    <p>[If you've added any analytics tool — e.g. Vercel Analytics, Google Analytics, Plausible — describe it here, including what it collects. If not, this can read: "We do not currently use any analytics or tracking tools."]</p>
+    <div class="note">This section still needs your input before publishing — see the note above.</div>
+
+    <h2>Children's Privacy</h2>
+    <p>Quilt Designer is not directed at children, and we do not knowingly collect information from children under 13.</p>
+
+    <h2>Changes to This Policy</h2>
+    <p>We may update this policy occasionally. The "last updated" date at the top will reflect the most recent revision.</p>
+
+    <h2>Contact</h2>
+    <p>Questions about this policy or your data? Reach us at <a href="mailto:quilts@digitalfamilyinsights.com">quilts@digitalfamilyinsights.com</a>.</p>
+  </div>
+</main>
+
+<footer>
+  <a href="/">Quilt Designer</a> ·
+  <a href="/terms.html">Terms</a> ·
+  <a href="/refund.html">Refunds</a>
+</footer>
+
+</body>
+</html>
