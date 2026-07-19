@@ -253,13 +253,40 @@
   button#downloadBtn:hover { background: #263e4c; }
   button#downloadBtn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 
-  #yardageResults, #backingResults {
+  #yardageResults, #backingResults, #cutListResults {
     margin-top: 20px;
     text-align: left;
     border: 2px dashed var(--stitch);
     border-radius: 4px;
     padding: 16px 18px;
     background: var(--panel);
+  }
+
+  #cutListResults table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    font-size: 12px;
+  }
+  #cutListResults th {
+    text-align: left;
+    font-family: 'Bitter', serif;
+    text-transform: uppercase;
+    font-size: 10px;
+    letter-spacing: 0.03em;
+    border-bottom: 1px solid var(--stitch);
+    padding: 4px 6px 6px 0;
+  }
+  #cutListResults td {
+    padding: 5px 6px 5px 0;
+    border-bottom: 1px solid #e6ded0;
+    vertical-align: top;
+  }
+  #cutListResults .cutlist-note {
+    font-size: 11px;
+    color: var(--stitch);
+    margin-top: 10px;
+    display: block;
   }
 
   #yardageResults .yardage-title, #backingResults .yardage-title {
@@ -444,12 +471,6 @@
   <div class="pro-banner-inner" id="proBannerInner">
     <span class="pro-banner-text" id="proBannerText">🔒 Unlock Quilt Designer Pro — all patterns, fabric swatches, and calculators, $9.99 one time</span>
     <button id="unlockProBtn">Unlock Pro</button>
-    <button type="button" id="showCodeFormBtn" style="background:none; border:none; color:var(--navy); font-size:12px; text-decoration:underline; cursor:pointer; margin-left:8px;">Have a code?</button>
-  </div>
-  <div id="codeFormRow" style="display:none; margin-top:10px; text-align:center;">
-    <input type="text" id="promoCodeInput" placeholder="Enter code" style="width:160px; padding:6px 8px; border:1px solid #cfc6b3; border-radius:3px; font-size:13px; margin-right:6px;">
-    <button type="button" id="redeemCodeBtn" style="background:var(--navy); color:#fff; border:none; padding:7px 14px; border-radius:3px; font-size:13px; cursor:pointer;">Redeem</button>
-    <div id="codeStatusNote" style="font-size:12px; color:var(--stitch); margin-top:6px;"></div>
   </div>
 </div>
 
@@ -565,11 +586,11 @@
       <div class="field-row" style="margin-top:14px;">
         <div>
           <label for="colorAInput">Color A</label>
-          <input type="color" id="colorAInput" value="#2b4c7e">
+          <input type="color" id="colorAInput" value="#1F3A5F">
         </div>
         <div>
           <label for="colorBInput">Color B</label>
-          <input type="color" id="colorBInput" value="#e8dcc4">
+          <input type="color" id="colorBInput" value="#F0E6D2">
         </div>
       </div>
 
@@ -645,16 +666,64 @@
     <button id="printSheetBtn">Download pattern sheet 🔒</button>
     <div id="yardageResults"></div>
     <div id="backingResults"></div>
+    <div class="pro-feature" id="proFeatureCutList">
+      <div class="pro-lock-banner">🔒 The piece-by-piece cut list is part of Quilt Designer Pro.</div>
+      <div id="cutListResults"></div>
+    </div>
   </div>
 
 </div>
 
-<footer style="text-align:center; padding:30px 24px 50px; border-top:2px dashed var(--stitch); margin-top:40px; font-size:13px; color:var(--stitch);">
-  <a href="/terms.html" style="color:var(--stitch); margin:0 8px;">Terms</a> ·
-  <a href="/privacy.html" style="color:var(--stitch); margin:0 8px;">Privacy</a> ·
-  <a href="/refund.html" style="color:var(--stitch); margin:0 8px;">Refunds</a> ·
-  <a href="mailto:quilts@digitalfamilyinsights.com" style="color:var(--stitch); margin:0 8px;">Contact</a>
-</footer>
+<div style="max-width:1100px; margin:0 auto 24px; padding:0 24px;">
+  <div class="panel">
+    <fieldset>
+      <legend>Quick Preview (free, instant, exact colors)</legend>
+      <label for="quickPreviewSelect">Show this design on a...</label>
+      <select id="quickPreviewSelect">
+        <option value="">None</option>
+        <option value="baby">Baby crib</option>
+        <option value="throw">Chair / throw</option>
+        <option value="twin">Twin bed</option>
+        <option value="queen">Full / Queen bed</option>
+        <option value="king">King bed</option>
+      </select>
+      <span class="swatch-hint">A simple illustrated scene using your exact design — free and instant, but not photo-realistic. For a realistic AI-generated room photo, see the Pro feature below.</span>
+    </fieldset>
+    <div style="text-align:center; margin-top:16px;">
+      <svg id="quickPreviewSvg" viewBox="0 0 600 420" style="width:100%; max-width:560px; height:auto; display:none;"></svg>
+    </div>
+  </div>
+</div>
+
+<div style="max-width:1100px; margin:0 auto 40px; padding:0 24px;">
+  <div class="panel pro-feature" id="proFeatureRoomPreview">
+    <div class="pro-lock-banner">🔒 AI room previews are part of Quilt Designer Pro (12 free generations included, more available in bundles of 10).</div>
+    <fieldset>
+      <legend>AI Room Preview (photo-realistic, Pro)</legend>
+      <label for="roomPreviewSelect">Show this design on a...</label>
+      <select id="roomPreviewSelect">
+        <option value="baby">Baby crib</option>
+        <option value="throw">Chair / throw</option>
+        <option value="twin">Twin bed</option>
+        <option value="queen">Full / Queen bed</option>
+        <option value="king">King bed</option>
+      </select>
+      <div class="field-row" style="margin-top:12px; align-items:center;">
+        <button type="button" class="swatch-clear-btn" id="generateRoomPreviewBtn" style="margin-top:0;">Generate preview</button>
+        <span class="swatch-hint" id="roomCreditsNote" style="margin-top:0;"></span>
+      </div>
+      <span class="swatch-hint">AI-generated image — a realistic mockup, not a pixel-exact reproduction of your design.</span>
+    </fieldset>
+    <div style="text-align:center; margin-top:16px;">
+      <div id="roomPreviewStatus" class="swatch-hint" style="display:none;"></div>
+      <img id="roomPreviewImage" style="display:none; max-width:100%; border-radius:4px; border:1px solid #cfc6b3;">
+      <button type="button" class="swatch-clear-btn" id="downloadRoomPreviewBtn" style="display:none; margin-top:10px;">Download this preview</button>
+    </div>
+    <div style="text-align:center; margin-top:12px;">
+      <button type="button" class="swatch-clear-btn" id="buyRoomCreditsBtn" style="display:none;">Buy 10 more credits — $2.99</button>
+    </div>
+  </div>
+</div>
 
 <div id="printSheet"></div>
 
@@ -672,15 +741,308 @@
   const unlockProBtn = document.getElementById('unlockProBtn');
   const proBannerInner = document.getElementById('proBannerInner');
   const proBannerText = document.getElementById('proBannerText');
-  const showCodeFormBtn = document.getElementById('showCodeFormBtn');
-  const codeFormRow = document.getElementById('codeFormRow');
-  const promoCodeInput = document.getElementById('promoCodeInput');
-  const redeemCodeBtn = document.getElementById('redeemCodeBtn');
-  const codeStatusNote = document.getElementById('codeStatusNote');
   const proFeatureTargetSize = document.getElementById('proFeatureTargetSize');
   const proFeatureSwatch = document.getElementById('proFeatureSwatch');
   const proFeatureDesigns = document.getElementById('proFeatureDesigns');
   const proFeatureBacking = document.getElementById('proFeatureBacking');
+  const proFeatureCutList = document.getElementById('proFeatureCutList');
+  const quickPreviewSelect = document.getElementById('quickPreviewSelect');
+  const quickPreviewSvg = document.getElementById('quickPreviewSvg');
+
+  // Simple original line-art furniture scenes (no photos, no external assets) with a
+  // "quiltArea" rect marking where the design gets embedded flat, cropped to fill.
+  // Free and instant, since it reuses the design's own real SVG rather than calling
+  // any AI service.
+  const QUICK_PREVIEW_SCENES = {
+    baby: {
+      quiltArea: { x: 205, y: 150, w: 190, h: 130 },
+      background: `
+        <rect x="0" y="0" width="600" height="260" fill="#FBF8F2"/>
+        <rect x="0" y="260" width="600" height="160" fill="#E8DCC4"/>
+        <rect x="190" y="120" width="220" height="180" rx="6" fill="none" stroke="#8C8474" stroke-width="4"/>
+        <line x1="205" y1="120" x2="205" y2="150" stroke="#8C8474" stroke-width="3"/>
+        <line x1="235" y1="120" x2="235" y2="150" stroke="#8C8474" stroke-width="3"/>
+        <line x1="365" y1="120" x2="365" y2="150" stroke="#8C8474" stroke-width="3"/>
+        <line x1="395" y1="120" x2="395" y2="150" stroke="#8C8474" stroke-width="3"/>
+        <rect x="196" y="292" width="14" height="20" fill="#8C8474"/>
+        <rect x="390" y="292" width="14" height="20" fill="#8C8474"/>
+      `
+    },
+    throw: {
+      quiltArea: { x: 170, y: 225, w: 260, h: 110 },
+      background: `
+        <rect x="0" y="0" width="600" height="260" fill="#FBF8F2"/>
+        <rect x="0" y="260" width="600" height="160" fill="#E8DCC4"/>
+        <rect x="170" y="90" width="260" height="150" rx="14" fill="#2F4858"/>
+        <rect x="120" y="180" width="50" height="140" rx="10" fill="#2F4858"/>
+        <rect x="430" y="180" width="50" height="140" rx="10" fill="#2F4858"/>
+        <rect x="150" y="220" width="300" height="90" rx="14" fill="#FBF8F2" stroke="#8C8474" stroke-width="2"/>
+        <rect x="130" y="316" width="14" height="18" fill="#8C8474"/>
+        <rect x="456" y="316" width="14" height="18" fill="#8C8474"/>
+      `
+    },
+    twin: {
+      quiltArea: { x: 150, y: 215, w: 300, h: 155 },
+      background: `
+        <rect x="0" y="0" width="600" height="260" fill="#FBF8F2"/>
+        <rect x="0" y="260" width="600" height="160" fill="#E8DCC4"/>
+        <rect x="150" y="55" width="300" height="85" rx="8" fill="#2F4858"/>
+        <rect x="140" y="140" width="320" height="240" rx="10" fill="#FBF8F2" stroke="#8C8474" stroke-width="2"/>
+        <rect x="200" y="150" width="200" height="55" rx="14" fill="#fff" stroke="#cfc6b3"/>
+        <rect x="145" y="372" width="16" height="20" fill="#8C8474"/>
+        <rect x="439" y="372" width="16" height="20" fill="#8C8474"/>
+      `
+    },
+    queen: {
+      quiltArea: { x: 90, y: 215, w: 420, h: 165 },
+      background: `
+        <rect x="0" y="0" width="600" height="260" fill="#FBF8F2"/>
+        <rect x="0" y="260" width="600" height="160" fill="#E8DCC4"/>
+        <rect x="90" y="50" width="420" height="90" rx="8" fill="#2F4858"/>
+        <rect x="80" y="140" width="440" height="250" rx="10" fill="#FBF8F2" stroke="#8C8474" stroke-width="2"/>
+        <rect x="120" y="150" width="170" height="55" rx="14" fill="#fff" stroke="#cfc6b3"/>
+        <rect x="310" y="150" width="170" height="55" rx="14" fill="#fff" stroke="#cfc6b3"/>
+        <rect x="85" y="382" width="16" height="20" fill="#8C8474"/>
+        <rect x="499" y="382" width="16" height="20" fill="#8C8474"/>
+      `
+    },
+    king: {
+      quiltArea: { x: 40, y: 215, w: 520, h: 170 },
+      background: `
+        <rect x="0" y="0" width="600" height="260" fill="#FBF8F2"/>
+        <rect x="0" y="260" width="600" height="160" fill="#E8DCC4"/>
+        <rect x="40" y="45" width="520" height="95" rx="8" fill="#2F4858"/>
+        <rect x="30" y="140" width="540" height="255" rx="10" fill="#FBF8F2" stroke="#8C8474" stroke-width="2"/>
+        <rect x="70" y="150" width="150" height="55" rx="14" fill="#fff" stroke="#cfc6b3"/>
+        <rect x="225" y="150" width="150" height="55" rx="14" fill="#fff" stroke="#cfc6b3"/>
+        <rect x="380" y="150" width="150" height="55" rx="14" fill="#fff" stroke="#cfc6b3"/>
+        <rect x="35" y="387" width="16" height="20" fill="#8C8474"/>
+        <rect x="549" y="387" width="16" height="20" fill="#8C8474"/>
+      `
+    }
+  };
+
+  const proFeatureRoomPreview = document.getElementById('proFeatureRoomPreview');
+  const roomPreviewSelect = document.getElementById('roomPreviewSelect');
+  const generateRoomPreviewBtn = document.getElementById('generateRoomPreviewBtn');
+  const roomCreditsNote = document.getElementById('roomCreditsNote');
+  const roomPreviewStatus = document.getElementById('roomPreviewStatus');
+  const roomPreviewImage = document.getElementById('roomPreviewImage');
+  const downloadRoomPreviewBtn = document.getElementById('downloadRoomPreviewBtn');
+  const buyRoomCreditsBtn = document.getElementById('buyRoomCreditsBtn');
+
+  const ROOM_CREDITS_KEY = 'quiltDesignerRoomCredits';
+  const ROOM_CREDITS_INITIALIZED_KEY = 'quiltDesignerRoomCreditsInitialized';
+  const FREE_ROOM_CREDITS = 12;
+  let currentRoomPreviewUrl = null;
+
+  const ROOM_PROMPTS = {
+    baby: 'a cozy nursery with a wooden baby crib, soft natural window light, the crib neatly made with a folded quilt draped over the crib rail',
+    throw: 'a comfortable armchair in a warm living room, soft natural light, a quilt draped casually over the seat and armrest',
+    twin: 'a neatly made twin bed in a simple bedroom, soft natural window light, a quilt laid flat across the bed with two pillows at the headboard',
+    queen: 'a neatly made queen size bed in a warm, tastefully furnished bedroom, soft natural window light, a quilt laid flat across the bed with two pillows at the headboard',
+    king: 'a neatly made king size bed in a spacious, tastefully furnished bedroom, soft natural window light, a quilt laid flat across the bed with three pillows at the headboard'
+  };
+
+  // Rough hex-to-color-name mapping so the AI prompt describes colors in words
+  // rather than hex codes, which image models don't interpret reliably.
+  function nameColorFromHex(hex) {
+    const r = parseInt(hex.slice(1, 3), 16) / 255;
+    const g = parseInt(hex.slice(3, 5), 16) / 255;
+    const b = parseInt(hex.slice(5, 7), 16) / 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    const lightness = (max + min) / 2;
+    const delta = max - min;
+
+    if (delta < 0.04) {
+      if (lightness > 0.9) return 'white';
+      if (lightness > 0.7) return 'light gray';
+      if (lightness > 0.35) return 'gray';
+      return 'charcoal black';
+    }
+
+    let hue = 0;
+    if (max === r) hue = ((g - b) / delta) % 6;
+    else if (max === g) hue = (b - r) / delta + 2;
+    else hue = (r - g) / delta + 4;
+    hue *= 60;
+    if (hue < 0) hue += 360;
+
+    const sat = delta / (1 - Math.abs(2 * lightness - 1));
+
+    // Warm, light-to-mid tones in this hue range read as cream/tan/beige fabric to
+    // a human, but a plain hue-bucket name like "pale orange" gets taken literally
+    // by the image model and rendered as actual orange — so name these explicitly.
+    if (hue >= 20 && hue < 55 && sat < 0.55) {
+      if (lightness > 0.8) return 'cream';
+      if (lightness > 0.6) return sat < 0.4 ? 'beige' : 'tan';
+      if (lightness > 0.4) return sat < 0.3 ? 'taupe' : 'tan';
+    }
+
+    let base;
+    if (hue < 15 || hue >= 345) base = 'red';
+    else if (hue < 45) base = 'orange';
+    else if (hue < 65) base = 'yellow';
+    else if (hue < 80) base = 'yellow-green';
+    else if (hue < 170) base = 'green';
+    else if (hue < 200) base = 'teal';
+    else if (hue < 250) base = 'blue';
+    else if (hue < 290) base = 'purple';
+    else if (hue < 330) base = 'magenta';
+    else base = 'pink';
+
+    if (sat < 0.22) return (lightness > 0.65 ? 'pale muted ' : lightness < 0.35 ? 'deep muted ' : 'muted ') + base;
+    if (lightness > 0.82) return 'pale ' + base;
+    if (lightness < 0.32) return 'deep ' + base;
+    return base;
+  }
+
+  function getRoomCredits() {
+    return parseInt(localStorage.getItem(ROOM_CREDITS_KEY), 10) || 0;
+  }
+
+  function setRoomCredits(n) {
+    localStorage.setItem(ROOM_CREDITS_KEY, String(Math.max(0, n)));
+    updateRoomCreditsUI();
+  }
+
+  function updateRoomCreditsUI() {
+    const credits = getRoomCredits();
+    roomCreditsNote.textContent = `${credits} preview${credits === 1 ? '' : 's'} remaining`;
+    generateRoomPreviewBtn.disabled = credits <= 0;
+    buyRoomCreditsBtn.style.display = credits <= 0 ? 'inline-block' : 'none';
+  }
+
+  // Literal geometric descriptions of each block's actual shapes, built from the same
+  // piece geometry used for the cut lists — giving the AI a concrete shape to render
+  // rather than relying on it to correctly picture a named pattern like "Ohio Star".
+  const PATTERN_SHAPE_DESCRIPTIONS = {
+    ninepatch: 'a 3x3 grid of small solid-color squares within the block, alternating between the two fabric colors in a checkerboard pattern',
+    logcabin: 'a small solid center square surrounded by concentric rectangular fabric strips, alternating between the two colors on opposite sides, building outward in rings like a log cabin',
+    pinwheel: 'four right-triangle shapes meeting at the exact center of the block, arranged in a rotational pinwheel, alternating between the two colors',
+    railfence: 'six equal-width straight vertical fabric strips running the full height of the block, alternating between the two colors',
+    courthousesteps: 'a small solid center square surrounded by rectangular fabric strips added symmetrically top-and-bottom then left-and-right, alternating between the two colors',
+    ohiostar: 'a solid center square, four solid corner squares in the second color, and four star-point units (each a diagonally-split pair of triangles) forming a single 4-pointed star centered in the block',
+    flyinggeese: 'a column of stacked "flying geese" triangle units, each one large point triangle in one color flanked by two smaller background triangles in the second color',
+    bearspaw: 'a solid center square, four solid edge squares, and four corner "claw" units, each made of three small diagonally-split triangle pairs plus one small solid square',
+    shoofly: 'a solid center square, four solid edge squares in the second color, and four corner units made of diagonally-split triangle pairs',
+    churndash: 'a solid center square, four solid corner squares, and four edge units shaped like a large triangle point flanked by two smaller triangles, forming an accent ring around the center square',
+    friendshipstar: 'a solid center square, four solid corner squares, and four star-point triangle units pointing outward toward the block edges, forming a single 4-pointed star centered in the block',
+    sawtoothstar: 'a solid center square, four corner units made of diagonally-split triangle pairs, and four star-point triangle units pointing outward, forming a 4-pointed star with small triangle "teeth" accents at the corners'
+  };
+
+  function buildRoomPreviewPrompt() {
+    const patternLabel = patternSelect.options[patternSelect.selectedIndex].dataset.baseLabel || patternSelect.options[patternSelect.selectedIndex].text;
+    const shapeDescription = PATTERN_SHAPE_DESCRIPTIONS[patternSelect.value] || `a "${patternLabel}" quilt block pattern`;
+    const roomDescription = ROOM_PROMPTS[roomPreviewSelect.value];
+    const colorAName = nameColorFromHex(colorAInput.value);
+    const colorBName = nameColorFromHex(colorBInput.value);
+    const across = parseInt(blocksAcrossInput.value, 10) || 3;
+    const down = parseInt(blocksDownInput.value, 10) || 3;
+    return `A professional interior photograph of ${roomDescription}. The quilt is made of many small identical blocks repeated across the whole quilt in a grid of roughly ${across} blocks wide by ${down} blocks tall — it is NOT one single large motif covering the whole quilt, it is a tessellated grid of small repeating blocks separated by visible seam lines. Each individual block shows this exact design: ${shapeDescription}. The quilt is pieced in ${colorAName} and ${colorBName} fabric, with sharp precise geometric machine-pieced seams, crisp straight edges and points, no rounded or soft shapes. Realistic quilted fabric texture, soft natural lighting, photorealistic, high quality home decor photography.`;
+  }
+
+  async function pollRoomPreview(predictionId) {
+    const maxAttempts = 40; // ~80 seconds at 2s intervals
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const res = await fetch(`/api/room-preview-status?id=${encodeURIComponent(predictionId)}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Status check failed.');
+      if (data.status === 'succeeded') {
+        const output = Array.isArray(data.output) ? data.output[0] : data.output;
+        if (!output) throw new Error('No image was returned.');
+        return output;
+      }
+      if (data.status === 'failed' || data.status === 'canceled') {
+        throw new Error(data.error || 'Image generation failed.');
+      }
+      roomPreviewStatus.textContent = `Generating your room preview... (${data.status})`;
+    }
+    throw new Error('Generation took too long. Please try again.');
+  }
+
+  generateRoomPreviewBtn.addEventListener('click', async () => {
+    if (!isPro()) {
+      flashUnlockPrompt('AI room previews are part of Quilt Designer Pro.');
+      return;
+    }
+    if (getRoomCredits() <= 0) {
+      roomPreviewStatus.style.display = 'block';
+      roomPreviewStatus.textContent = 'Out of preview credits — buy 10 more below to continue.';
+      return;
+    }
+
+    generateRoomPreviewBtn.disabled = true;
+    roomPreviewImage.style.display = 'none';
+    downloadRoomPreviewBtn.style.display = 'none';
+    roomPreviewStatus.style.display = 'block';
+    roomPreviewStatus.textContent = 'Starting generation...';
+
+    // Deduct up front to prevent repeated clicks from racking up extra generations;
+    // refunded automatically below if the generation ends up failing.
+    setRoomCredits(getRoomCredits() - 1);
+
+    try {
+      const prompt = buildRoomPreviewPrompt();
+      const startRes = await fetch('/api/room-preview-start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt })
+      });
+      const startData = await startRes.json();
+      if (!startRes.ok || !startData.id) throw new Error(startData.error || 'Unable to start generation.');
+
+      roomPreviewStatus.textContent = 'Generating your room preview...';
+      const imageUrl = await pollRoomPreview(startData.id);
+
+      roomPreviewImage.src = imageUrl;
+      roomPreviewImage.style.display = 'block';
+      roomPreviewStatus.style.display = 'none';
+      currentRoomPreviewUrl = imageUrl;
+      downloadRoomPreviewBtn.style.display = 'inline-block';
+    } catch (err) {
+      console.error('Room preview error:', err);
+      setRoomCredits(getRoomCredits() + 1); // refund the credit since generation didn't succeed
+      roomPreviewStatus.textContent = `Something went wrong: ${err.message || 'please try again.'}`;
+    } finally {
+      updateRoomCreditsUI();
+    }
+  });
+
+  buyRoomCreditsBtn.addEventListener('click', () => startCheckout('credits'));
+
+  downloadRoomPreviewBtn.addEventListener('click', async () => {
+    if (!currentRoomPreviewUrl) return;
+    const originalText = downloadRoomPreviewBtn.textContent;
+    downloadRoomPreviewBtn.disabled = true;
+    downloadRoomPreviewBtn.textContent = 'Downloading...';
+    try {
+      // Fetching to a blob (rather than a plain <a href download>) is what makes this
+      // reliably save the file instead of just opening the image in a new tab, since
+      // the image is hosted cross-origin on Replicate's CDN.
+      const res = await fetch(currentRoomPreviewUrl);
+      if (!res.ok) throw new Error('Download failed.');
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = `quilt-room-preview-${Date.now()}.png`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      console.error('Room preview download error:', err);
+      // Fall back to opening it directly so the person can right-click and save.
+      window.open(currentRoomPreviewUrl, '_blank');
+    } finally {
+      downloadRoomPreviewBtn.disabled = false;
+      downloadRoomPreviewBtn.textContent = originalText;
+    }
+  });
+
+  const cutListResults = document.getElementById('cutListResults');
   let lastFreePattern = 'ninepatch';
 
   function isPro() {
@@ -742,15 +1104,15 @@
   let areaTotals = { colorA: 0, colorB: 0, sashing: 0, border: 0 };
 
   const palettes = [
-    { name: 'Classic Navy', colorA: '#2b4c7e', colorB: '#e8dcc4' },
-    { name: 'Amish Solids', colorA: '#8b1a1a', colorB: '#1a1a1a' },
-    { name: 'Soft Pastel', colorA: '#f4c2c2', colorB: '#c2e0f4' },
-    { name: 'Autumn', colorA: '#a5502e', colorB: '#e0a458' },
-    { name: 'Forest', colorA: '#2d4a2b', colorB: '#d9c9a3' },
-    { name: 'Modern Mono', colorA: '#333333', colorB: '#f2f2f2' },
-    { name: 'Antique Gold', colorA: '#8c6d1f', colorB: '#f3e4c2' },
-    { name: 'Slate & Cream', colorA: '#4a5a63', colorB: '#f1ebdd' },
-    { name: 'Berry', colorA: '#6b1f3b', colorB: '#e9c9c9' }
+    { name: 'Navy & Cream', colorA: '#1F3A5F', colorB: '#F0E6D2' },
+    { name: 'Terracotta & Sand', colorA: '#C1602E', colorB: '#E8D5B7' },
+    { name: 'Sage & Ivory', colorA: '#7C8B6F', colorB: '#F5F1E8' },
+    { name: 'Charcoal & Blush', colorA: '#3A3A3A', colorB: '#E8C4C4' },
+    { name: 'Dusty Blue & Linen', colorA: '#6B8CAE', colorB: '#EDE4D3' },
+    { name: 'Mustard & Charcoal', colorA: '#BFA030', colorB: '#2E2E2E' },
+    { name: 'Forest & Cream', colorA: '#2F4F3E', colorB: '#F2ECD9' },
+    { name: 'Berry & Blush', colorA: '#7A2048', colorB: '#F0D9D9' },
+    { name: 'Black & White', colorA: '#1A1A1A', colorB: '#FAFAFA' }
   ];
 
   palettes.forEach((p, i) => {
@@ -1246,6 +1608,282 @@
     return { finishedWidthIn, finishedHeightIn, backingWidthIn, backingHeightIn, panelsNeeded, yards };
   }
 
+  // --- Piece-by-piece cut lists. Only implemented for patterns whose pieces map to ---
+  // genuine, standard quilting techniques (plain squares/rectangles, or classic
+  // half-square-triangle units) so the numbers are ones a quilter can actually trust.
+  // Design-space is always a fixed 300-unit block regardless of block size in inches.
+  const CUT_LIST_DESIGN_BLOCK = 300;
+
+  function formatInches(value) {
+    const whole = Math.floor(value + 1e-6);
+    const eighths = Math.round((value - whole) * 8);
+    if (eighths <= 0) return `${whole}"`;
+    if (eighths >= 8) return `${whole + 1}"`;
+    const fracMap = { 1: '1/8', 2: '1/4', 3: '3/8', 4: '1/2', 5: '5/8', 6: '3/4', 7: '7/8' };
+    return whole > 0 ? `${whole}-${fracMap[eighths]}"` : `${fracMap[eighths]}"`;
+  }
+
+  const CUT_LIST_GENERATORS = {
+    ninepatch(blockSizeInches) {
+      const toIn = (px) => px / CUT_LIST_DESIGN_BLOCK * blockSizeInches;
+      const finished = toIn(squareSize);
+      const cut = finished + 0.5;
+      return [
+        { piece: 'Square', color: 'colorA', cutW: cut, cutH: cut, qtyPerBlock: 5 },
+        { piece: 'Square', color: 'colorB', cutW: cut, cutH: cut, qtyPerBlock: 4 }
+      ];
+    },
+
+    railfence(blockSizeInches) {
+      const toIn = (px) => px / CUT_LIST_DESIGN_BLOCK * blockSizeInches;
+      const stripCount = 6;
+      const stripWFinished = toIn(blockSize / stripCount);
+      const stripHFinished = toIn(blockSize);
+      return [
+        { piece: 'Strip', color: 'colorA', cutW: stripWFinished + 0.5, cutH: stripHFinished + 0.5, qtyPerBlock: 3 },
+        { piece: 'Strip', color: 'colorB', cutW: stripWFinished + 0.5, cutH: stripHFinished + 0.5, qtyPerBlock: 3 }
+      ];
+    },
+
+    pinwheel(blockSizeInches) {
+      const toIn = (px) => px / CUT_LIST_DESIGN_BLOCK * blockSizeInches;
+      const finishedHst = toIn(blockSize / 2);
+      const cutSquare = finishedHst + 0.875;
+      return [
+        {
+          piece: 'HST square (before cutting)', color: 'colorA', cutW: cutSquare, cutH: cutSquare, qtyPerBlock: 2,
+          note: 'Layer each Color A square with a Color B square of the same size, right sides together. Mark one diagonal, sew 1/4" from the line on both sides, then cut apart on the marked line — each pair makes 2 half-square-triangle units. This block needs 4 finished units total.'
+        },
+        { piece: 'HST square (before cutting)', color: 'colorB', cutW: cutSquare, cutH: cutSquare, qtyPerBlock: 2 }
+      ];
+    },
+
+    logcabin(blockSizeInches) {
+      const toIn = (px) => px / CUT_LIST_DESIGN_BLOCK * blockSizeInches;
+      const rounds = 4;
+      const stripWidthPx = 25;
+      const centerSizePx = blockSize - 2 * rounds * stripWidthPx;
+      const rows = [];
+      let w = centerSizePx, h = centerSizePx;
+
+      rows.push({ piece: 'Center square', color: 'colorB', cutW: toIn(w) + 0.5, cutH: toIn(h) + 0.5, qtyPerBlock: 1 });
+
+      for (let r = 0; r < rounds; r++) {
+        rows.push({ piece: `Round ${r + 1} — right strip`, color: 'colorA', cutW: toIn(stripWidthPx) + 0.5, cutH: toIn(h) + 0.5, qtyPerBlock: 1 });
+        w += stripWidthPx;
+        rows.push({ piece: `Round ${r + 1} — bottom strip`, color: 'colorA', cutW: toIn(w) + 0.5, cutH: toIn(stripWidthPx) + 0.5, qtyPerBlock: 1 });
+        h += stripWidthPx;
+        rows.push({ piece: `Round ${r + 1} — left strip`, color: 'colorB', cutW: toIn(stripWidthPx) + 0.5, cutH: toIn(h) + 0.5, qtyPerBlock: 1 });
+        w += stripWidthPx;
+        rows.push({ piece: `Round ${r + 1} — top strip`, color: 'colorB', cutW: toIn(w) + 0.5, cutH: toIn(stripWidthPx) + 0.5, qtyPerBlock: 1 });
+        h += stripWidthPx;
+      }
+      return rows;
+    },
+
+    courthousesteps(blockSizeInches) {
+      const toIn = (px) => px / CUT_LIST_DESIGN_BLOCK * blockSizeInches;
+      const rounds = 4;
+      const stripWidthPx = 25;
+      const centerSizePx = blockSize - 2 * rounds * stripWidthPx;
+      const rows = [];
+      let w = centerSizePx, h = centerSizePx;
+
+      rows.push({ piece: 'Center square', color: 'colorA', cutW: toIn(w) + 0.5, cutH: toIn(h) + 0.5, qtyPerBlock: 1 });
+
+      for (let r = 0; r < rounds; r++) {
+        rows.push({ piece: `Round ${r + 1} — top strip`, color: 'colorA', cutW: toIn(w) + 0.5, cutH: toIn(stripWidthPx) + 0.5, qtyPerBlock: 1 });
+        h += stripWidthPx;
+        rows.push({ piece: `Round ${r + 1} — bottom strip`, color: 'colorA', cutW: toIn(w) + 0.5, cutH: toIn(stripWidthPx) + 0.5, qtyPerBlock: 1 });
+        h += stripWidthPx;
+        rows.push({ piece: `Round ${r + 1} — left strip`, color: 'colorB', cutW: toIn(stripWidthPx) + 0.5, cutH: toIn(h) + 0.5, qtyPerBlock: 1 });
+        w += stripWidthPx;
+        rows.push({ piece: `Round ${r + 1} — right strip`, color: 'colorB', cutW: toIn(stripWidthPx) + 0.5, cutH: toIn(h) + 0.5, qtyPerBlock: 1 });
+        w += stripWidthPx;
+      }
+      return rows;
+    },
+
+    ohiostar(blockSizeInches) {
+      const toIn = (px) => px / CUT_LIST_DESIGN_BLOCK * blockSizeInches;
+      const unitFinished = toIn(blockSize / 3);
+      const plainCut = unitFinished + 0.5;
+      const hstCut = unitFinished + 0.875;
+      return [
+        { piece: 'Center square', color: 'colorA', cutW: plainCut, cutH: plainCut, qtyPerBlock: 1 },
+        { piece: 'Corner square', color: 'colorB', cutW: plainCut, cutH: plainCut, qtyPerBlock: 4 },
+        {
+          piece: 'Star point HST square (before cutting)', color: 'colorA', cutW: hstCut, cutH: hstCut, qtyPerBlock: 2,
+          note: 'Layer each Color A square with a Color B square of the same size, mark one diagonal, sew 1/4" on both sides of the line, cut apart on the line — each pair makes 2 half-square-triangle units. This block needs 4 star-point units total.'
+        },
+        { piece: 'Star point HST square (before cutting)', color: 'colorB', cutW: hstCut, cutH: hstCut, qtyPerBlock: 2 }
+      ];
+    },
+
+    shoofly(blockSizeInches) {
+      const toIn = (px) => px / CUT_LIST_DESIGN_BLOCK * blockSizeInches;
+      const unitFinished = toIn(blockSize / 3);
+      const plainCut = unitFinished + 0.5;
+      const hstCut = unitFinished + 0.875;
+      return [
+        { piece: 'Center square', color: 'colorA', cutW: plainCut, cutH: plainCut, qtyPerBlock: 1 },
+        { piece: 'Edge square', color: 'colorB', cutW: plainCut, cutH: plainCut, qtyPerBlock: 4 },
+        {
+          piece: 'Corner HST square (before cutting)', color: 'colorA', cutW: hstCut, cutH: hstCut, qtyPerBlock: 2,
+          note: 'Layer each Color A square with a Color B square of the same size, mark one diagonal, sew 1/4" on both sides of the line, cut apart on the line — each pair makes 2 half-square-triangle units. This block needs 4 corner units total.'
+        },
+        { piece: 'Corner HST square (before cutting)', color: 'colorB', cutW: hstCut, cutH: hstCut, qtyPerBlock: 2 }
+      ];
+    },
+
+    bearspaw(blockSizeInches) {
+      const toIn = (px) => px / CUT_LIST_DESIGN_BLOCK * blockSizeInches;
+      const unitFinished = toIn(blockSize / 3);
+      const subFinished = unitFinished / 2;
+      const plainCut = unitFinished + 0.5;
+      const subPlainCut = subFinished + 0.5;
+      const subHstCut = subFinished + 0.875;
+      return [
+        { piece: 'Center square', color: 'colorA', cutW: plainCut, cutH: plainCut, qtyPerBlock: 1 },
+        { piece: 'Edge square', color: 'colorB', cutW: plainCut, cutH: plainCut, qtyPerBlock: 4 },
+        { piece: 'Claw corner square', color: 'colorB', cutW: subPlainCut, cutH: subPlainCut, qtyPerBlock: 4 },
+        {
+          piece: 'Claw HST square (before cutting)', color: 'colorA', cutW: subHstCut, cutH: subHstCut, qtyPerBlock: 6,
+          note: 'Layer each Color A square with a Color B square of the same size, mark one diagonal, sew 1/4" on both sides of the line, cut apart on the line — each pair makes 2 half-square-triangle units. This block needs 12 claw units total (3 per corner).'
+        },
+        { piece: 'Claw HST square (before cutting)', color: 'colorB', cutW: subHstCut, cutH: subHstCut, qtyPerBlock: 6 }
+      ];
+    },
+
+    // These four patterns' triangle "points" have unequal-length legs (roughly 2:1),
+    // not the simple 45-45-90 corners a plain HST or square stitch-and-flip produces.
+    // Rather than assert an unverified efficient shortcut, every triangle piece is
+    // given as a generously oversized rectangle to cut and trim to shape using the
+    // on-screen block diagram as a guide — always correct, regardless of proportions.
+    flyinggeese(blockSizeInches) {
+      const pointW = blockSizeInches;
+      const pointH = blockSizeInches / 4;
+      const wedgeW = blockSizeInches / 2;
+      const wedgeH = blockSizeInches / 4;
+      const trimNote = 'This piece is oversized on purpose. Cut it to this size, then trim to the triangle shape shown in the block diagram, leaving at least 1/4" of fabric beyond each finished point for the seam allowance.';
+      return [
+        { piece: 'Goose point (cut oversized, trim to shape)', color: 'colorA', cutW: pointW + 1, cutH: pointH + 1, qtyPerBlock: 4, note: trimNote },
+        { piece: 'Goose background wedge (cut oversized, trim to shape)', color: 'colorB', cutW: wedgeW + 1, cutH: wedgeH + 1, qtyPerBlock: 8 }
+      ];
+    },
+
+    churndash(blockSizeInches) {
+      const toIn = (px) => px / CUT_LIST_DESIGN_BLOCK * blockSizeInches;
+      const unitFinished = toIn(blockSize / 3);
+      const plainCut = unitFinished + 0.5;
+      const pointDim = unitFinished;
+      const wedgeW = unitFinished / 2;
+      const wedgeH = unitFinished;
+      const trimNote = 'This piece is oversized on purpose. Cut it to this size, then trim to the triangle shape shown in the block diagram, leaving at least 1/4" of fabric beyond each finished point for the seam allowance.';
+      return [
+        { piece: 'Center square', color: 'colorA', cutW: plainCut, cutH: plainCut, qtyPerBlock: 1 },
+        { piece: 'Corner square', color: 'colorB', cutW: plainCut, cutH: plainCut, qtyPerBlock: 4 },
+        { piece: 'Edge point (cut oversized, trim to shape)', color: 'colorA', cutW: pointDim + 1, cutH: pointDim + 1, qtyPerBlock: 4, note: trimNote },
+        { piece: 'Edge background wedge (cut oversized, trim to shape)', color: 'colorB', cutW: wedgeW + 1, cutH: wedgeH + 1, qtyPerBlock: 8 }
+      ];
+    },
+
+    friendshipstar(blockSizeInches) {
+      const toIn = (px) => px / CUT_LIST_DESIGN_BLOCK * blockSizeInches;
+      const unitFinished = toIn(blockSize / 3);
+      const plainCut = unitFinished + 0.5;
+      const pointDim = unitFinished;
+      const wedgeW = unitFinished / 2;
+      const wedgeH = unitFinished;
+      const trimNote = 'This piece is oversized on purpose. Cut it to this size, then trim to the triangle shape shown in the block diagram, leaving at least 1/4" of fabric beyond each finished point for the seam allowance.';
+      return [
+        { piece: 'Center square', color: 'colorA', cutW: plainCut, cutH: plainCut, qtyPerBlock: 1 },
+        { piece: 'Corner square', color: 'colorB', cutW: plainCut, cutH: plainCut, qtyPerBlock: 4 },
+        { piece: 'Star point (cut oversized, trim to shape)', color: 'colorA', cutW: pointDim + 1, cutH: pointDim + 1, qtyPerBlock: 4, note: trimNote },
+        { piece: 'Star point background wedge (cut oversized, trim to shape)', color: 'colorB', cutW: wedgeW + 1, cutH: wedgeH + 1, qtyPerBlock: 8 }
+      ];
+    },
+
+    sawtoothstar(blockSizeInches) {
+      const toIn = (px) => px / CUT_LIST_DESIGN_BLOCK * blockSizeInches;
+      const unitFinished = toIn(blockSize / 3);
+      const plainCut = unitFinished + 0.5;
+      const hstCut = unitFinished + 0.875;
+      const pointDim = unitFinished;
+      const wedgeW = unitFinished / 2;
+      const wedgeH = unitFinished;
+      const trimNote = 'This piece is oversized on purpose. Cut it to this size, then trim to the triangle shape shown in the block diagram, leaving at least 1/4" of fabric beyond each finished point for the seam allowance.';
+      return [
+        { piece: 'Center square', color: 'colorA', cutW: plainCut, cutH: plainCut, qtyPerBlock: 1 },
+        {
+          piece: 'Corner HST square (before cutting)', color: 'colorA', cutW: hstCut, cutH: hstCut, qtyPerBlock: 2,
+          note: 'Layer each Color A square with a Color B square of the same size, mark one diagonal, sew 1/4" on both sides of the line, cut apart on the line — each pair makes 2 half-square-triangle units. This block needs 4 corner units total.'
+        },
+        { piece: 'Corner HST square (before cutting)', color: 'colorB', cutW: hstCut, cutH: hstCut, qtyPerBlock: 2 },
+        { piece: 'Star point (cut oversized, trim to shape)', color: 'colorA', cutW: pointDim + 1, cutH: pointDim + 1, qtyPerBlock: 4, note: trimNote },
+        { piece: 'Star point background wedge (cut oversized, trim to shape)', color: 'colorB', cutW: wedgeW + 1, cutH: wedgeH + 1, qtyPerBlock: 8 }
+      ];
+    }
+  };
+
+  function renderCutList(patternKey, blockSizeInches, blocksAcross, blocksDown) {
+    if (!isPro()) {
+      cutListResults.innerHTML = '';
+      return;
+    }
+    const generator = CUT_LIST_GENERATORS[patternKey];
+    if (!generator) {
+      cutListResults.innerHTML = '<span class="yardage-title">Cut list</span><span class="cutlist-note">A piece-by-piece cut list for this pattern is coming soon — for now, use the yardage total above.</span>';
+      return;
+    }
+
+    const totalBlocks = blocksAcross * blocksDown;
+    const rows = generator(blockSizeInches);
+    const colorLabel = { colorA: 'Color A', colorB: 'Color B' };
+
+    let html = '<span class="yardage-title">Cut list</span>';
+    html += '<span class="yardage-note">Sizes include a standard 1/4" seam allowance. Totals are for the whole quilt top.</span>';
+    html += '<table><tr><th>Piece</th><th>Color</th><th>Cut size</th><th>Total qty</th></tr>';
+    rows.forEach(row => {
+      const totalQty = row.qtyPerBlock * totalBlocks;
+      html += `<tr><td>${row.piece}</td><td>${colorLabel[row.color] || row.color}</td><td>${formatInches(row.cutW)} × ${formatInches(row.cutH)}</td><td>${totalQty}</td></tr>`;
+    });
+    html += '</table>';
+
+    const notes = rows.filter(r => r.note).map(r => r.note);
+    notes.forEach(note => {
+      html += `<span class="cutlist-note">${note}</span>`;
+    });
+
+    cutListResults.innerHTML = html;
+  }
+
+  // Renders the chosen furniture illustration, then embeds a live copy of the current
+  // quilt design as a nested <svg> cropped to fill the scene's designated "quiltArea"
+  // rect — a flat overlay using the design's real colors, not a perspective mockup.
+  function drawQuickPreview(key) {
+    if (!key || !QUICK_PREVIEW_SCENES[key]) {
+      quickPreviewSvg.style.display = 'none';
+      quickPreviewSvg.innerHTML = '';
+      return;
+    }
+    const scene = QUICK_PREVIEW_SCENES[key];
+    quickPreviewSvg.style.display = 'block';
+    quickPreviewSvg.innerHTML = scene.background;
+
+    const nested = document.createElementNS(SVG_NS, 'svg');
+    nested.setAttribute('x', scene.quiltArea.x);
+    nested.setAttribute('y', scene.quiltArea.y);
+    nested.setAttribute('width', scene.quiltArea.w);
+    nested.setAttribute('height', scene.quiltArea.h);
+    nested.setAttribute('viewBox', svg.getAttribute('viewBox'));
+    nested.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+    Array.from(svg.childNodes).forEach(node => nested.appendChild(node.cloneNode(true)));
+    quickPreviewSvg.appendChild(nested);
+  }
+
+  quickPreviewSelect.addEventListener('change', () => drawQuickPreview(quickPreviewSelect.value));
+
   function redraw() {
     areaTotals = { colorA: 0, colorB: 0, sashing: 0, border: 0 };
 
@@ -1278,6 +1916,8 @@
     drawQuilt(blockDrawFn, blocksAcross, blocksDown, sashingWidth, sashingColor, borderWidth, borderColor, colorA, colorB, alternateRotation);
     updateYardage(blockSizeInches);
     updateBackingYardage(blockSizeInches, blocksAcross, blocksDown, sashingWidth, borderWidth);
+    renderCutList(patternSelect.value, blockSizeInches, blocksAcross, blocksDown);
+    if (quickPreviewSelect.value) drawQuickPreview(quickPreviewSelect.value);
     updateActivePreset();
   }
 
@@ -1620,6 +2260,11 @@
           <tr><th colspan="2">Backing fabric</th></tr>
         </table>
       </div>
+      <div class="cutlist-section-print">
+        <table>
+          <tr><th>Piece</th><th>Color</th><th>Cut size</th><th>Total qty</th></tr>
+        </table>
+      </div>
       <div class="print-note">Yardage is based on 42" usable fabric width with no waste margin, and does not include seam allowance — add your standard seam allowance (typically 1/4") when cutting each piece.</div>
     `;
 
@@ -1667,6 +2312,33 @@
     backingRow3.innerHTML = `<td>Total backing yardage</td><td>${backingCalc.yards.toFixed(2)} yd</td>`;
     backingTable.appendChild(backingRow3);
 
+    const cutListSection = printSheet.querySelector('.cutlist-section-print');
+    const cutListTable = cutListSection.querySelector('table');
+    const generator = CUT_LIST_GENERATORS[patternSelect.value];
+    if (generator) {
+      const totalBlocks = parseInt(blocksAcross, 10) * parseInt(blocksDown, 10);
+      const colorLabel = { colorA: 'Color A', colorB: 'Color B' };
+      const headerRow = document.createElement('tr');
+      headerRow.innerHTML = '<th colspan="4">Cut list</th>';
+      cutListTable.insertBefore(headerRow, cutListTable.firstChild);
+      const rows = generator(blockSizeInches);
+      rows.forEach(row => {
+        const totalQty = row.qtyPerBlock * totalBlocks;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${row.piece}</td><td>${colorLabel[row.color] || row.color}</td><td>${formatInches(row.cutW)} × ${formatInches(row.cutH)}</td><td>${totalQty}</td>`;
+        cutListTable.appendChild(tr);
+      });
+      const notes = rows.filter(r => r.note).map(r => r.note);
+      notes.forEach(note => {
+        const noteEl = document.createElement('div');
+        noteEl.className = 'print-note';
+        noteEl.textContent = note;
+        cutListSection.appendChild(noteEl);
+      });
+    } else {
+      cutListSection.style.display = 'none';
+    }
+
     window.print();
   });
 
@@ -1703,16 +2375,22 @@
       unlockProBtn.textContent = 'Unlock Pro';
     }
 
-    [proFeatureTargetSize, proFeatureSwatch, proFeatureDesigns, proFeatureBacking].forEach(el => setFeatureLock(el, !pro));
+    [proFeatureTargetSize, proFeatureSwatch, proFeatureDesigns, proFeatureBacking, proFeatureCutList, proFeatureRoomPreview].forEach(el => setFeatureLock(el, !pro));
     updatePatternOptionLabels();
     printSheetBtn.textContent = pro ? 'Download pattern sheet' : 'Download pattern sheet 🔒';
+
+    if (pro && localStorage.getItem(ROOM_CREDITS_INITIALIZED_KEY) !== 'true') {
+      localStorage.setItem(ROOM_CREDITS_INITIALIZED_KEY, 'true');
+      setRoomCredits(FREE_ROOM_CREDITS);
+    }
+    updateRoomCreditsUI();
 
     // If the currently-selected pattern is a Pro pattern but Pro isn't unlocked
     // (e.g. it was set before a previous unlock check finished), fall back to free.
     if (!pro && PRO_PATTERNS.has(patternSelect.value)) {
       patternSelect.value = lastFreePattern;
-      redraw();
     }
+    redraw();
   }
 
   function flashUnlockPrompt(message) {
@@ -1725,73 +2403,30 @@
     }, 3000);
   }
 
-  async function startCheckout() {
-    unlockProBtn.disabled = true;
-    unlockProBtn.textContent = 'Redirecting...';
+  async function startCheckout(type) {
+    type = type || 'pro';
+    const btn = type === 'credits' ? buyRoomCreditsBtn : unlockProBtn;
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Redirecting...';
     try {
-      const res = await fetch('/api/create-checkout-session', { method: 'POST' });
+      const res = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type })
+      });
       const data = await res.json();
       if (!res.ok || !data.url) throw new Error(data.error || 'No checkout URL returned');
       window.location.href = data.url;
     } catch (err) {
       console.error('Checkout error:', err);
       alert('Something went wrong starting checkout. Please try again in a moment.');
-      unlockProBtn.disabled = false;
-      unlockProBtn.textContent = 'Unlock Pro';
+      btn.disabled = false;
+      btn.textContent = originalText;
     }
   }
 
-  unlockProBtn.addEventListener('click', startCheckout);
-
-  // "Have a code?" toggle + redemption — a separate path from Stripe Checkout,
-  // used for comped/promo unlocks. Verified server-side via /api/redeem-code so
-  // the valid codes never appear in this file.
-  showCodeFormBtn.addEventListener('click', () => {
-    const isHidden = codeFormRow.style.display === 'none';
-    codeFormRow.style.display = isHidden ? 'block' : 'none';
-    if (isHidden) promoCodeInput.focus();
-  });
-
-  async function redeemCode() {
-    const code = promoCodeInput.value.trim();
-    if (!code) {
-      codeStatusNote.textContent = 'Enter a code first.';
-      return;
-    }
-    redeemCodeBtn.disabled = true;
-    redeemCodeBtn.textContent = 'Checking...';
-    codeStatusNote.textContent = '';
-    try {
-      const res = await fetch('/api/redeem-code', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code })
-      });
-      const data = await res.json();
-      if (data.valid) {
-        localStorage.setItem(PRO_STORAGE_KEY, 'true');
-        codeStatusNote.textContent = 'Code accepted — Pro unlocked!';
-        codeStatusNote.style.color = 'var(--navy)';
-        updateProUI();
-        setTimeout(() => { codeFormRow.style.display = 'none'; }, 1500);
-      } else {
-        codeStatusNote.textContent = 'That code isn\'t valid.';
-        codeStatusNote.style.color = 'var(--rust)';
-      }
-    } catch (err) {
-      console.error('Code redemption error:', err);
-      codeStatusNote.textContent = 'Something went wrong — try again in a moment.';
-      codeStatusNote.style.color = 'var(--rust)';
-    } finally {
-      redeemCodeBtn.disabled = false;
-      redeemCodeBtn.textContent = 'Redeem';
-    }
-  }
-
-  redeemCodeBtn.addEventListener('click', redeemCode);
-  promoCodeInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') redeemCode();
-  });
+  unlockProBtn.addEventListener('click', () => startCheckout('pro'));
 
   // On load, check whether we're returning from a completed Stripe Checkout
   // session (?session_id=... in the URL) and verify the payment server-side
@@ -1805,7 +2440,11 @@
       const res = await fetch(`/api/verify-session?session_id=${encodeURIComponent(sessionId)}`);
       const data = await res.json();
       if (data.paid) {
-        localStorage.setItem(PRO_STORAGE_KEY, 'true');
+        if (data.type === 'credits') {
+          setRoomCredits(getRoomCredits() + 10);
+        } else {
+          localStorage.setItem(PRO_STORAGE_KEY, 'true');
+        }
       }
     } catch (err) {
       console.error('Session verification error:', err);
@@ -1820,5 +2459,13 @@
 
   redraw();
 </script>
+
+<footer style="text-align:center; padding:24px; font-size:12px; color:var(--stitch); border-top:2px dashed var(--stitch); margin-top:20px;">
+  <a href="/terms-of-service.html" style="color:var(--stitch);">Terms of Service</a> ·
+  <a href="/privacy-policy.html" style="color:var(--stitch);">Privacy Policy</a> ·
+  <a href="/refund-policy.html" style="color:var(--stitch);">Refund Policy</a> ·
+  <a href="mailto:quilts@digitalfamilyinsights.com" style="color:var(--stitch);">Contact</a>
+</footer>
+
 </body>
 </html>
