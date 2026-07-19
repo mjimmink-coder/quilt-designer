@@ -770,11 +770,10 @@
   const applyPromoBtn = document.getElementById('applyPromoBtn');
   const promoStatusNote = document.getElementById('promoStatusNote');
 
-  // Since this app has no accounts or server-side database, promo codes are validated
-  // client-side and tracked per-browser (same trust model as everything else here —
-  // Pro unlock and credits are both localStorage flags). This isn't tamper-proof, but
-  // it's a reasonable way to hand out free credits to reviewers, bloggers, etc.
-  const VALID_PROMO_CODES = new Set(['QUILT10']);
+  // Promo codes are validated server-side (see api/validate-promo.js) so the actual
+  // codes never appear in the page source. Redemption tracking (so the same code
+  // can't be reapplied repeatedly) still lives in localStorage, same trust model as
+  // everything else in this no-accounts app.
   const REDEEMED_PROMOS_KEY = 'quiltDesignerRedeemedPromos';
   const PROMO_CREDIT_BONUS = 10;
   const roomPreviewStatus = document.getElementById('roomPreviewStatus');
@@ -971,7 +970,7 @@
     }
   }
 
-  applyPromoBtn.addEventListener('click', () => {
+  applyPromoBtn.addEventListener('click', async () => {
     if (!isPro()) {
       flashUnlockPrompt('Promo codes are part of Quilt Designer Pro.');
       return;
@@ -981,20 +980,41 @@
       promoStatusNote.textContent = 'Enter a code first.';
       return;
     }
-    if (!VALID_PROMO_CODES.has(code)) {
-      promoStatusNote.textContent = 'That code isn\'t valid.';
-      return;
-    }
     const redeemed = getRedeemedPromos();
     if (redeemed.has(code)) {
       promoStatusNote.textContent = 'That code has already been used on this browser.';
       return;
     }
-    redeemed.add(code);
-    localStorage.setItem(REDEEMED_PROMOS_KEY, JSON.stringify(Array.from(redeemed)));
-    setRoomCredits(getRoomCredits() + PROMO_CREDIT_BONUS);
-    promoStatusNote.textContent = `Success! ${PROMO_CREDIT_BONUS} preview credits added.`;
-    promoCodeInput.value = '';
+
+    const originalText = applyPromoBtn.textContent;
+    applyPromoBtn.disabled = true;
+    applyPromoBtn.textContent = 'Checking...';
+    try {
+      const res = await fetch('/api/validate-promo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error('Unable to check that code right now.');
+
+      if (!data.valid) {
+        promoStatusNote.textContent = "That code isn't valid.";
+        return;
+      }
+
+      redeemed.add(code);
+      localStorage.setItem(REDEEMED_PROMOS_KEY, JSON.stringify(Array.from(redeemed)));
+      setRoomCredits(getRoomCredits() + PROMO_CREDIT_BONUS);
+      promoStatusNote.textContent = `Success! ${PROMO_CREDIT_BONUS} preview credits added.`;
+      promoCodeInput.value = '';
+    } catch (err) {
+      console.error('Promo code error:', err);
+      promoStatusNote.textContent = 'Something went wrong checking that code. Please try again.';
+    } finally {
+      applyPromoBtn.disabled = false;
+      applyPromoBtn.textContent = originalText;
+    }
   });
 
   downloadRoomPreviewBtn.addEventListener('click', async () => {
