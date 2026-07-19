@@ -479,7 +479,6 @@
   }
   .pro-feature.is-locked .pro-lock-banner { display: block; }
 </style>
-<script src="https://unpkg.com/three@0.158.0/build/three.min.js"></script>
 </head>
 <body>
 
@@ -608,7 +607,8 @@
 
     <hr class="divider">
 
-    <fieldset>
+    <fieldset class="pro-feature" id="proFeatureColors">
+      <div class="pro-lock-banner">🔒 Choosing your own colors is part of Quilt Designer Pro. Free designs use the default Navy &amp; Cream palette.</div>
       <legend>Fabric Colors</legend>
       <div class="palette-grid" id="presetContainer"></div>
       <div class="field-row" style="margin-top:14px;">
@@ -622,34 +622,31 @@
         </div>
       </div>
 
-      <div class="pro-feature" id="proFeatureSwatch">
-        <div class="pro-lock-banner">🔒 Fabric photo swatches are part of Quilt Designer Pro.</div>
-        <div class="field-row" style="margin-top:12px;">
-          <div>
-            <label for="swatchAInput">Fabric photo (A)</label>
-            <input type="file" id="swatchAInput" accept="image/*">
-            <div class="checkbox-row" style="margin-top:6px;">
-              <input type="checkbox" id="directionalAInput">
-              <label for="directionalAInput" style="margin:0; font-size:11px;">Directional print (stripe/floral)</label>
-            </div>
-            <button type="button" class="swatch-clear-btn" id="clearSwatchA" hidden>Use solid color</button>
+      <div class="field-row" style="margin-top:12px;">
+        <div>
+          <label for="swatchAInput">Fabric photo (A)</label>
+          <input type="file" id="swatchAInput" accept="image/*">
+          <div class="checkbox-row" style="margin-top:6px;">
+            <input type="checkbox" id="directionalAInput">
+            <label for="directionalAInput" style="margin:0; font-size:11px;">Directional print (stripe/floral)</label>
           </div>
-          <div>
-            <label for="swatchBInput">Fabric photo (B)</label>
-            <input type="file" id="swatchBInput" accept="image/*">
-            <div class="checkbox-row" style="margin-top:6px;">
-              <input type="checkbox" id="directionalBInput">
-              <label for="directionalBInput" style="margin:0; font-size:11px;">Directional print (stripe/floral)</label>
-            </div>
-            <button type="button" class="swatch-clear-btn" id="clearSwatchB" hidden>Use solid color</button>
-          </div>
+          <button type="button" class="swatch-clear-btn" id="clearSwatchA" hidden>Use solid color</button>
         </div>
-        <span class="swatch-hint">Upload a photo of your fabric and it replaces the flat color in the design.</span>
+        <div>
+          <label for="swatchBInput">Fabric photo (B)</label>
+          <input type="file" id="swatchBInput" accept="image/*">
+          <div class="checkbox-row" style="margin-top:6px;">
+            <input type="checkbox" id="directionalBInput">
+            <label for="directionalBInput" style="margin:0; font-size:11px;">Directional print (stripe/floral)</label>
+          </div>
+          <button type="button" class="swatch-clear-btn" id="clearSwatchB" hidden>Use solid color</button>
+        </div>
+      </div>
+      <span class="swatch-hint">Upload a photo of your fabric and it replaces the flat color in the design.</span>
 
-        <div style="margin-top:12px;">
-          <label for="swatchScaleInput">Fabric print scale (inches per repeat)</label>
-          <input type="number" id="swatchScaleInput" value="4" min="1" max="12" step="0.5">
-        </div>
+      <div style="margin-top:12px;">
+        <label for="swatchScaleInput">Fabric print scale (inches per repeat)</label>
+        <input type="number" id="swatchScaleInput" value="4" min="1" max="12" step="0.5">
       </div>
     </fieldset>
 
@@ -702,28 +699,6 @@
 
 </div>
 
-<div style="max-width:1100px; margin:0 auto 24px; padding:0 24px;">
-  <div class="panel">
-    <fieldset>
-      <legend>Quick Preview (free, instant, exact colors)</legend>
-      <label for="quickPreviewSelect">Show this design on a...</label>
-      <select id="quickPreviewSelect">
-        <option value="">None</option>
-        <option value="baby">Baby crib</option>
-        <option value="throw">Chair / throw</option>
-        <option value="twin">Twin bed</option>
-        <option value="queen">Full / Queen bed</option>
-        <option value="king">King bed</option>
-      </select>
-      <span class="swatch-hint">A stylized 3D scene using your exact design and colors — free and instant. For a fully photo-realistic AI-generated room photo, see the Pro feature below.</span>
-    </fieldset>
-    <div style="text-align:center; margin-top:16px;">
-      <canvas id="quickPreviewCanvas" width="700" height="490" style="width:100%; max-width:560px; height:auto; display:none; border-radius:4px;"></canvas>
-      <div id="quickPreviewLoading" class="swatch-hint" style="display:none;">Rendering 3D preview...</div>
-    </div>
-  </div>
-</div>
-
 <div style="max-width:1100px; margin:0 auto 40px; padding:0 24px;">
   <div class="panel pro-feature" id="proFeatureRoomPreview">
     <div class="pro-lock-banner">🔒 AI room previews are part of Quilt Designer Pro (12 free generations included, more available in bundles of 10).</div>
@@ -771,56 +746,10 @@
   const proBannerInner = document.getElementById('proBannerInner');
   const proBannerText = document.getElementById('proBannerText');
   const proFeatureTargetSize = document.getElementById('proFeatureTargetSize');
-  const proFeatureSwatch = document.getElementById('proFeatureSwatch');
+  const proFeatureColors = document.getElementById('proFeatureColors');
   const proFeatureDesigns = document.getElementById('proFeatureDesigns');
   const proFeatureBacking = document.getElementById('proFeatureBacking');
   const proFeatureCutList = document.getElementById('proFeatureCutList');
-  const quickPreviewSelect = document.getElementById('quickPreviewSelect');
-  const quickPreviewCanvas = document.getElementById('quickPreviewCanvas');
-  const quickPreviewLoading = document.getElementById('quickPreviewLoading');
-
-  // Stylized 3D furniture, built entirely from primitive shapes (no external models,
-  // no photos) so there's no licensing concern. Free and instant since it's pure
-  // client-side rendering — no AI service involved. Each entry describes the bed/
-  // seat surface (where the quilt drapes flat) and the fold edge (where it hangs
-  // over), plus the wood-toned frame and pillow layout for that scene.
-  const QUICK_3D_SCENES = {
-    baby: {
-      surface: { w: 2.4, d: 3.6, y: 1.05, z: 0 },
-      foldEdge: 'x-', foldDrop: 1.0,
-      frameColor: 0xC69A5E, mattressColor: 0xFBF8F2,
-      pillows: [],
-      frameType: 'crib'
-    },
-    throw: {
-      surface: { w: 3.2, d: 2.0, y: 0.95, z: 0.4 },
-      foldEdge: 'z+', foldDrop: 1.3,
-      frameColor: 0x2F4858, mattressColor: 0xFBF8F2,
-      pillows: [],
-      frameType: 'chair'
-    },
-    twin: {
-      surface: { w: 3.4, d: 5.6, y: 1.0, z: 0 },
-      foldEdge: 'z-', foldDrop: 1.1,
-      frameColor: 0xC69A5E, mattressColor: 0xFBF8F2,
-      pillows: [{ x: 0, w: 1.8 }],
-      frameType: 'bed'
-    },
-    queen: {
-      surface: { w: 5.0, d: 6.2, y: 1.0, z: 0 },
-      foldEdge: 'z-', foldDrop: 1.15,
-      frameColor: 0xC69A5E, mattressColor: 0xFBF8F2,
-      pillows: [{ x: -1.05, w: 1.7 }, { x: 1.05, w: 1.7 }],
-      frameType: 'bed'
-    },
-    king: {
-      surface: { w: 6.2, d: 6.2, y: 1.0, z: 0 },
-      foldEdge: 'z-', foldDrop: 1.15,
-      frameColor: 0xC69A5E, mattressColor: 0xFBF8F2,
-      pillows: [{ x: -1.7, w: 1.5 }, { x: 0, w: 1.5 }, { x: 1.7, w: 1.5 }],
-      frameType: 'bed'
-    }
-  };
 
   const proFeatureRoomPreview = document.getElementById('proFeatureRoomPreview');
   const roomPreviewSelect = document.getElementById('roomPreviewSelect');
@@ -1123,6 +1052,10 @@
     swatch.dataset.colorB = p.colorB;
     swatch.style.background = `linear-gradient(to right, ${p.colorA} 50%, ${p.colorB} 50%)`;
     swatch.addEventListener('click', () => {
+      if (!isPro()) {
+        flashUnlockPrompt('Choosing your own colors is part of Quilt Designer Pro.');
+        return;
+      }
       colorAInput.value = p.colorA;
       colorBInput.value = p.colorB;
       swatchImages.colorA = null;
@@ -1940,216 +1873,6 @@
     cutListResults.innerHTML = html;
   }
 
-  // Converts the live quilt SVG into a canvas usable as a Three.js texture — same
-  // SVG-to-canvas approach as the "Download design" button, just handed to WebGL
-  // instead of saved as a PNG.
-  function getQuiltTextureCanvas(callback) {
-    const svgWidth = svg.getAttribute('width');
-    const svgHeight = svg.getAttribute('height');
-    const svgString = new XMLSerializer().serializeToString(svg);
-    const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
-    const svgUrl = URL.createObjectURL(svgBlob);
-
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = svgWidth;
-      canvas.height = svgHeight;
-      canvas.getContext('2d').drawImage(img, 0, 0, svgWidth, svgHeight);
-      URL.revokeObjectURL(svgUrl);
-      callback(canvas);
-    };
-    img.src = svgUrl;
-  }
-
-  // Builds a single quilt mesh that lies flat across the given depth, then bends
-  // smoothly downward for the last `foldDrop` units to simulate the quilt hanging
-  // over the edge of the bed/seat. One continuous mesh with natural 0..1 UVs, so
-  // there's no seam to line up between separate pieces.
-  function buildDrapedQuiltMesh(foldAxisWidth, flatDepth, foldDrop, texture) {
-    const segments = 24;
-    const totalDepth = flatDepth + foldDrop;
-    const geo = new THREE.PlaneGeometry(foldAxisWidth, totalDepth, 4, segments);
-    const pos = geo.attributes.position;
-    const halfTotal = totalDepth / 2;
-
-    for (let i = 0; i < pos.count; i++) {
-      const localY = pos.getY(i);
-      const distFromStart = localY + halfTotal;
-      if (distFromStart > flatDepth) {
-        const t = Math.min(1, (distFromStart - flatDepth) / foldDrop);
-        const bendAngle = t * (Math.PI * 0.52);
-        const drop = Math.sin(bendAngle) * foldDrop;
-        pos.setY(i, halfTotal - flatDepth);
-        pos.setZ(i, -drop);
-      }
-    }
-    pos.needsUpdate = true;
-    geo.computeVertexNormals();
-
-    const mat = new THREE.MeshStandardMaterial({ map: texture, roughness: 0.9, metalness: 0.0, side: THREE.DoubleSide });
-    const mesh = new THREE.Mesh(geo, mat);
-    mesh.rotation.x = -Math.PI / 2;
-    mesh.castShadow = true;
-    mesh.receiveShadow = true;
-    return mesh;
-  }
-
-  // Simple wood-toned furniture built entirely from primitive shapes — no external
-  // models or photos, so there's no licensing question, matching the same approach
-  // used everywhere else in this app.
-  function buildQuickPreviewScene(config) {
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xFBF8F2);
-
-    const floor = new THREE.Mesh(
-      new THREE.PlaneGeometry(20, 20),
-      new THREE.MeshStandardMaterial({ color: 0xE8DCC4, roughness: 1 })
-    );
-    floor.rotation.x = -Math.PI / 2;
-    floor.receiveShadow = true;
-    scene.add(floor);
-
-    const wall = new THREE.Mesh(
-      new THREE.PlaneGeometry(20, 8),
-      new THREE.MeshStandardMaterial({ color: 0xFBF8F2, roughness: 1 })
-    );
-    wall.position.set(0, 4, -config.surface.d / 2 - 1.2);
-    scene.add(wall);
-
-    const frameMat = new THREE.MeshStandardMaterial({ color: config.frameColor, roughness: 0.6 });
-    const mattressMat = new THREE.MeshStandardMaterial({ color: config.mattressColor, roughness: 0.95 });
-    const { w, d, y, z } = config.surface;
-
-    // Mattress / seat cushion
-    const mattress = new THREE.Mesh(new THREE.BoxGeometry(w, 0.28, d), mattressMat);
-    mattress.position.set(0, y - 0.14, z);
-    mattress.castShadow = true;
-    mattress.receiveShadow = true;
-    scene.add(mattress);
-
-    // Legs
-    const legH = y - 0.28;
-    if (legH > 0.05) {
-      [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sz]) => {
-        const leg = new THREE.Mesh(new THREE.BoxGeometry(0.12, legH, 0.12), frameMat);
-        leg.position.set(sx * (w / 2 - 0.15), legH / 2, z + sz * (d / 2 - 0.15));
-        leg.castShadow = true;
-        scene.add(leg);
-      });
-    }
-
-    if (config.frameType === 'bed') {
-      const headboard = new THREE.Mesh(new THREE.BoxGeometry(w + 0.15, 1.5, 0.15), frameMat);
-      headboard.position.set(0, 0.9, z - d / 2 - 0.08);
-      headboard.castShadow = true;
-      scene.add(headboard);
-
-      config.pillows.forEach(p => {
-        const pillow = new THREE.Mesh(new THREE.BoxGeometry(p.w, 0.28, 0.75), new THREE.MeshStandardMaterial({ color: 0xFFFFFF, roughness: 0.9 }));
-        pillow.position.set(p.x, y + 0.15, z - d / 2 + 0.55);
-        pillow.castShadow = true;
-        pillow.receiveShadow = true;
-        scene.add(pillow);
-      });
-    } else if (config.frameType === 'crib') {
-      // Simple slatted-rail look using thin vertical bars around the mattress perimeter.
-      const railPositions = [];
-      for (let i = -3; i <= 3; i++) railPositions.push(i * (w / 7));
-      railPositions.forEach(rx => {
-        const rail = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 1.3, 8), frameMat);
-        rail.position.set(rx, 0.65, z - d / 2);
-        rail.castShadow = true;
-        scene.add(rail);
-        const rail2 = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 1.3, 8), frameMat);
-        rail2.position.set(rx, 0.65, z + d / 2);
-        rail2.castShadow = true;
-        scene.add(rail2);
-      });
-    } else if (config.frameType === 'chair') {
-      const back = new THREE.Mesh(new THREE.BoxGeometry(w, 1.4, 0.2), frameMat);
-      back.position.set(0, 1.35, z - d / 2 - 0.05);
-      back.castShadow = true;
-      scene.add(back);
-      [-1, 1].forEach(sx => {
-        const arm = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.55, d + 0.2), frameMat);
-        arm.position.set(sx * (w / 2 + 0.05), y + 0.1, z);
-        arm.castShadow = true;
-        scene.add(arm);
-      });
-    }
-
-    const hemi = new THREE.HemisphereLight(0xFFFFFF, 0x605040, 0.65);
-    scene.add(hemi);
-    const key = new THREE.DirectionalLight(0xFFF4E0, 1.1);
-    key.position.set(4, 6, 4);
-    key.castShadow = true;
-    key.shadow.mapSize.set(1024, 1024);
-    key.shadow.camera.left = -6;
-    key.shadow.camera.right = 6;
-    key.shadow.camera.top = 6;
-    key.shadow.camera.bottom = -6;
-    scene.add(key);
-    const fill = new THREE.DirectionalLight(0xC9D8E8, 0.3);
-    fill.position.set(-4, 3, -2);
-    scene.add(fill);
-
-    return scene;
-  }
-
-  let quickPreviewRenderer = null;
-
-  // Renders the chosen scene once (a static image, not an animated/orbit-able view)
-  // using the design's own real colors and pattern as a texture — free and instant,
-  // since it's pure client-side rendering with no AI service involved.
-  function drawQuickPreview3D(key) {
-    if (!key || !QUICK_3D_SCENES[key]) {
-      quickPreviewCanvas.style.display = 'none';
-      quickPreviewLoading.style.display = 'none';
-      return;
-    }
-    quickPreviewCanvas.style.display = 'none';
-    quickPreviewLoading.style.display = 'block';
-
-    getQuiltTextureCanvas((textureCanvas) => {
-      const config = QUICK_3D_SCENES[key];
-      const texture = new THREE.CanvasTexture(textureCanvas);
-      texture.colorSpace = THREE.SRGBColorSpace;
-
-      const threeScene = buildQuickPreviewScene(config);
-
-      const quiltMesh = buildDrapedQuiltMesh(
-        config.frameType === 'crib' ? config.surface.d : config.surface.w,
-        config.frameType === 'crib' ? config.surface.w - config.foldDrop : Math.max(0.6, config.surface.d - 1.2),
-        config.foldDrop,
-        texture
-      );
-      quiltMesh.position.set(0, config.surface.y + 0.02, config.surface.z + 0.6);
-      if (config.frameType === 'crib') {
-        quiltMesh.rotation.z = Math.PI / 2;
-        quiltMesh.position.set(config.surface.w / 2 - config.foldDrop * 0.3, config.surface.y + 0.02, config.surface.z);
-      }
-      threeScene.add(quiltMesh);
-
-      const aspect = quickPreviewCanvas.width / quickPreviewCanvas.height;
-      const camera = new THREE.PerspectiveCamera(42, aspect, 0.1, 100);
-      camera.position.set(0, config.surface.y + 2.6, config.surface.z + config.surface.d / 2 + 3.4);
-      camera.lookAt(0, config.surface.y + 0.2, config.surface.z);
-
-      if (quickPreviewRenderer) quickPreviewRenderer.dispose();
-      quickPreviewRenderer = new THREE.WebGLRenderer({ canvas: quickPreviewCanvas, antialias: true });
-      quickPreviewRenderer.setSize(quickPreviewCanvas.width, quickPreviewCanvas.height, false);
-      quickPreviewRenderer.shadowMap.enabled = true;
-      quickPreviewRenderer.outputColorSpace = THREE.SRGBColorSpace;
-      quickPreviewRenderer.render(threeScene, camera);
-
-      quickPreviewLoading.style.display = 'none';
-      quickPreviewCanvas.style.display = 'block';
-    });
-  }
-
-  quickPreviewSelect.addEventListener('change', () => drawQuickPreview3D(quickPreviewSelect.value));
-
   function redraw() {
     areaTotals = { colorA: 0, colorB: 0, sashing: 0, border: 0 };
 
@@ -2183,7 +1906,6 @@
     updateYardage(blockSizeInches);
     updateBackingYardage(blockSizeInches, blocksAcross, blocksDown, sashingWidth, borderWidth);
     renderCutList(patternSelect.value, blockSizeInches, blocksAcross, blocksDown);
-    if (quickPreviewSelect.value) drawQuickPreview3D(quickPreviewSelect.value);
     updateActivePreset();
   }
 
@@ -2659,7 +2381,7 @@
       unlockProBtn.textContent = 'Unlock Pro';
     }
 
-    [proFeatureTargetSize, proFeatureSwatch, proFeatureDesigns, proFeatureBacking, proFeatureCutList, proFeatureRoomPreview].forEach(el => setFeatureLock(el, !pro));
+    [proFeatureTargetSize, proFeatureColors, proFeatureDesigns, proFeatureBacking, proFeatureCutList, proFeatureRoomPreview].forEach(el => setFeatureLock(el, !pro));
     updatePatternOptionLabels();
     printSheetBtn.textContent = pro ? 'Download pattern sheet' : 'Download pattern sheet 🔒';
 
