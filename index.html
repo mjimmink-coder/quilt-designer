@@ -505,6 +505,11 @@
 
   <div class="panel controls-panel">
 
+    <div style="display:flex; gap:8px; margin-bottom:14px;">
+      <button type="button" id="undoBtn" class="swatch-clear-btn" style="margin-top:0; flex:1;" disabled>↶ Undo</button>
+      <button type="button" id="redoBtn" class="swatch-clear-btn" style="margin-top:0; flex:1;" disabled>↷ Redo</button>
+    </div>
+
     <fieldset>
       <legend>Pattern</legend>
       <select id="patternSelect">
@@ -769,6 +774,14 @@
   const svg = document.getElementById('quilt-canvas');
   const yardageResults = document.getElementById('yardageResults');
   const backingResults = document.getElementById('backingResults');
+  const undoBtn = document.getElementById('undoBtn');
+  const redoBtn = document.getElementById('redoBtn');
+  let undoStack = [];
+  let redoStack = [];
+  let lastSnapshot = null;
+  let isApplyingHistory = false;
+  let historyDebounceTimer = null;
+
   const downloadBtn = document.getElementById('downloadBtn');
   const shareDesignBtn = document.getElementById('shareDesignBtn');
   const pinterestBtn = document.getElementById('pinterestBtn');
@@ -2368,6 +2381,75 @@
     cutListResults.innerHTML = html;
   }
 
+  // Debounced so rapid changes (typing a number, dragging a color picker) collapse
+  // into a single undo step instead of one per keystroke. Only pushes when the
+  // design actually changed, and skips entirely while an undo/redo is in progress
+  // so restoring a past state doesn't create a new history entry for itself.
+  function pushHistoryIfChanged() {
+    if (isApplyingHistory) return;
+    clearTimeout(historyDebounceTimer);
+    historyDebounceTimer = setTimeout(() => {
+      const current = JSON.stringify(collectDesignState());
+      if (lastSnapshot === null) {
+        lastSnapshot = current;
+        return;
+      }
+      if (current !== lastSnapshot) {
+        undoStack.push(lastSnapshot);
+        if (undoStack.length > 50) undoStack.shift();
+        redoStack = [];
+        lastSnapshot = current;
+        updateUndoRedoButtons();
+      }
+    }, 500);
+  }
+
+  function updateUndoRedoButtons() {
+    undoBtn.disabled = undoStack.length === 0;
+    redoBtn.disabled = redoStack.length === 0;
+  }
+
+  function undo() {
+    if (undoStack.length === 0) return;
+    clearTimeout(historyDebounceTimer);
+    const current = JSON.stringify(collectDesignState());
+    redoStack.push(current);
+    const previous = undoStack.pop();
+    isApplyingHistory = true;
+    applyDesignState(JSON.parse(previous));
+    lastSnapshot = previous;
+    isApplyingHistory = false;
+    updateUndoRedoButtons();
+  }
+
+  function redo() {
+    if (redoStack.length === 0) return;
+    clearTimeout(historyDebounceTimer);
+    const current = JSON.stringify(collectDesignState());
+    undoStack.push(current);
+    const next = redoStack.pop();
+    isApplyingHistory = true;
+    applyDesignState(JSON.parse(next));
+    lastSnapshot = next;
+    isApplyingHistory = false;
+    updateUndoRedoButtons();
+  }
+
+  undoBtn.addEventListener('click', undo);
+  redoBtn.addEventListener('click', redo);
+
+  document.addEventListener('keydown', (e) => {
+    const cmdOrCtrl = e.metaKey || e.ctrlKey;
+    if (!cmdOrCtrl) return;
+    if (e.key.toLowerCase() === 'z' && !e.shiftKey) {
+      e.preventDefault();
+      undo();
+    } else if ((e.key.toLowerCase() === 'z' && e.shiftKey) || e.key.toLowerCase() === 'y') {
+      e.preventDefault();
+      redo();
+    }
+  });
+
   function redraw() {
     areaTotals = { colorA: 0, colorB: 0, sashing: 0, border: 0 };
 
@@ -2413,6 +2495,7 @@
     updateBackingYardage(blockSizeInches, blocksAcross, blocksDown, sashingWidth, borderWidth);
     renderCutList(patternSelect.value, blockSizeInches, blocksAcross, blocksDown);
     updateActivePreset();
+    pushHistoryIfChanged();
   }
 
   [alternateRotationInput, blockSizeInchesInput, blocksAcrossInput, blocksDownInput, sashingWidthInput, sashingColorInput, borderWidthInput, borderColorInput, colorAInput, colorBInput, swatchScaleInput, directionalAInput, directionalBInput, backingOverhangInput]
