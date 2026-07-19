@@ -2610,7 +2610,7 @@
       flashUnlockPrompt('The printable pattern sheet is part of Quilt Designer Pro.');
       return;
     }
-    const patternLabel = patternSelect.options[patternSelect.selectedIndex].text;
+    const patternLabel = patternSelect.options[patternSelect.selectedIndex].dataset.baseLabel || patternSelect.options[patternSelect.selectedIndex].text;
     const blockSizeInches = parseFloat(blockSizeInchesInput.value) || 12;
     const pixelsPerInch = blockSize / blockSizeInches;
     const sashingIn = (parseInt(sashingWidthInput.value, 10) || 0) / pixelsPerInch;
@@ -2625,6 +2625,7 @@
 
     const specRows = [
       ['Pattern', patternLabel],
+      ['Difficulty', DIFFICULTY_LEVELS[patternSelect.value] || '—'],
       ['Block size', `${blockSizeInches}"`],
       ['Blocks across × down', `${blocksAcross} × ${blocksDown}`],
       ['Alternate block rotation', alternateRotationInput.checked ? 'Yes' : 'No'],
@@ -2760,11 +2761,40 @@
     });
   }
 
+  // A widely-used convention in quilting (no single official standard exists), based
+  // on piece count, whether precise point-matching is needed, and which techniques
+  // the block introduces — plain seams, stitch-and-flip, half-square-triangles, or
+  // the trim-to-shape method used for the harder star/chevron patterns.
+  const DIFFICULTY_LEVELS = {
+    ninepatch: 'Beginner',
+    railfence: 'Beginner',
+    snowball: 'Beginner',
+    trianglesquares: 'Beginner',
+    logcabin: 'Confident Beginner',
+    pinwheel: 'Confident Beginner',
+    courthousesteps: 'Confident Beginner',
+    brokendishes: 'Confident Beginner',
+    squareinsquare: 'Confident Beginner',
+    doublefourpatch: 'Confident Beginner',
+    ohiostar: 'Intermediate',
+    flyinggeese: 'Intermediate',
+    shoofly: 'Intermediate',
+    churndash: 'Intermediate',
+    friendshipstar: 'Intermediate',
+    bowtie: 'Intermediate',
+    bearspaw: 'Advanced',
+    sawtoothstar: 'Advanced',
+    jacobsladder: 'Advanced',
+    chevron: 'Advanced'
+  };
+
   function updatePatternOptionLabels() {
     Array.from(patternSelect.options).forEach(opt => {
       if (!opt.dataset.baseLabel) opt.dataset.baseLabel = opt.textContent;
       const base = opt.dataset.baseLabel;
-      opt.textContent = (PRO_PATTERNS.has(opt.value) && !isPro()) ? `${base} 🔒 Pro` : base;
+      const difficulty = DIFFICULTY_LEVELS[opt.value];
+      const withDifficulty = difficulty ? `${base} — ${difficulty}` : base;
+      opt.textContent = (PRO_PATTERNS.has(opt.value) && !isPro()) ? `${withDifficulty} 🔒 Pro` : withDifficulty;
     });
   }
 
