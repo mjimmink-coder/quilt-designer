@@ -496,7 +496,7 @@
 
 <div class="pro-banner">
   <div class="pro-banner-inner" id="proBannerInner">
-    <span class="pro-banner-text" id="proBannerText">🔒 Unlock Quilt Designer Pro — all patterns, fabric swatches, and calculators, $9.99 one time</span>
+    <span class="pro-banner-text" id="proBannerText">🔒 Unlock Quilt Designer Pro — 14 block patterns, custom colors, cut lists & piecing steps, calculators, and more, $9.99 one time (not a subscription)</span>
     <button id="unlockProBtn">Unlock Pro</button>
   </div>
 </div>
@@ -719,6 +719,15 @@
         <span class="swatch-hint" id="roomCreditsNote" style="margin-top:0;"></span>
       </div>
       <span class="swatch-hint">AI-generated image — a realistic mockup, not a pixel-exact reproduction of your design.</span>
+
+      <div style="margin-top:14px;">
+        <label for="promoCodeInput">Have a promo code?</label>
+        <div class="field-row" style="align-items:center;">
+          <input type="text" id="promoCodeInput" placeholder="Enter code" style="text-transform:uppercase;">
+          <button type="button" class="swatch-clear-btn" id="applyPromoBtn" style="margin-top:0;">Apply</button>
+        </div>
+        <span class="swatch-hint" id="promoStatusNote"></span>
+      </div>
     </fieldset>
     <div style="text-align:center; margin-top:16px;">
       <div id="roomPreviewStatus" class="swatch-hint" style="display:none;"></div>
@@ -757,6 +766,17 @@
   const roomPreviewSelect = document.getElementById('roomPreviewSelect');
   const generateRoomPreviewBtn = document.getElementById('generateRoomPreviewBtn');
   const roomCreditsNote = document.getElementById('roomCreditsNote');
+  const promoCodeInput = document.getElementById('promoCodeInput');
+  const applyPromoBtn = document.getElementById('applyPromoBtn');
+  const promoStatusNote = document.getElementById('promoStatusNote');
+
+  // Since this app has no accounts or server-side database, promo codes are validated
+  // client-side and tracked per-browser (same trust model as everything else here —
+  // Pro unlock and credits are both localStorage flags). This isn't tamper-proof, but
+  // it's a reasonable way to hand out free credits to reviewers, bloggers, etc.
+  const VALID_PROMO_CODES = new Set(['QUILT10']);
+  const REDEEMED_PROMOS_KEY = 'quiltDesignerRedeemedPromos';
+  const PROMO_CREDIT_BONUS = 10;
   const roomPreviewStatus = document.getElementById('roomPreviewStatus');
   const roomPreviewImage = document.getElementById('roomPreviewImage');
   const downloadRoomPreviewBtn = document.getElementById('downloadRoomPreviewBtn');
@@ -942,6 +962,40 @@
   });
 
   buyRoomCreditsBtn.addEventListener('click', () => startCheckout('credits'));
+
+  function getRedeemedPromos() {
+    try {
+      return new Set(JSON.parse(localStorage.getItem(REDEEMED_PROMOS_KEY) || '[]'));
+    } catch (e) {
+      return new Set();
+    }
+  }
+
+  applyPromoBtn.addEventListener('click', () => {
+    if (!isPro()) {
+      flashUnlockPrompt('Promo codes are part of Quilt Designer Pro.');
+      return;
+    }
+    const code = promoCodeInput.value.trim().toUpperCase();
+    if (!code) {
+      promoStatusNote.textContent = 'Enter a code first.';
+      return;
+    }
+    if (!VALID_PROMO_CODES.has(code)) {
+      promoStatusNote.textContent = 'That code isn\'t valid.';
+      return;
+    }
+    const redeemed = getRedeemedPromos();
+    if (redeemed.has(code)) {
+      promoStatusNote.textContent = 'That code has already been used on this browser.';
+      return;
+    }
+    redeemed.add(code);
+    localStorage.setItem(REDEEMED_PROMOS_KEY, JSON.stringify(Array.from(redeemed)));
+    setRoomCredits(getRoomCredits() + PROMO_CREDIT_BONUS);
+    promoStatusNote.textContent = `Success! ${PROMO_CREDIT_BONUS} preview credits added.`;
+    promoCodeInput.value = '';
+  });
 
   downloadRoomPreviewBtn.addEventListener('click', async () => {
     if (!currentRoomPreviewUrl) return;
@@ -2447,7 +2501,7 @@
       unlockProBtn.style.display = 'none';
     } else {
       proBannerInner.classList.remove('is-unlocked');
-      proBannerText.textContent = '🔒 Unlock Quilt Designer Pro — all patterns, fabric swatches, and calculators, $9.99 one time';
+      proBannerText.textContent = '🔒 Unlock Quilt Designer Pro — 14 block patterns, custom colors, cut lists & piecing steps, calculators, and more, $9.99 one time (not a subscription)';
       unlockProBtn.style.display = 'inline-block';
       unlockProBtn.disabled = false;
       unlockProBtn.textContent = 'Unlock Pro';
@@ -2477,7 +2531,7 @@
     proBannerInner.style.borderColor = 'var(--rust)';
     setTimeout(() => {
       proBannerInner.style.borderColor = '';
-      if (!isPro()) proBannerText.textContent = '🔒 Unlock Quilt Designer Pro — all patterns, fabric swatches, and calculators, $9.99 one time';
+      if (!isPro()) proBannerText.textContent = '🔒 Unlock Quilt Designer Pro — 14 block patterns, custom colors, cut lists & piecing steps, calculators, and more, $9.99 one time (not a subscription)';
     }, 3000);
   }
 
