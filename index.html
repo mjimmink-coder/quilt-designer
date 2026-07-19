@@ -289,6 +289,16 @@
     display: block;
   }
 
+  #cutListResults .piecing-steps {
+    margin: 10px 0 0;
+    padding-left: 20px;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  #cutListResults .piecing-steps li {
+    margin-bottom: 8px;
+  }
+
   #yardageResults .yardage-title, #backingResults .yardage-title {
     font-family: 'Bitter', serif;
     font-weight: 700;
@@ -400,6 +410,23 @@
     font-size: 11px;
     color: #555;
     margin-top: 4px;
+  }
+
+  #printSheet .piecing-section-print h3 {
+    font-family: 'Bitter', serif;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.03em;
+    margin: 4px 0 8px;
+  }
+  #printSheet .piecing-section-print ol {
+    margin: 0 0 6px;
+    padding-left: 18px;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  #printSheet .piecing-section-print li {
+    margin-bottom: 6px;
   }
 
   .pro-banner {
@@ -1826,6 +1853,79 @@
     }
   };
 
+  // Numbered piecing order for each block, building on the same construction logic
+  // used for the cut lists. General guidance for pressing: press seams toward the
+  // darker fabric where possible, and press seams in opposite directions between
+  // rows so they "nest" together neatly when rows are joined.
+  const ASSEMBLY_STEPS = {
+    ninepatch: [
+      'Arrange your 9 squares into 3 rows of 3, alternating Color A and Color B so each row starts and ends with the same color as the row above and below (a checkerboard layout).',
+      'Sew each row\'s 3 squares together into a strip. Press the seams in Row 1 and Row 3 toward Color B, and the seams in Row 2 toward Color A — this makes the seams nest when you join the rows.',
+      'Sew the 3 rows together to complete the block.'
+    ],
+    railfence: [
+      'Arrange your 6 strips side by side in alternating colors (A, B, A, B, A, B).',
+      'Sew the strips together in order, working left to right, pressing each new seam in the same direction as you go.'
+    ],
+    logcabin: [
+      'Sew a Round 1 Color A "right strip" to the right edge of the center square. Press the seam away from the center.',
+      'Sew the Round 1 Color A "bottom strip" across the bottom of that unit. Press away from the center.',
+      'Sew the Round 1 Color B "left strip" to the left edge. Press away from the center.',
+      'Sew the Round 1 Color B "top strip" across the top. Press away from the center.',
+      'Repeat this same right → bottom → left → top order for Rounds 2, 3, and 4, always sewing directly onto the growing block and pressing each new strip away from the center before adding the next one.'
+    ],
+    courthousesteps: [
+      'Sew a Round 1 Color A strip to the top of the center square. Press away from the center.',
+      'Sew a Round 1 Color A strip to the bottom. Press away from the center.',
+      'Sew a Round 1 Color B strip to the left edge. Press away from the center.',
+      'Sew a Round 1 Color B strip to the right edge. Press away from the center.',
+      'Repeat this same top → bottom → left → right order for Rounds 2, 3, and 4, always sewing directly onto the growing block and pressing each new strip away from the center before adding the next one.'
+    ],
+    pinwheel: [
+      'Piece your 4 half-square-triangle (HST) units first, following the cut list instructions above.',
+      'Arrange the 4 HST units in a 2x2 grid so the colored triangles all point the same rotational direction around the center, creating the pinwheel spin.',
+      'Sew the top 2 units together into a row, and the bottom 2 units together into a row. Press the two rows\' seams in opposite directions so they nest.',
+      'Sew the top and bottom rows together to complete the block.'
+    ],
+    ohiostar: [
+      'Piece your 4 star-point half-square-triangle units first, following the cut list instructions above. Orient each one so the Color A triangle points toward where the block\'s center will be.',
+      'Lay out the block in a 3x3 grid: a corner square, a star-point unit, and a corner square across the top row; a star-point unit, the center square, and a star-point unit in the middle row; a corner square, a star-point unit, and a corner square across the bottom row.',
+      'Sew each row together. Press the top and bottom row seams toward the corner squares, and the middle row seams toward the center square, so they nest.',
+      'Sew the 3 rows together to complete the block.'
+    ],
+    flyinggeese: [
+      'Piece all 4 "flying geese" units first, following the cut-and-trim instructions in the cut list above — each one is a point triangle with a background wedge on either side.',
+      'Stack the 4 units in a column, all pointing the same direction (apex up), in the order they should appear top to bottom.',
+      'Sew the 4 units together into a single vertical strip, pressing each seam in the same direction as you go, to complete the block.'
+    ],
+    bearspaw: [
+      'Piece the 12 half-square-triangle units needed for the four "claws," following the cut list instructions above.',
+      'Build each claw as a 2x2 grid: three HST units in the top-left, top-right, and bottom-left positions, and one plain Color B square in the bottom-right position. Sew into two rows of two, then sew those two rows together. Repeat for all 4 claws.',
+      'Lay out the full block in a 3x3 grid: a claw, an edge square, and a claw across the top row; an edge square, the center square, and an edge square in the middle row; a claw, an edge square, and a claw across the bottom row.',
+      'Sew each row together, then sew the 3 rows together to complete the block.'
+    ],
+    shoofly: [
+      'Piece your 4 corner half-square-triangle units first, following the cut list instructions above.',
+      'Lay out the block in a 3x3 grid: a corner HST unit, an edge square, and a corner HST unit across the top row; an edge square, the center square, and an edge square in the middle row; a corner HST unit, an edge square, and a corner HST unit across the bottom row.',
+      'Sew each row together, then sew the 3 rows together to complete the block.'
+    ],
+    churndash: [
+      'Piece your 4 edge "goose" units first, following the cut-and-trim instructions in the cut list above.',
+      'Lay out the block in a 3x3 grid: a corner square, a goose unit, and a corner square across the top row; a goose unit, the center square, and a goose unit in the middle row; a corner square, a goose unit, and a corner square across the bottom row.',
+      'Sew each row together, then sew the 3 rows together to complete the block.'
+    ],
+    friendshipstar: [
+      'Piece your 4 star-point units first, following the cut-and-trim instructions in the cut list above. Orient each one so the point faces outward, away from the block\'s center.',
+      'Lay out the block in a 3x3 grid: a corner square, a star-point unit, and a corner square across the top row; a star-point unit, the center square, and a star-point unit in the middle row; a corner square, a star-point unit, and a corner square across the bottom row.',
+      'Sew each row together, then sew the 3 rows together to complete the block.'
+    ],
+    sawtoothstar: [
+      'Piece your 4 corner half-square-triangle units and 4 star-point units first, following the cut list instructions above.',
+      'Lay out the block in a 3x3 grid: a corner HST unit, a star-point unit, and a corner HST unit across the top row; a star-point unit, the center square, and a star-point unit in the middle row; a corner HST unit, a star-point unit, and a corner HST unit across the bottom row.',
+      'Sew each row together, then sew the 3 rows together to complete the block.'
+    ]
+  };
+
   function renderCutList(patternKey, blockSizeInches, blocksAcross, blocksDown) {
     if (!isPro()) {
       cutListResults.innerHTML = '';
@@ -1854,6 +1954,15 @@
     notes.forEach(note => {
       html += `<span class="cutlist-note">${note}</span>`;
     });
+
+    const steps = ASSEMBLY_STEPS[patternKey];
+    if (steps) {
+      html += '<span class="yardage-title" style="display:block; margin-top:18px;">How to piece this block</span>';
+      html += '<ol class="piecing-steps">';
+      steps.forEach(step => { html += `<li>${step}</li>`; });
+      html += '</ol>';
+      html += '<span class="cutlist-note">Steps describe one block. Repeat for every block in your quilt, then sew the finished blocks together with your sashing between them.</span>';
+    }
 
     cutListResults.innerHTML = html;
   }
@@ -2265,6 +2374,11 @@
           <tr><th>Piece</th><th>Color</th><th>Cut size</th><th>Total qty</th></tr>
         </table>
       </div>
+      <div class="piecing-section-print">
+        <h3>How to piece this block</h3>
+        <ol></ol>
+        <p class="print-note">Steps describe one block. Repeat for every block in your quilt, then sew the finished blocks together with your sashing between them.</p>
+      </div>
       <div class="print-note">Yardage is based on 42" usable fabric width with no waste margin, and does not include seam allowance — add your standard seam allowance (typically 1/4") when cutting each piece.</div>
     `;
 
@@ -2337,6 +2451,19 @@
       });
     } else {
       cutListSection.style.display = 'none';
+    }
+
+    const piecingSection = printSheet.querySelector('.piecing-section-print');
+    const piecingSteps = ASSEMBLY_STEPS[patternSelect.value];
+    if (piecingSteps) {
+      const ol = piecingSection.querySelector('ol');
+      piecingSteps.forEach(step => {
+        const li = document.createElement('li');
+        li.textContent = step;
+        ol.appendChild(li);
+      });
+    } else {
+      piecingSection.style.display = 'none';
     }
 
     window.print();
