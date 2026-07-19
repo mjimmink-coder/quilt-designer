@@ -708,6 +708,12 @@
     <svg id="quilt-canvas"></svg>
     <button id="downloadBtn">Download design</button>
     <button id="printSheetBtn">Download pattern sheet 🔒</button>
+    <div style="margin-top:12px;">
+      <button id="shareDesignBtn" class="swatch-clear-btn" style="margin-top:0;">Share design</button>
+      <button id="pinterestBtn" class="swatch-clear-btn" style="margin-top:0;">📌 Pin on Pinterest</button>
+      <button id="facebookBtn" class="swatch-clear-btn" style="margin-top:0;">Share on Facebook</button>
+      <span class="swatch-hint" id="shareStatusNote"></span>
+    </div>
     <div id="yardageResults"></div>
     <div id="backingResults"></div>
     <div class="pro-feature" id="proFeatureCutList">
@@ -764,6 +770,11 @@
   const yardageResults = document.getElementById('yardageResults');
   const backingResults = document.getElementById('backingResults');
   const downloadBtn = document.getElementById('downloadBtn');
+  const shareDesignBtn = document.getElementById('shareDesignBtn');
+  const pinterestBtn = document.getElementById('pinterestBtn');
+  const facebookBtn = document.getElementById('facebookBtn');
+  const shareStatusNote = document.getElementById('shareStatusNote');
+  const SITE_URL = 'https://quilts.digitalfamilyinsights.com';
   const printSheetBtn = document.getElementById('printSheetBtn');
   const printSheet = document.getElementById('printSheet');
   const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -2666,7 +2677,9 @@
 
   refreshSavedDesignsList();
 
-  downloadBtn.addEventListener('click', () => {
+  // Converts the current live design into a PNG blob, reused by the download button
+  // and the share buttons below.
+  function generateDesignPNGBlob(callback) {
     const svgWidth = svg.getAttribute('width');
     const svgHeight = svg.getAttribute('height');
 
@@ -2682,17 +2695,76 @@
       const ctx = canvas.getContext('2d');
       ctx.drawImage(img, 0, 0, svgWidth, svgHeight);
       URL.revokeObjectURL(svgUrl);
-
-      canvas.toBlob((pngBlob) => {
-        const pngUrl = URL.createObjectURL(pngBlob);
-        const link = document.createElement('a');
-        link.href = pngUrl;
-        link.download = 'quilt-design.png';
-        link.click();
-        URL.revokeObjectURL(pngUrl);
-      }, 'image/png');
+      canvas.toBlob((pngBlob) => callback(pngBlob), 'image/png');
     };
     img.src = svgUrl;
+  }
+
+  downloadBtn.addEventListener('click', () => {
+    generateDesignPNGBlob((pngBlob) => {
+      const pngUrl = URL.createObjectURL(pngBlob);
+      const link = document.createElement('a');
+      link.href = pngUrl;
+      link.download = 'quilt-design.png';
+      link.click();
+      URL.revokeObjectURL(pngUrl);
+    });
+  });
+
+  // On phones and tablets, the Web Share API hands the actual design image straight
+  // to the native OS share sheet, where the person can pick Pinterest, Facebook,
+  // Instagram, Messages, or anything else installed. There's no equivalent for
+  // desktop browsers, and since this app has no image-hosting backend, Pinterest and
+  // Facebook's own share dialogs can't be handed a direct link to a specific design
+  // image — so those two buttons fall back to downloading the image and opening the
+  // share dialog side by side, with a note explaining the two-step manual attach.
+  shareDesignBtn.addEventListener('click', () => {
+    generateDesignPNGBlob(async (pngBlob) => {
+      const file = new File([pngBlob], 'quilt-design.png', { type: 'image/png' });
+      const shareData = {
+        title: 'My Quilt Design',
+        text: 'Check out this quilt design I made with Quilt Designer!',
+        files: [file]
+      };
+      if (navigator.canShare && navigator.canShare(shareData)) {
+        try {
+          await navigator.share(shareData);
+          return;
+        } catch (err) {
+          if (err.name === 'AbortError') return; // user canceled the share sheet
+          console.error('Share error:', err);
+        }
+      }
+      // Fallback for desktop browsers without file-sharing support.
+      const pngUrl = URL.createObjectURL(pngBlob);
+      const link = document.createElement('a');
+      link.href = pngUrl;
+      link.download = 'quilt-design.png';
+      link.click();
+      URL.revokeObjectURL(pngUrl);
+      shareStatusNote.textContent = 'Your design downloaded — attach the file wherever you\'d like to share it.';
+    });
+  });
+
+  pinterestBtn.addEventListener('click', () => {
+    generateDesignPNGBlob((pngBlob) => {
+      const pngUrl = URL.createObjectURL(pngBlob);
+      const link = document.createElement('a');
+      link.href = pngUrl;
+      link.download = 'quilt-design.png';
+      link.click();
+      URL.revokeObjectURL(pngUrl);
+    });
+    const description = 'Quilt design made with Quilt Designer';
+    const pinUrl = `https://www.pinterest.com/pin-builder/?url=${encodeURIComponent(SITE_URL)}&description=${encodeURIComponent(description)}`;
+    window.open(pinUrl, '_blank');
+    shareStatusNote.textContent = 'Your design downloaded, and Pinterest opened in a new tab — upload the downloaded image there to pin it.';
+  });
+
+  facebookBtn.addEventListener('click', () => {
+    const fbUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(SITE_URL)}`;
+    window.open(fbUrl, '_blank');
+    shareStatusNote.textContent = 'Facebook opened in a new tab, linking to Quilt Designer — attach your downloaded design image to the post if you\'d like to show it off.';
   });
 
   // Builds a print-friendly summary page — the design image, its specs, and the
