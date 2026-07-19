@@ -527,6 +527,7 @@
         <option value="squareinsquare">Square in a Square</option>
         <option value="doublefourpatch">Double Four Patch</option>
         <option value="trianglesquares">Triangle Squares Grid</option>
+        <option value="chevron">Chevron</option>
       </select>
       <div class="checkbox-row" style="margin-top:10px;">
         <input type="checkbox" id="alternateRotationInput">
@@ -757,7 +758,7 @@
   const SVG_NS = 'http://www.w3.org/2000/svg';
 
   const PRO_STORAGE_KEY = 'quiltDesignerProUnlocked';
-  const PRO_PATTERNS = new Set(['ohiostar', 'flyinggeese', 'bearspaw', 'shoofly', 'churndash', 'friendshipstar', 'sawtoothstar', 'courthousesteps', 'snowball', 'brokendishes', 'bowtie', 'jacobsladder', 'squareinsquare', 'doublefourpatch', 'trianglesquares']);
+  const PRO_PATTERNS = new Set(['ohiostar', 'flyinggeese', 'bearspaw', 'shoofly', 'churndash', 'friendshipstar', 'sawtoothstar', 'courthousesteps', 'snowball', 'brokendishes', 'bowtie', 'jacobsladder', 'squareinsquare', 'doublefourpatch', 'trianglesquares', 'chevron']);
   const unlockProBtn = document.getElementById('unlockProBtn');
   const proBannerInner = document.getElementById('proBannerInner');
   const proBannerText = document.getElementById('proBannerText');
@@ -1623,6 +1624,47 @@
     }
   }
 
+  // Four diagonal fabric stripes in each half of the block, mirrored left-to-right
+  // so they meet at the centerline and form a zigzag "V". Each half is built from a
+  // set of true parallelograms (equal-slope left/right edges), with a triangle at
+  // each end where a stripe drifts off one side of the half and a matching triangle
+  // fills the gap that opens up on the other side — together they tile the half
+  // exactly, verified numerically before shipping.
+  function drawChevronBlock(group, offsetX, offsetY, colorA, colorB) {
+    const halfW = blockSize / 2;
+    const H = blockSize;
+    const N = 4;
+    const stripeW = halfW / N;
+    const colors = [colorB, colorA, colorB, colorA, colorB];
+
+    function buildHalfStripes(mirror) {
+      const polys = [];
+      polys.push({ pts: [[0, 0], [stripeW, H], [0, H]], color: colors[0] });
+      for (let k = 0; k <= 2; k++) {
+        polys.push({
+          pts: [
+            [k * stripeW, 0],
+            [(k + 1) * stripeW, 0],
+            [(k + 2) * stripeW, H],
+            [(k + 1) * stripeW, H]
+          ],
+          color: colors[k + 1]
+        });
+      }
+      polys.push({ pts: [[3 * stripeW, 0], [halfW, 0], [halfW, H]], color: colors[4] });
+
+      return polys.map(p => ({
+        pts: p.pts.map(([x, y]) => mirror ? [blockSize - x, y] : [x, y]),
+        color: p.color
+      }));
+    }
+
+    [...buildHalfStripes(false), ...buildHalfStripes(true)].forEach(({ pts, color }) => {
+      const worldPts = pts.map(([x, y]) => [offsetX + x, offsetY + y]);
+      addPolygon(group, worldPts, color, color === colorA ? 'colorA' : 'colorB');
+    });
+  }
+
   function drawQuiltBody(group, offsetX, offsetY, blockDrawFn, blocksAcross, blocksDown, sashingWidth, sashingColor, colorA, colorB, alternateRotation) {
     const bodyWidth = blocksAcross * blockSize + (blocksAcross + 1) * sashingWidth;
     const bodyHeight = blocksDown * blockSize + (blocksDown + 1) * sashingWidth;
@@ -2051,6 +2093,18 @@
         },
         { piece: 'HST square (before cutting)', color: 'colorB', cutW: cutSquare, cutH: cutSquare, qtyPerBlock: 5 }
       ];
+    },
+
+    chevron(blockSizeInches) {
+      const toIn = (px) => px / CUT_LIST_DESIGN_BLOCK * blockSizeInches;
+      const stripeWFinished = toIn(blockSize / 2 / 4);
+      const heightFinished = blockSizeInches;
+      const trimNote = 'This piece is oversized on purpose. Cut it to this size, then trim to the parallelogram or triangle shape shown in the block diagram, leaving at least 1/4" of fabric beyond each finished edge for the seam allowance. These are long, narrow pieces — cutting them as strips first, then trimming each to its angled shape, is usually easier than cutting the exact angle directly.';
+      return [
+        { piece: 'Diagonal stripe (cut oversized, trim to shape)', color: 'colorA', cutW: 2 * stripeWFinished + 1, cutH: heightFinished + 1, qtyPerBlock: 4, note: trimNote },
+        { piece: 'Diagonal stripe (cut oversized, trim to shape)', color: 'colorB', cutW: 2 * stripeWFinished + 1, cutH: heightFinished + 1, qtyPerBlock: 2 },
+        { piece: 'End triangle (cut oversized, trim to shape)', color: 'colorB', cutW: stripeWFinished + 1, cutH: heightFinished + 1, qtyPerBlock: 4 }
+      ];
     }
   };
 
@@ -2163,6 +2217,12 @@
       'Arrange the 9 units into a 3x3 grid, all facing the same direction.',
       'Sew each row of 3 units together, pressing seams in alternating directions row to row.',
       'Sew the 3 rows together to complete the block.'
+    ],
+    chevron: [
+      'Cut and trim your diagonal stripe pieces and end triangles, following the cut list instructions above — you\'ll have 5 pieces for the left half of the block and 5 mirror-image pieces for the right half.',
+      'Lay out the left half\'s 5 pieces side by side in order (small end triangle, then the 3 diagonal stripes, then the other end triangle), so their diagonal edges line up into one continuous slanted seam line. Do the same for the right half\'s 5 mirrored pieces.',
+      'Sew each half\'s 5 pieces together in order along their diagonal edges, pressing all seams in the same direction, to create two half-block strips.',
+      'Sew the left half and right half together down the vertical center seam, matching the point where each half\'s diagonal pattern meets, to complete the block.'
     ]
   };
 
@@ -2229,7 +2289,8 @@
       jacobsladder: drawJacobsLadderBlock,
       squareinsquare: drawSquareInSquareBlock,
       doublefourpatch: drawDoubleFourPatchBlock,
-      trianglesquares: drawTriangleSquaresBlock
+      trianglesquares: drawTriangleSquaresBlock,
+      chevron: drawChevronBlock
     };
     const blockDrawFn = patternMap[patternSelect.value];
     const alternateRotation = alternateRotationInput.checked;
