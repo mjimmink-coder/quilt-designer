@@ -520,6 +520,8 @@
         <option value="churndash">Churn Dash</option>
         <option value="friendshipstar">Friendship Star</option>
         <option value="sawtoothstar">Sawtooth Star</option>
+        <option value="snowball">Snowball</option>
+        <option value="brokendishes">Broken Dishes</option>
       </select>
       <div class="checkbox-row" style="margin-top:10px;">
         <input type="checkbox" id="alternateRotationInput">
@@ -741,7 +743,7 @@
   const SVG_NS = 'http://www.w3.org/2000/svg';
 
   const PRO_STORAGE_KEY = 'quiltDesignerProUnlocked';
-  const PRO_PATTERNS = new Set(['ohiostar', 'flyinggeese', 'bearspaw', 'shoofly', 'churndash', 'friendshipstar', 'sawtoothstar', 'courthousesteps']);
+  const PRO_PATTERNS = new Set(['ohiostar', 'flyinggeese', 'bearspaw', 'shoofly', 'churndash', 'friendshipstar', 'sawtoothstar', 'courthousesteps', 'snowball', 'brokendishes']);
   const unlockProBtn = document.getElementById('unlockProBtn');
   const proBannerInner = document.getElementById('proBannerInner');
   const proBannerText = document.getElementById('proBannerText');
@@ -1423,6 +1425,37 @@
     }
   }
 
+  // A center octagon (colorA) with each of the four corners clipped off and replaced
+  // by a colorB triangle — the classic "stitch and flip" corner technique.
+  function drawSnowballBlock(group, offsetX, offsetY, colorA, colorB) {
+    const clip = blockSize / 3;
+    const x = offsetX, y = offsetY, s = blockSize;
+
+    addPolygon(group, [
+      [x + clip, y], [x + s - clip, y],
+      [x + s, y + clip], [x + s, y + s - clip],
+      [x + s - clip, y + s], [x + clip, y + s],
+      [x, y + s - clip], [x, y + clip]
+    ], colorA, 'colorA');
+
+    addPolygon(group, [[x, y], [x + clip, y], [x, y + clip]], colorB, 'colorB');
+    addPolygon(group, [[x + s, y], [x + s - clip, y], [x + s, y + clip]], colorB, 'colorB');
+    addPolygon(group, [[x, y + s], [x + clip, y + s], [x, y + s - clip]], colorB, 'colorB');
+    addPolygon(group, [[x + s, y + s], [x + s - clip, y + s], [x + s, y + s - clip]], colorB, 'colorB');
+  }
+
+  // Four half-square-triangle units in a static 2x2 grid, all sharing the same
+  // diagonal orientation (unlike Pinwheel's rotated version) — creates parallel
+  // diagonal stripes across the block instead of a spinning look.
+  function drawBrokenDishesBlock(group, offsetX, offsetY, colorA, colorB) {
+    const half = blockSize / 2;
+    [[0, 0], [1, 0], [0, 1], [1, 1]].forEach(([qx, qy]) => {
+      const x = offsetX + qx * half, y = offsetY + qy * half;
+      addPolygon(group, [[x, y], [x + half, y], [x, y + half]], colorA, 'colorA');
+      addPolygon(group, [[x + half, y], [x + half, y + half], [x, y + half]], colorB, 'colorB');
+    });
+  }
+
   function drawQuiltBody(group, offsetX, offsetY, blockDrawFn, blocksAcross, blocksDown, sashingWidth, sashingColor, colorA, colorB, alternateRotation) {
     const bodyWidth = blocksAcross * blockSize + (blocksAcross + 1) * sashingWidth;
     const bodyHeight = blocksDown * blockSize + (blocksDown + 1) * sashingWidth;
@@ -1756,6 +1789,33 @@
         { piece: 'Star point (cut oversized, trim to shape)', color: 'colorA', cutW: pointDim + 1, cutH: pointDim + 1, qtyPerBlock: 4, note: trimNote },
         { piece: 'Star point background wedge (cut oversized, trim to shape)', color: 'colorB', cutW: wedgeW + 1, cutH: wedgeH + 1, qtyPerBlock: 8 }
       ];
+    },
+
+    snowball(blockSizeInches) {
+      const toIn = (px) => px / CUT_LIST_DESIGN_BLOCK * blockSizeInches;
+      const baseCut = blockSizeInches + 0.5;
+      const clipFinished = toIn(blockSize / 3);
+      const cornerCut = clipFinished + 0.875;
+      return [
+        { piece: 'Base square', color: 'colorA', cutW: baseCut, cutH: baseCut, qtyPerBlock: 1 },
+        {
+          piece: 'Corner square (stitch-and-flip)', color: 'colorB', cutW: cornerCut, cutH: cornerCut, qtyPerBlock: 4,
+          note: 'Place a corner square right sides together on each corner of the base square. Mark a diagonal line corner-to-corner, sew directly on the line, trim to a 1/4" seam allowance, then flip the corner open and press. This is a single-seam "stitch and flip" corner — not a full half-square-triangle unit, so only sew one line per corner, not both sides.'
+        }
+      ];
+    },
+
+    brokendishes(blockSizeInches) {
+      const toIn = (px) => px / CUT_LIST_DESIGN_BLOCK * blockSizeInches;
+      const finishedHst = toIn(blockSize / 2);
+      const cutSquare = finishedHst + 0.875;
+      return [
+        {
+          piece: 'HST square (before cutting)', color: 'colorA', cutW: cutSquare, cutH: cutSquare, qtyPerBlock: 2,
+          note: 'Layer each Color A square with a Color B square of the same size, right sides together. Mark one diagonal, sew 1/4" from the line on both sides, then cut apart on the marked line — each pair makes 2 half-square-triangle units. This block needs 4 finished units total.'
+        },
+        { piece: 'HST square (before cutting)', color: 'colorB', cutW: cutSquare, cutH: cutSquare, qtyPerBlock: 2 }
+      ];
     }
   };
 
@@ -1829,6 +1889,16 @@
       'Piece your 4 corner half-square-triangle units and 4 star-point units first, following the cut list instructions above.',
       'Lay out the block in a 3x3 grid: a corner HST unit, a star-point unit, and a corner HST unit across the top row; a star-point unit, the center square, and a star-point unit in the middle row; a corner HST unit, a star-point unit, and a corner HST unit across the bottom row.',
       'Sew each row together, then sew the 3 rows together to complete the block.'
+    ],
+    snowball: [
+      'Cut your base square and 4 corner squares, following the cut list instructions above.',
+      'Stitch and flip all 4 corners onto the base square, one at a time: place a corner square right sides together on a corner, sew the diagonal, trim to a 1/4" seam, then flip the corner open and press. Repeat for the remaining 3 corners to complete the block.'
+    ],
+    brokendishes: [
+      'Piece your 4 half-square-triangle units first, following the cut list instructions above.',
+      'Arrange the 4 HST units in a 2x2 grid, all facing the same direction (unlike Pinwheel, don\'t rotate them) so the diagonal seams line up as parallel stripes across the block.',
+      'Sew the top 2 units together into a row, and the bottom 2 units together into a row. Press the two rows\' seams in opposite directions so they nest.',
+      'Sew the top and bottom rows together to complete the block.'
     ]
   };
 
@@ -1888,7 +1958,9 @@
       shoofly: drawShooFlyBlock,
       churndash: drawChurnDashBlock,
       friendshipstar: drawFriendshipStarBlock,
-      sawtoothstar: drawSawtoothStarBlock
+      sawtoothstar: drawSawtoothStarBlock,
+      snowball: drawSnowballBlock,
+      brokendishes: drawBrokenDishesBlock
     };
     const blockDrawFn = patternMap[patternSelect.value];
     const alternateRotation = alternateRotationInput.checked;
