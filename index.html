@@ -522,6 +522,11 @@
         <option value="sawtoothstar">Sawtooth Star</option>
         <option value="snowball">Snowball</option>
         <option value="brokendishes">Broken Dishes</option>
+        <option value="bowtie">Bowtie</option>
+        <option value="jacobsladder">Jacob's Ladder</option>
+        <option value="squareinsquare">Square in a Square</option>
+        <option value="doublefourpatch">Double Four Patch</option>
+        <option value="trianglesquares">Triangle Squares Grid</option>
       </select>
       <div class="checkbox-row" style="margin-top:10px;">
         <input type="checkbox" id="alternateRotationInput">
@@ -752,7 +757,7 @@
   const SVG_NS = 'http://www.w3.org/2000/svg';
 
   const PRO_STORAGE_KEY = 'quiltDesignerProUnlocked';
-  const PRO_PATTERNS = new Set(['ohiostar', 'flyinggeese', 'bearspaw', 'shoofly', 'churndash', 'friendshipstar', 'sawtoothstar', 'courthousesteps', 'snowball', 'brokendishes']);
+  const PRO_PATTERNS = new Set(['ohiostar', 'flyinggeese', 'bearspaw', 'shoofly', 'churndash', 'friendshipstar', 'sawtoothstar', 'courthousesteps', 'snowball', 'brokendishes', 'bowtie', 'jacobsladder', 'squareinsquare', 'doublefourpatch', 'trianglesquares']);
   const unlockProBtn = document.getElementById('unlockProBtn');
   const proBannerInner = document.getElementById('proBannerInner');
   const proBannerText = document.getElementById('proBannerText');
@@ -1530,6 +1535,94 @@
     });
   }
 
+  // Two half-square-triangle units in a 2x2 grid, positioned so their colorA
+  // triangles meet corner-to-corner at the exact center of the block, forming a
+  // bowtie/hourglass shape. The other two quadrants stay plain background.
+  function drawBowtieBlock(group, offsetX, offsetY, colorA, colorB) {
+    const half = blockSize / 2;
+    const x = offsetX, y = offsetY, s = blockSize;
+
+    addPolygon(group, [[x, y], [x + half, y], [x, y + half]], colorB, 'colorB');
+    addPolygon(group, [[x + half, y], [x + half, y + half], [x, y + half]], colorA, 'colorA');
+
+    addRect(group, x + half, y, half, half, colorB, 'colorB');
+    addRect(group, x, y + half, half, half, colorB, 'colorB');
+
+    addPolygon(group, [[x + half, y + half], [x + s, y + half], [x + half, y + s]], colorA, 'colorA');
+    addPolygon(group, [[x + s, y + half], [x + s, y + s], [x + half, y + s]], colorB, 'colorB');
+  }
+
+  // A 4x4 grid alternating half-square-triangle units (all the same diagonal
+  // orientation, forming a continuous diagonal "ladder" stripe) with plain
+  // checkerboard squares.
+  function drawJacobsLadderBlock(group, offsetX, offsetY, colorA, colorB) {
+    const cells = 4;
+    const unit = blockSize / cells;
+    for (let row = 0; row < cells; row++) {
+      for (let col = 0; col < cells; col++) {
+        const x = offsetX + col * unit, y = offsetY + row * unit;
+        if ((row + col) % 2 === 0) {
+          addPolygon(group, [[x, y], [x + unit, y], [x, y + unit]], colorA, 'colorA');
+          addPolygon(group, [[x + unit, y], [x + unit, y + unit], [x, y + unit]], colorB, 'colorB');
+        } else {
+          const color = (row % 2 === 0) ? colorB : colorA;
+          addRect(group, x, y, unit, unit, color, color === colorA ? 'colorA' : 'colorB');
+        }
+      }
+    }
+  }
+
+  // A rotated square (colorA) "floating" inside the block, connected to the outer
+  // edges by four colorB corner triangles — the same clipped-corner technique as
+  // Snowball, just with the clip taken all the way to the block's half-width so the
+  // center shape becomes a diamond instead of an octagon.
+  function drawSquareInSquareBlock(group, offsetX, offsetY, colorA, colorB) {
+    const clip = blockSize / 2;
+    const x = offsetX, y = offsetY, s = blockSize;
+
+    addPolygon(group, [
+      [x + clip, y], [x + s, y + clip], [x + clip, y + s], [x, y + clip]
+    ], colorA, 'colorA');
+
+    addPolygon(group, [[x, y], [x + clip, y], [x, y + clip]], colorB, 'colorB');
+    addPolygon(group, [[x + s, y], [x + clip, y], [x + s, y + clip]], colorB, 'colorB');
+    addPolygon(group, [[x, y + s], [x + clip, y + s], [x, y + clip]], colorB, 'colorB');
+    addPolygon(group, [[x + s, y + s], [x + clip, y + s], [x + s, y + clip]], colorB, 'colorB');
+  }
+
+  // A 4x4 grid of plain squares, colored so each 2x2 quadrant is its own mini
+  // checkerboard, with adjacent quadrants inverted — the classic "four patch of
+  // four patches" secondary pattern.
+  function drawDoubleFourPatchBlock(group, offsetX, offsetY, colorA, colorB) {
+    const cells = 4;
+    const unit = blockSize / cells;
+    for (let row = 0; row < cells; row++) {
+      for (let col = 0; col < cells; col++) {
+        const qRow = Math.floor(row / 2), qCol = Math.floor(col / 2);
+        const lr = row % 2, lc = col % 2;
+        const invert = (qRow !== qCol);
+        const isA = ((lr + lc) % 2 === 0) !== invert;
+        const x = offsetX + col * unit, y = offsetY + row * unit;
+        const color = isA ? colorA : colorB;
+        addRect(group, x, y, unit, unit, color, isA ? 'colorA' : 'colorB');
+      }
+    }
+  }
+
+  // The simplest possible multi-piece pattern: a plain 3x3 grid of half-square-
+  // triangle units, all facing the same direction. A good accessible starting
+  // pattern for less experienced quilters.
+  function drawTriangleSquaresBlock(group, offsetX, offsetY, colorA, colorB) {
+    const unit = blockSize / 3;
+    for (let row = 0; row < 3; row++) {
+      for (let col = 0; col < 3; col++) {
+        const x = offsetX + col * unit, y = offsetY + row * unit;
+        addPolygon(group, [[x, y], [x + unit, y], [x, y + unit]], colorA, 'colorA');
+        addPolygon(group, [[x + unit, y], [x + unit, y + unit], [x, y + unit]], colorB, 'colorB');
+      }
+    }
+  }
+
   function drawQuiltBody(group, offsetX, offsetY, blockDrawFn, blocksAcross, blocksDown, sashingWidth, sashingColor, colorA, colorB, alternateRotation) {
     const bodyWidth = blocksAcross * blockSize + (blocksAcross + 1) * sashingWidth;
     const bodyHeight = blocksDown * blockSize + (blocksDown + 1) * sashingWidth;
@@ -1890,6 +1983,74 @@
         },
         { piece: 'HST square (before cutting)', color: 'colorB', cutW: cutSquare, cutH: cutSquare, qtyPerBlock: 2 }
       ];
+    },
+
+    bowtie(blockSizeInches) {
+      const toIn = (px) => px / CUT_LIST_DESIGN_BLOCK * blockSizeInches;
+      const finishedHst = toIn(blockSize / 2);
+      const hstCut = finishedHst + 0.875;
+      const plainCut = finishedHst + 0.5;
+      return [
+        {
+          piece: 'HST square (before cutting)', color: 'colorA', cutW: hstCut, cutH: hstCut, qtyPerBlock: 1,
+          note: 'Layer the Color A square with the Color B square, right sides together. Mark one diagonal, sew 1/4" from the line on both sides, then cut apart on the marked line — this pair makes 2 half-square-triangle units, which is exactly what this block needs.'
+        },
+        { piece: 'HST square (before cutting)', color: 'colorB', cutW: hstCut, cutH: hstCut, qtyPerBlock: 1 },
+        { piece: 'Plain background square', color: 'colorB', cutW: plainCut, cutH: plainCut, qtyPerBlock: 2 }
+      ];
+    },
+
+    jacobsladder(blockSizeInches) {
+      const toIn = (px) => px / CUT_LIST_DESIGN_BLOCK * blockSizeInches;
+      const finishedUnit = toIn(blockSize / 4);
+      const hstCut = finishedUnit + 0.875;
+      const plainCut = finishedUnit + 0.5;
+      return [
+        {
+          piece: 'HST square (before cutting)', color: 'colorA', cutW: hstCut, cutH: hstCut, qtyPerBlock: 4,
+          note: 'Layer each Color A square with a Color B square of the same size, mark one diagonal, sew 1/4" on both sides of the line, then cut apart on the line — each pair makes 2 half-square-triangle units, all with Color A in the same corner. This block needs 8 finished units total.'
+        },
+        { piece: 'HST square (before cutting)', color: 'colorB', cutW: hstCut, cutH: hstCut, qtyPerBlock: 4 },
+        { piece: 'Plain square', color: 'colorA', cutW: plainCut, cutH: plainCut, qtyPerBlock: 4 },
+        { piece: 'Plain square', color: 'colorB', cutW: plainCut, cutH: plainCut, qtyPerBlock: 4 }
+      ];
+    },
+
+    squareinsquare(blockSizeInches) {
+      const toIn = (px) => px / CUT_LIST_DESIGN_BLOCK * blockSizeInches;
+      const baseCut = blockSizeInches + 0.5;
+      const clipFinished = toIn(blockSize / 2);
+      const cornerCut = clipFinished + 0.875;
+      return [
+        { piece: 'Base square', color: 'colorA', cutW: baseCut, cutH: baseCut, qtyPerBlock: 1 },
+        {
+          piece: 'Corner square (stitch-and-flip)', color: 'colorB', cutW: cornerCut, cutH: cornerCut, qtyPerBlock: 4,
+          note: 'Place a corner square right sides together on each corner of the base square. Mark a diagonal line corner-to-corner, sew directly on the line, trim to a 1/4" seam allowance, then flip the corner open and press. This is a single-seam "stitch and flip" corner, not a full half-square-triangle unit — sew only one line per corner, not both sides.'
+        }
+      ];
+    },
+
+    doublefourpatch(blockSizeInches) {
+      const toIn = (px) => px / CUT_LIST_DESIGN_BLOCK * blockSizeInches;
+      const finishedUnit = toIn(blockSize / 4);
+      const cut = finishedUnit + 0.5;
+      return [
+        { piece: 'Square', color: 'colorA', cutW: cut, cutH: cut, qtyPerBlock: 8 },
+        { piece: 'Square', color: 'colorB', cutW: cut, cutH: cut, qtyPerBlock: 8 }
+      ];
+    },
+
+    trianglesquares(blockSizeInches) {
+      const toIn = (px) => px / CUT_LIST_DESIGN_BLOCK * blockSizeInches;
+      const finishedHst = toIn(blockSize / 3);
+      const cutSquare = finishedHst + 0.875;
+      return [
+        {
+          piece: 'HST square (before cutting)', color: 'colorA', cutW: cutSquare, cutH: cutSquare, qtyPerBlock: 5,
+          note: 'Layer each Color A square with a Color B square of the same size, mark one diagonal, sew 1/4" on both sides of the line, then cut apart on the line — each pair makes 2 half-square-triangle units. This block only needs 9 finished units, so cutting 5 pairs (10 units) leaves 1 spare — a normal, expected leftover.'
+        },
+        { piece: 'HST square (before cutting)', color: 'colorB', cutW: cutSquare, cutH: cutSquare, qtyPerBlock: 5 }
+      ];
     }
   };
 
@@ -1973,6 +2134,35 @@
       'Arrange the 4 HST units in a 2x2 grid, all facing the same direction (unlike Pinwheel, don\'t rotate them) so the diagonal seams line up as parallel stripes across the block.',
       'Sew the top 2 units together into a row, and the bottom 2 units together into a row. Press the two rows\' seams in opposite directions so they nest.',
       'Sew the top and bottom rows together to complete the block.'
+    ],
+    bowtie: [
+      'Piece your 1 pair of half-square-triangle squares first, following the cut list instructions above — this gives you the 2 HST units you need.',
+      'Cut your 2 plain background squares.',
+      'Arrange the 4 pieces into a 2x2 grid: an HST unit in the top-left position (with the Color A triangle pointing toward the block\'s center), a plain square in the top-right, a plain square in the bottom-left, and an HST unit in the bottom-right (with its Color A triangle also pointing toward the center) — so the two Color A triangles meet at the exact middle of the block.',
+      'Sew the top 2 pieces together into a row, and the bottom 2 pieces together into a row. Press the two rows\' seams in opposite directions so they nest.',
+      'Sew the top and bottom rows together to complete the block.'
+    ],
+    jacobsladder: [
+      'Piece your 8 half-square-triangle units first (4 pairs, cut list above), all with Color A in the same corner so every unit faces the same direction.',
+      'Cut your 8 plain squares (4 Color A, 4 Color B).',
+      'Arrange all 16 pieces into a 4x4 grid, alternating HST units and plain squares in a checkerboard pattern, with every HST unit facing the same direction so their diagonals form one continuous "ladder" stripe running corner to corner across the block.',
+      'Sew each of the 4 rows together, pressing seams in alternating directions row to row so they nest.',
+      'Sew the 4 rows together to complete the block.'
+    ],
+    squareinsquare: [
+      'Cut your base square and 4 corner squares, following the cut list instructions above.',
+      'Stitch and flip all 4 corners onto the base square, one at a time: place a corner square right sides together on a corner, sew the diagonal, trim to a 1/4" seam, then flip the corner open and press. Repeat for the remaining 3 corners to complete the block.'
+    ],
+    doublefourpatch: [
+      'Arrange your 16 squares into a 4x4 grid following the color pattern shown in the block diagram — each 2x2 quadrant forms its own mini checkerboard, and adjacent quadrants use the opposite starting color, creating the "double four patch" secondary pattern.',
+      'Sew each row of 4 squares together, pressing seams in alternating directions row to row.',
+      'Sew the 4 rows together to complete the block.'
+    ],
+    trianglesquares: [
+      'Piece your 9 half-square-triangle units first (you\'ll cut 5 pairs, giving 10 units with 1 spare), all facing the same direction, following the cut list instructions above.',
+      'Arrange the 9 units into a 3x3 grid, all facing the same direction.',
+      'Sew each row of 3 units together, pressing seams in alternating directions row to row.',
+      'Sew the 3 rows together to complete the block.'
     ]
   };
 
@@ -2034,7 +2224,12 @@
       friendshipstar: drawFriendshipStarBlock,
       sawtoothstar: drawSawtoothStarBlock,
       snowball: drawSnowballBlock,
-      brokendishes: drawBrokenDishesBlock
+      brokendishes: drawBrokenDishesBlock,
+      bowtie: drawBowtieBlock,
+      jacobsladder: drawJacobsLadderBlock,
+      squareinsquare: drawSquareInSquareBlock,
+      doublefourpatch: drawDoubleFourPatchBlock,
+      trianglesquares: drawTriangleSquaresBlock
     };
     const blockDrawFn = patternMap[patternSelect.value];
     const alternateRotation = alternateRotationInput.checked;
