@@ -2,7 +2,7 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 // Live Price IDs, created in the Stripe Dashboard.
 const PRICE_IDS = {
-  pro: 'price_1TsRCEPonndQkh7uS8gCONIo', // Quilt Designer Pro, one-time
+  pro: 'price_1TuoNMPonndQkh7uDL6jNUHT', // Quilt Designer Pro, one-time ($14.99)
   credits: 'price_1TsUdfPonndQkh7uKozmCM5D' // 10 Room Preview Credits, one-time
 };
 
