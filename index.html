@@ -496,7 +496,7 @@
 
 <div class="pro-banner">
   <div class="pro-banner-inner" id="proBannerInner">
-    <span class="pro-banner-text" id="proBannerText">🔒 Unlock Quilt Designer Pro — 14 block patterns, custom colors, cut lists & piecing steps, calculators, and more, $14.99 one time (not a subscription)</span>
+    <span class="pro-banner-text" id="proBannerText">🔒 Unlock Quilt Designer Pro — 23 block patterns, custom colors, cut lists & piecing steps, calculators, and more, $14.99 one time (not a subscription)</span>
     <button id="unlockProBtn">Unlock Pro</button>
   </div>
 </div>
@@ -2895,7 +2895,7 @@
       unlockProBtn.style.display = 'none';
     } else {
       proBannerInner.classList.remove('is-unlocked');
-      proBannerText.textContent = '🔒 Unlock Quilt Designer Pro — 14 block patterns, custom colors, cut lists & piecing steps, calculators, and more, $14.99 one time (not a subscription)';
+      proBannerText.textContent = '🔒 Unlock Quilt Designer Pro — 23 block patterns, custom colors, cut lists & piecing steps, calculators, and more, $14.99 one time (not a subscription)';
       unlockProBtn.style.display = 'inline-block';
       unlockProBtn.disabled = false;
       unlockProBtn.textContent = 'Unlock Pro';
@@ -2925,7 +2925,7 @@
     proBannerInner.style.borderColor = 'var(--rust)';
     setTimeout(() => {
       proBannerInner.style.borderColor = '';
-      if (!isPro()) proBannerText.textContent = '🔒 Unlock Quilt Designer Pro — 14 block patterns, custom colors, cut lists & piecing steps, calculators, and more, $14.99 one time (not a subscription)';
+      if (!isPro()) proBannerText.textContent = '🔒 Unlock Quilt Designer Pro — 23 block patterns, custom colors, cut lists & piecing steps, calculators, and more, $14.99 one time (not a subscription)';
     }, 3000);
   }
 
