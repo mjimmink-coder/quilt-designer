@@ -25,12 +25,17 @@ module.exports = async function handler(req, res) {
     const data = await response.json();
     if (!response.ok) {
       console.error('Replicate start error:', data);
-      return res.status(500).json({ error: 'Unable to start image generation.' });
+      // TEMPORARY: surfacing the real Replicate error to the browser for debugging.
+      // Remove the `detail` field once we've identified and fixed the root cause.
+      return res.status(500).json({
+        error: 'Unable to start image generation.',
+        detail: data
+      });
     }
 
     return res.status(200).json({ id: data.id, status: data.status });
   } catch (err) {
     console.error('Room preview start error:', err);
-    return res.status(500).json({ error: 'Unable to start image generation.' });
+    return res.status(500).json({ error: 'Unable to start image generation.', detail: String(err) });
   }
 };
