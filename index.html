@@ -512,6 +512,8 @@
         <option value="logcabin">Log Cabin</option>
         <option value="pinwheel">Pinwheel</option>
         <option value="railfence">Rail Fence</option>
+        <option value="fourpatch">Four Patch</option>
+        <option value="hourglass">Hourglass</option>
         <option value="courthousesteps">Courthouse Steps</option>
         <option value="ohiostar">Ohio Star</option>
         <option value="flyinggeese">Flying Geese</option>
@@ -527,6 +529,8 @@
         <option value="squareinsquare">Square in a Square</option>
         <option value="doublefourpatch">Double Four Patch</option>
         <option value="trianglesquares">Triangle Squares Grid</option>
+        <option value="doubleninepatch">Double Nine Patch</option>
+        <option value="dutchmanspuzzle">Dutchman's Puzzle</option>
       </select>
       <div class="checkbox-row" style="margin-top:10px;">
         <input type="checkbox" id="alternateRotationInput">
@@ -757,7 +761,7 @@
   const SVG_NS = 'http://www.w3.org/2000/svg';
 
   const PRO_STORAGE_KEY = 'quiltDesignerProUnlocked';
-  const PRO_PATTERNS = new Set(['ohiostar', 'flyinggeese', 'bearspaw', 'shoofly', 'churndash', 'friendshipstar', 'sawtoothstar', 'courthousesteps', 'snowball', 'brokendishes', 'bowtie', 'jacobsladder', 'squareinsquare', 'doublefourpatch', 'trianglesquares']);
+  const PRO_PATTERNS = new Set(['ohiostar', 'flyinggeese', 'bearspaw', 'shoofly', 'churndash', 'friendshipstar', 'sawtoothstar', 'courthousesteps', 'snowball', 'brokendishes', 'bowtie', 'jacobsladder', 'squareinsquare', 'doublefourpatch', 'trianglesquares', 'doubleninepatch', 'dutchmanspuzzle']);
   const unlockProBtn = document.getElementById('unlockProBtn');
   const proBannerInner = document.getElementById('proBannerInner');
   const proBannerText = document.getElementById('proBannerText');
@@ -1623,6 +1627,73 @@
     }
   }
 
+  // The simplest possible multi-color block: four equal squares in a 2x2 grid,
+  // alternating diagonally.
+  function drawFourPatchBlock(group, offsetX, offsetY, colorA, colorB) {
+    const half = blockSize / 2;
+    addRect(group, offsetX, offsetY, half, half, colorA, 'colorA');
+    addRect(group, offsetX + half, offsetY, half, half, colorB, 'colorB');
+    addRect(group, offsetX, offsetY + half, half, half, colorB, 'colorB');
+    addRect(group, offsetX + half, offsetY + half, half, half, colorA, 'colorA');
+  }
+
+  // Four triangles meeting at the exact center of the block, formed by both
+  // diagonals — the classic "quarter-square triangle" construction, distinct from
+  // a half-square-triangle since the right angle sits at the block's center rather
+  // than at a corner.
+  function drawHourglassBlock(group, offsetX, offsetY, colorA, colorB) {
+    const x = offsetX, y = offsetY, s = blockSize;
+    const cx = x + s / 2, cy = y + s / 2;
+    addPolygon(group, [[x, y], [x + s, y], [cx, cy]], colorA, 'colorA');
+    addPolygon(group, [[x + s, y], [x + s, y + s], [cx, cy]], colorB, 'colorB');
+    addPolygon(group, [[x + s, y + s], [x, y + s], [cx, cy]], colorA, 'colorA');
+    addPolygon(group, [[x, y + s], [x, y], [cx, cy]], colorB, 'colorB');
+  }
+
+  // A 3x3 grid where the four corners and the center are each a full mini Nine
+  // Patch (a 3x3 checkerboard scaled down), and the four remaining edge positions
+  // are plain squares — a "nine patch of nine patches."
+  function drawDoubleNinePatchBlock(group, offsetX, offsetY, colorA, colorB) {
+    const unit = blockSize / 3;
+    const subUnit = unit / 3;
+    for (let row = 0; row < 3; row++) {
+      for (let col = 0; col < 3; col++) {
+        const x = offsetX + col * unit, y = offsetY + row * unit;
+        if ((row + col) % 2 === 0) {
+          for (let sr = 0; sr < 3; sr++) {
+            for (let sc = 0; sc < 3; sc++) {
+              const sx = x + sc * subUnit, sy = y + sr * subUnit;
+              const isA = (sr + sc) % 2 === 0;
+              const color = isA ? colorA : colorB;
+              addRect(group, sx, sy, subUnit, subUnit, color, isA ? 'colorA' : 'colorB');
+            }
+          }
+        } else {
+          addRect(group, x, y, unit, unit, colorB, 'colorB');
+        }
+      }
+    }
+  }
+
+  // Four "goose" units (a point triangle flanked by two background wedges, same
+  // construction as Flying Geese) arranged one per quadrant, each rotated 90° from
+  // the last to create a pinwheel spin.
+  function drawDutchmansPuzzleBlock(group, offsetX, offsetY, colorA, colorB) {
+    const half = blockSize / 2;
+    const cx = offsetX + blockSize / 2;
+    const cy = offsetY + blockSize / 2;
+
+    for (let i = 0; i < 4; i++) {
+      const g = document.createElementNS(SVG_NS, 'g');
+      g.setAttribute('transform', `rotate(${90 * i} ${cx} ${cy})`);
+      group.appendChild(g);
+      const x = offsetX, y = offsetY;
+      addPolygon(g, [[x, y], [x + half, y + half / 2], [x, y + half]], colorA, 'colorA');
+      addPolygon(g, [[x, y], [x + half, y], [x + half, y + half / 2]], colorB, 'colorB');
+      addPolygon(g, [[x, y + half], [x + half, y + half / 2], [x + half, y + half]], colorB, 'colorB');
+    }
+  }
+
   function drawQuiltBody(group, offsetX, offsetY, blockDrawFn, blocksAcross, blocksDown, sashingWidth, sashingColor, colorA, colorB, alternateRotation) {
     const bodyWidth = blocksAcross * blockSize + (blocksAcross + 1) * sashingWidth;
     const bodyHeight = blocksDown * blockSize + (blocksDown + 1) * sashingWidth;
@@ -2051,6 +2122,53 @@
         },
         { piece: 'HST square (before cutting)', color: 'colorB', cutW: cutSquare, cutH: cutSquare, qtyPerBlock: 5 }
       ];
+    },
+
+    fourpatch(blockSizeInches) {
+      const toIn = (px) => px / CUT_LIST_DESIGN_BLOCK * blockSizeInches;
+      const finishedHalf = toIn(blockSize / 2);
+      const cut = finishedHalf + 0.5;
+      return [
+        { piece: 'Square', color: 'colorA', cutW: cut, cutH: cut, qtyPerBlock: 2 },
+        { piece: 'Square', color: 'colorB', cutW: cut, cutH: cut, qtyPerBlock: 2 }
+      ];
+    },
+
+    hourglass(blockSizeInches) {
+      const wideFinished = blockSizeInches;
+      const narrowFinished = blockSizeInches / 2;
+      const trimNote = 'This piece is oversized on purpose. Cut it to this size, then trim to the triangle shape shown in the block diagram (a triangle with its point at the block\'s center), leaving at least 1/4" of fabric beyond each finished edge for the seam allowance.';
+      return [
+        { piece: 'Top/bottom triangle (cut oversized, trim to shape)', color: 'colorA', cutW: wideFinished + 1, cutH: narrowFinished + 1, qtyPerBlock: 2, note: trimNote },
+        { piece: 'Left/right triangle (cut oversized, trim to shape)', color: 'colorB', cutW: narrowFinished + 1, cutH: wideFinished + 1, qtyPerBlock: 2 }
+      ];
+    },
+
+    doubleninepatch(blockSizeInches) {
+      const toIn = (px) => px / CUT_LIST_DESIGN_BLOCK * blockSizeInches;
+      const subFinished = toIn(blockSize / 9);
+      const unitFinished = toIn(blockSize / 3);
+      const subCut = subFinished + 0.5;
+      const unitCut = unitFinished + 0.5;
+      return [
+        { piece: 'Small square (for the 5 mini nine patches)', color: 'colorA', cutW: subCut, cutH: subCut, qtyPerBlock: 25 },
+        { piece: 'Small square (for the 5 mini nine patches)', color: 'colorB', cutW: subCut, cutH: subCut, qtyPerBlock: 20 },
+        { piece: 'Large plain square', color: 'colorB', cutW: unitCut, cutH: unitCut, qtyPerBlock: 4 }
+      ];
+    },
+
+    dutchmanspuzzle(blockSizeInches) {
+      const toIn = (px) => px / CUT_LIST_DESIGN_BLOCK * blockSizeInches;
+      const halfFinished = toIn(blockSize / 2);
+      const pointW = halfFinished;
+      const pointH = halfFinished;
+      const wedgeW = halfFinished;
+      const wedgeH = halfFinished / 2;
+      const trimNote = 'This piece is oversized on purpose. Cut it to this size, then trim to the triangle shape shown in the block diagram, leaving at least 1/4" of fabric beyond each finished point for the seam allowance.';
+      return [
+        { piece: 'Goose point (cut oversized, trim to shape)', color: 'colorA', cutW: pointW + 1, cutH: pointH + 1, qtyPerBlock: 4, note: trimNote },
+        { piece: 'Goose background wedge (cut oversized, trim to shape)', color: 'colorB', cutW: wedgeW + 1, cutH: wedgeH + 1, qtyPerBlock: 8 }
+      ];
     }
   };
 
@@ -2163,6 +2281,30 @@
       'Arrange the 9 units into a 3x3 grid, all facing the same direction.',
       'Sew each row of 3 units together, pressing seams in alternating directions row to row.',
       'Sew the 3 rows together to complete the block.'
+    ],
+    fourpatch: [
+      'Arrange your 4 squares in a 2x2 grid, with Color A in one pair of opposite corners and Color B in the other pair.',
+      'Sew the top 2 squares together, and the bottom 2 squares together. Press the two seams in opposite directions so they nest.',
+      'Sew the top and bottom rows together to complete the block.'
+    ],
+    hourglass: [
+      'Cut and trim your 2 top/bottom triangles and 2 left/right triangles, following the cut list instructions above.',
+      'Sew the top triangle to the left triangle along one angled edge, then sew the bottom triangle to the right triangle along one angled edge, to make two half-block units.',
+      'Sew the two half-block units together down the remaining diagonal seam, carefully matching the point where all four triangles meet at the center, to complete the block.'
+    ],
+    doubleninepatch: [
+      'Piece 5 mini Nine Patch units first: for each one, arrange 9 small squares (5 Color A, 4 Color B) into a 3x3 checkerboard grid, sew each row together, then sew the 3 rows together — exactly like piecing a regular Nine Patch block, just smaller. Repeat 5 times.',
+      'Cut your 4 large plain Color B squares.',
+      'Arrange the 5 mini Nine Patch units and 4 plain squares into a 3x3 grid, with the mini units in the four corners and the center, and the plain squares filling the remaining 4 positions.',
+      'Sew each row of 3 pieces together, pressing seams in alternating directions row to row.',
+      'Sew the 3 rows together to complete the block.'
+    ],
+    dutchmanspuzzle: [
+      'Piece your 4 goose-point units first, following the cut-and-trim instructions in the cut list above — each one is a point triangle flanked by two background wedges, same as a Flying Geese unit.',
+      'Assemble each goose unit into a complete quadrant-sized square by sewing the two background wedges to the point triangle\'s angled edges.',
+      'Arrange the 4 quadrants in a 2x2 grid, rotating each one 90° from its neighbor so the points all curve around the center in the same rotational direction, creating a pinwheel spin.',
+      'Sew the top 2 quadrants together into a row, and the bottom 2 quadrants together into a row, pressing seams in opposite directions.',
+      'Sew the top and bottom rows together to complete the block.'
     ]
   };
 
@@ -2229,7 +2371,11 @@
       jacobsladder: drawJacobsLadderBlock,
       squareinsquare: drawSquareInSquareBlock,
       doublefourpatch: drawDoubleFourPatchBlock,
-      trianglesquares: drawTriangleSquaresBlock
+      trianglesquares: drawTriangleSquaresBlock,
+      fourpatch: drawFourPatchBlock,
+      hourglass: drawHourglassBlock,
+      doubleninepatch: drawDoubleNinePatchBlock,
+      dutchmanspuzzle: drawDutchmansPuzzleBlock
     };
     const blockDrawFn = patternMap[patternSelect.value];
     const alternateRotation = alternateRotationInput.checked;
@@ -2709,12 +2855,14 @@
     railfence: 'Beginner',
     snowball: 'Beginner',
     trianglesquares: 'Beginner',
+    fourpatch: 'Beginner',
     logcabin: 'Confident Beginner',
     pinwheel: 'Confident Beginner',
     courthousesteps: 'Confident Beginner',
     brokendishes: 'Confident Beginner',
     squareinsquare: 'Confident Beginner',
     doublefourpatch: 'Confident Beginner',
+    hourglass: 'Confident Beginner',
     ohiostar: 'Intermediate',
     flyinggeese: 'Intermediate',
     shoofly: 'Intermediate',
@@ -2723,7 +2871,9 @@
     bowtie: 'Intermediate',
     bearspaw: 'Advanced',
     sawtoothstar: 'Advanced',
-    jacobsladder: 'Advanced'
+    jacobsladder: 'Advanced',
+    doubleninepatch: 'Advanced',
+    dutchmanspuzzle: 'Advanced'
   };
 
   function updatePatternOptionLabels() {
