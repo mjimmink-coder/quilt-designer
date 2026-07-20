@@ -525,6 +525,7 @@
           <option value="courthousesteps">Courthouse Steps</option>
           <option value="doublefourpatch">Double Four Patch</option>
           <option value="hourglass">Hourglass</option>
+          <option value="irishchain">Irish Chain</option>
           <option value="logcabin">Log Cabin</option>
           <option value="pinwheel">Pinwheel</option>
           <option value="squareinsquare">Square in a Square</option>
@@ -643,6 +644,21 @@
         <div>
           <label for="colorBInput">Color B</label>
           <input type="color" id="colorBInput" value="#F0E6D2">
+        </div>
+      </div>
+
+      <div class="checkbox-row" style="margin-top:12px;">
+        <input type="checkbox" id="use4ColorInput" disabled>
+        <label for="use4ColorInput" style="margin:0; font-size:12px;">Use 4 colors (available on Nine Patch, Log Cabin, Pinwheel, and Ohio Star)</label>
+      </div>
+      <div class="field-row" id="colorCDRow" style="margin-top:10px; display:none;">
+        <div>
+          <label for="colorCInput">Color C</label>
+          <input type="color" id="colorCInput" value="#A8461E">
+        </div>
+        <div>
+          <label for="colorDInput">Color D</label>
+          <input type="color" id="colorDInput" value="#7C8B6F">
         </div>
       </div>
 
@@ -793,7 +809,7 @@
   const SVG_NS = 'http://www.w3.org/2000/svg';
 
   const PRO_STORAGE_KEY = 'quiltDesignerProUnlocked';
-  const PRO_PATTERNS = new Set(['ohiostar', 'flyinggeese', 'bearspaw', 'shoofly', 'churndash', 'friendshipstar', 'sawtoothstar', 'courthousesteps', 'snowball', 'brokendishes', 'bowtie', 'jacobsladder', 'squareinsquare', 'doublefourpatch', 'trianglesquares', 'doubleninepatch', 'dutchmanspuzzle']);
+  const PRO_PATTERNS = new Set(['ohiostar', 'flyinggeese', 'bearspaw', 'shoofly', 'churndash', 'friendshipstar', 'sawtoothstar', 'courthousesteps', 'snowball', 'brokendishes', 'bowtie', 'jacobsladder', 'squareinsquare', 'doublefourpatch', 'trianglesquares', 'doubleninepatch', 'dutchmanspuzzle', 'irishchain']);
   const unlockProBtn = document.getElementById('unlockProBtn');
   const proBannerInner = document.getElementById('proBannerInner');
   const proBannerText = document.getElementById('proBannerText');
@@ -919,7 +935,8 @@
     shoofly: 'a solid center square, four solid edge squares in the second color, and four corner units made of diagonally-split triangle pairs',
     churndash: 'a solid center square, four solid corner squares, and four edge units shaped like a large triangle point flanked by two smaller triangles, forming an accent ring around the center square',
     friendshipstar: 'a solid center square, four solid corner squares, and four star-point triangle units pointing outward toward the block edges, forming a single 4-pointed star centered in the block',
-    sawtoothstar: 'a solid center square, four corner units made of diagonally-split triangle pairs, and four star-point triangle units pointing outward, forming a 4-pointed star with small triangle "teeth" accents at the corners'
+    sawtoothstar: 'a solid center square, four corner units made of diagonally-split triangle pairs, and four star-point triangle units pointing outward, forming a 4-pointed star with small triangle "teeth" accents at the corners',
+    irishchain: 'a checkerboard pattern alternating between two different blocks across the whole quilt: one block is a 3x3 grid of small solid squares in a Nine Patch checkerboard of the two fabric colors, and the block next to it (diagonally and orthogonally) is a single plain solid square with no piecing at all — when tiled, the corner squares of adjacent Nine Patch blocks visually connect diagonally through the plain blocks, forming a continuous diagonal chain pattern across the entire quilt'
   };
 
   function buildRoomPreviewPrompt() {
@@ -930,7 +947,11 @@
     const colorBName = nameColorFromHex(colorBInput.value);
     const across = parseInt(blocksAcrossInput.value, 10) || 3;
     const down = parseInt(blocksDownInput.value, 10) || 3;
-    return `A professional interior photograph of ${roomDescription}. The quilt is made of many small identical blocks repeated across the whole quilt in a grid of roughly ${across} blocks wide by ${down} blocks tall — it is NOT one single large motif covering the whole quilt, it is a tessellated grid of small repeating blocks separated by visible seam lines. Each individual block shows this exact design: ${shapeDescription}. The quilt is pieced in ${colorAName} and ${colorBName} fabric, with sharp precise geometric machine-pieced seams, crisp straight edges and points, no rounded or soft shapes. Realistic quilted fabric texture, soft natural lighting, photorealistic, high quality home decor photography.`;
+    const use4Color = isPro() && FOUR_COLOR_PATTERNS.has(patternSelect.value) && use4ColorInput.checked;
+    const colorDescription = use4Color
+      ? `${colorAName}, ${colorBName}, ${nameColorFromHex(colorCInput.value)}, and ${nameColorFromHex(colorDInput.value)} fabric`
+      : `${colorAName} and ${colorBName} fabric`;
+    return `A professional interior photograph of ${roomDescription}. The quilt is made of many small identical blocks repeated across the whole quilt in a grid of roughly ${across} blocks wide by ${down} blocks tall — it is NOT one single large motif covering the whole quilt, it is a tessellated grid of small repeating blocks separated by visible seam lines. Each individual block shows this exact design: ${shapeDescription}. The quilt is pieced in ${colorDescription}, with sharp precise geometric machine-pieced seams, crisp straight edges and points, no rounded or soft shapes. Realistic quilted fabric texture, soft natural lighting, photorealistic, high quality home decor photography.`;
   }
 
   async function pollRoomPreview(predictionId) {
@@ -1106,6 +1127,15 @@
   const borderColorInput = document.getElementById('borderColorInput');
   const colorAInput = document.getElementById('colorAInput');
   const colorBInput = document.getElementById('colorBInput');
+  const colorCInput = document.getElementById('colorCInput');
+  const colorDInput = document.getElementById('colorDInput');
+  const use4ColorInput = document.getElementById('use4ColorInput');
+  const colorCDRow = document.getElementById('colorCDRow');
+
+  // Patterns whose color logic has a dedicated, natural 4-color variant. All other
+  // patterns simply ignore the extra colorC/colorD/use4Color arguments (JS silently
+  // drops unused function parameters), so they're unaffected either way.
+  const FOUR_COLOR_PATTERNS = new Set(['ninepatch', 'logcabin', 'pinwheel', 'ohiostar']);
   const presetContainer = document.getElementById('presetContainer');
   const swatchAInput = document.getElementById('swatchAInput');
   const swatchBInput = document.getElementById('swatchBInput');
@@ -1147,7 +1177,7 @@
   const FABRIC_USABLE_WIDTH_IN = 42;
   const SQ_IN_PER_YARD = FABRIC_USABLE_WIDTH_IN * 36;
 
-  let areaTotals = { colorA: 0, colorB: 0, sashing: 0, border: 0 };
+  let areaTotals = { colorA: 0, colorB: 0, colorC: 0, colorD: 0, sashing: 0, border: 0 };
 
   const palettes = [
     { name: 'Navy & Cream', colorA: '#1F3A5F', colorB: '#F0E6D2' },
@@ -1223,16 +1253,35 @@
     }
   }
 
-  function drawNinePatchBlock(group, offsetX, offsetY, colorA, colorB) {
+  function drawNinePatchBlock(group, offsetX, offsetY, colorA, colorB, colorC, colorD, use4Color) {
     for (let row = 0; row < blockGrid; row++) {
       for (let col = 0; col < blockGrid; col++) {
+        const x = offsetX + col * squareSize, y = offsetY + row * squareSize;
         const isEven = (row + col) % 2 === 0;
-        addRect(group, offsetX + col * squareSize, offsetY + row * squareSize, squareSize, squareSize, isEven ? colorA : colorB, isEven ? 'colorA' : 'colorB');
+        let color, role;
+        if (use4Color) {
+          if (row === 1 && col === 1) { color = colorC; role = 'colorC'; }
+          else if (!isEven) { color = colorB; role = 'colorB'; }
+          else if (row === col) { color = colorA; role = 'colorA'; }
+          else { color = colorD; role = 'colorD'; }
+        } else {
+          color = isEven ? colorA : colorB;
+          role = isEven ? 'colorA' : 'colorB';
+        }
+        addRect(group, x, y, squareSize, squareSize, color, role);
       }
     }
   }
 
-  function drawLogCabinBlock(group, offsetX, offsetY, colorA, colorB) {
+  // A single solid square — Irish Chain's "alternate" block. Checkerboarded against
+  // Nine Patch "chain" blocks (reused as-is, no changes needed), the diagonal chain
+  // look emerges from how the chain blocks' corner squares line up across the plain
+  // blocks, not from anything within this block itself.
+  function drawPlainBlock(group, offsetX, offsetY, colorA, colorB) {
+    addRect(group, offsetX, offsetY, blockSize, blockSize, colorB, 'colorB');
+  }
+
+  function drawLogCabinBlock(group, offsetX, offsetY, colorA, colorB, colorC, colorD, use4Color) {
     const rounds = 4;
     const stripWidth = 25;
     const centerSize = blockSize - 2 * rounds * stripWidth;
@@ -1242,39 +1291,53 @@
     let w = centerSize;
     let h = centerSize;
 
-    addRect(group, offsetX + x, offsetY + y, w, h, colorB, 'colorB');
+    const centerColor = use4Color ? colorA : colorB;
+    const centerRole = use4Color ? 'colorA' : 'colorB';
+    addRect(group, offsetX + x, offsetY + y, w, h, centerColor, centerRole);
+
+    const rightColor = use4Color ? colorB : colorA, rightRole = use4Color ? 'colorB' : 'colorA';
+    const bottomColor = use4Color ? colorC : colorA, bottomRole = use4Color ? 'colorC' : 'colorA';
+    const leftColor = use4Color ? colorD : colorB, leftRole = use4Color ? 'colorD' : 'colorB';
+    const topColor = use4Color ? colorA : colorB, topRole = use4Color ? 'colorA' : 'colorB';
 
     for (let r = 0; r < rounds; r++) {
-      addRect(group, offsetX + x + w, offsetY + y, stripWidth, h, colorA, 'colorA');
+      addRect(group, offsetX + x + w, offsetY + y, stripWidth, h, rightColor, rightRole);
       w += stripWidth;
 
-      addRect(group, offsetX + x, offsetY + y + h, w, stripWidth, colorA, 'colorA');
+      addRect(group, offsetX + x, offsetY + y + h, w, stripWidth, bottomColor, bottomRole);
       h += stripWidth;
 
-      addRect(group, offsetX + x - stripWidth, offsetY + y, stripWidth, h, colorB, 'colorB');
+      addRect(group, offsetX + x - stripWidth, offsetY + y, stripWidth, h, leftColor, leftRole);
       x -= stripWidth;
       w += stripWidth;
 
-      addRect(group, offsetX + x, offsetY + y - stripWidth, w, stripWidth, colorB, 'colorB');
+      addRect(group, offsetX + x, offsetY + y - stripWidth, w, stripWidth, topColor, topRole);
       y -= stripWidth;
       h += stripWidth;
     }
   }
 
   // Built from one quadrant's diagonal split, rotated 3 times around the block
-  // center — the rotational repetition IS the pinwheel effect.
-  function drawPinwheelBlock(group, offsetX, offsetY, colorA, colorB) {
+  // center — the rotational repetition IS the pinwheel effect. In 4-color mode, each
+  // quadrant cycles to a new color pair (A/B, B/C, C/D, D/A) so the spin carries all
+  // four colors around the block instead of repeating the same two.
+  function drawPinwheelBlock(group, offsetX, offsetY, colorA, colorB, colorC, colorD, use4Color) {
     const half = blockSize / 2;
     const cx = offsetX + half;
     const cy = offsetY + half;
+    const colorPairs = [[colorA, colorB], [colorB, colorC], [colorC, colorD], [colorD, colorA]];
+    const rolePairs = [['colorA', 'colorB'], ['colorB', 'colorC'], ['colorC', 'colorD'], ['colorD', 'colorA']];
 
     for (let i = 0; i < 4; i++) {
       const quad = document.createElementNS(SVG_NS, 'g');
       quad.setAttribute('transform', `rotate(${90 * i} ${cx} ${cy})`);
       group.appendChild(quad);
 
-      addPolygon(quad, [[offsetX, offsetY], [offsetX + half, offsetY], [offsetX, offsetY + half]], colorA, 'colorA');
-      addPolygon(quad, [[offsetX + half, offsetY], [offsetX + half, offsetY + half], [offsetX, offsetY + half]], colorB, 'colorB');
+      const [cA, cB] = use4Color ? colorPairs[i] : [colorA, colorB];
+      const [rA, rB] = use4Color ? rolePairs[i] : ['colorA', 'colorB'];
+
+      addPolygon(quad, [[offsetX, offsetY], [offsetX + half, offsetY], [offsetX, offsetY + half]], cA, rA);
+      addPolygon(quad, [[offsetX + half, offsetY], [offsetX + half, offsetY + half], [offsetX, offsetY + half]], cB, rB);
     }
   }
 
@@ -1322,19 +1385,25 @@
 
   // Center accent square + background corners, with half-square-triangle "points" on
   // each edge. One corner and one edge unit are drawn once, then each rotated 3 times
-  // around the block center to complete the star.
-  function drawOhioStarBlock(group, offsetX, offsetY, colorA, colorB) {
+  // around the block center to complete the star. In 4-color mode, the center and
+  // corners each get their own dedicated color; the star points keep their existing
+  // two-color diagonal split.
+  function drawOhioStarBlock(group, offsetX, offsetY, colorA, colorB, colorC, colorD, use4Color) {
     const unit = blockSize / 3;
     const cx = offsetX + blockSize / 2;
     const cy = offsetY + blockSize / 2;
 
-    addRect(group, offsetX + unit, offsetY + unit, unit, unit, colorA, 'colorA');
+    const centerColor = use4Color ? colorC : colorA;
+    const centerRole = use4Color ? 'colorC' : 'colorA';
+    addRect(group, offsetX + unit, offsetY + unit, unit, unit, centerColor, centerRole);
 
+    const cornerColor = use4Color ? colorD : colorB;
+    const cornerRole = use4Color ? 'colorD' : 'colorB';
     for (let i = 0; i < 4; i++) {
       const g = document.createElementNS(SVG_NS, 'g');
       g.setAttribute('transform', `rotate(${90 * i} ${cx} ${cy})`);
       group.appendChild(g);
-      addRect(g, offsetX, offsetY, unit, unit, colorB, 'colorB');
+      addRect(g, offsetX, offsetY, unit, unit, cornerColor, cornerRole);
     }
 
     for (let i = 0; i < 4; i++) {
@@ -1726,7 +1795,7 @@
     }
   }
 
-  function drawQuiltBody(group, offsetX, offsetY, blockDrawFn, blocksAcross, blocksDown, sashingWidth, sashingColor, colorA, colorB, alternateRotation) {
+  function drawQuiltBody(group, offsetX, offsetY, blockDrawFn, blocksAcross, blocksDown, sashingWidth, sashingColor, colorA, colorB, alternateRotation, colorC, colorD, use4Color, alternateBlockDrawFn) {
     const bodyWidth = blocksAcross * blockSize + (blocksAcross + 1) * sashingWidth;
     const bodyHeight = blocksDown * blockSize + (blocksDown + 1) * sashingWidth;
 
@@ -1742,7 +1811,9 @@
         blockGroup.setAttribute('transform', `translate(${blockX} ${blockY}) rotate(${rotateDeg} ${blockSize / 2} ${blockSize / 2})`);
         group.appendChild(blockGroup);
 
-        blockDrawFn(blockGroup, 0, 0, colorA, colorB);
+        const isAlternatePosition = alternateBlockDrawFn && (bx + by) % 2 === 1;
+        const fnToUse = isAlternatePosition ? alternateBlockDrawFn : blockDrawFn;
+        fnToUse(blockGroup, 0, 0, colorA, colorB, colorC, colorD, use4Color);
       }
     }
 
@@ -1752,7 +1823,7 @@
     return { bodyWidth, bodyHeight };
   }
 
-  function drawQuilt(blockDrawFn, blocksAcross, blocksDown, sashingWidth, sashingColor, borderWidth, borderColor, colorA, colorB, alternateRotation) {
+  function drawQuilt(blockDrawFn, blocksAcross, blocksDown, sashingWidth, sashingColor, borderWidth, borderColor, colorA, colorB, alternateRotation, colorC, colorD, use4Color, alternateBlockDrawFn) {
     const bodyWidth = blocksAcross * blockSize + (blocksAcross + 1) * sashingWidth;
     const bodyHeight = blocksDown * blockSize + (blocksDown + 1) * sashingWidth;
 
@@ -1766,7 +1837,7 @@
     injectSwatchPatterns();
 
     addRect(svg, 0, 0, totalWidth, totalHeight, borderColor, 'border');
-    drawQuiltBody(svg, borderWidth, borderWidth, blockDrawFn, blocksAcross, blocksDown, sashingWidth, sashingColor, colorA, colorB, alternateRotation);
+    drawQuiltBody(svg, borderWidth, borderWidth, blockDrawFn, blocksAcross, blocksDown, sashingWidth, sashingColor, colorA, colorB, alternateRotation, colorC, colorD, use4Color, alternateBlockDrawFn);
     areaTotals.border -= bodyWidth * bodyHeight;
   }
 
@@ -1777,6 +1848,8 @@
     const rows = [
       { label: 'Color A', px: areaTotals.colorA, color: colorAInput.value, image: swatchImages.colorA, directional: swatchImages.colorA && directionalAInput.checked },
       { label: 'Color B', px: areaTotals.colorB, color: colorBInput.value, image: swatchImages.colorB, directional: swatchImages.colorB && directionalBInput.checked },
+      { label: 'Color C', px: areaTotals.colorC, color: colorCInput.value },
+      { label: 'Color D', px: areaTotals.colorD, color: colorDInput.value },
       { label: 'Sashing', px: areaTotals.sashing, color: sashingColorInput.value },
       { label: 'Border', px: areaTotals.border, color: borderColorInput.value }
     ];
@@ -1860,10 +1933,18 @@
   }
 
   const CUT_LIST_GENERATORS = {
-    ninepatch(blockSizeInches) {
+    ninepatch(blockSizeInches, use4Color) {
       const toIn = (px) => px / CUT_LIST_DESIGN_BLOCK * blockSizeInches;
       const finished = toIn(squareSize);
       const cut = finished + 0.5;
+      if (use4Color) {
+        return [
+          { piece: 'Square (center)', color: 'colorC', cutW: cut, cutH: cut, qtyPerBlock: 1 },
+          { piece: 'Square (edges)', color: 'colorB', cutW: cut, cutH: cut, qtyPerBlock: 4 },
+          { piece: 'Square (corners, diagonal 1)', color: 'colorA', cutW: cut, cutH: cut, qtyPerBlock: 2 },
+          { piece: 'Square (corners, diagonal 2)', color: 'colorD', cutW: cut, cutH: cut, qtyPerBlock: 2 }
+        ];
+      }
       return [
         { piece: 'Square', color: 'colorA', cutW: cut, cutH: cut, qtyPerBlock: 5 },
         { piece: 'Square', color: 'colorB', cutW: cut, cutH: cut, qtyPerBlock: 4 }
@@ -1881,10 +1962,23 @@
       ];
     },
 
-    pinwheel(blockSizeInches) {
+    pinwheel(blockSizeInches, use4Color) {
       const toIn = (px) => px / CUT_LIST_DESIGN_BLOCK * blockSizeInches;
       const finishedHst = toIn(blockSize / 2);
       const cutSquare = finishedHst + 0.875;
+      if (use4Color) {
+        const spareNote = 'Layer these two squares, right sides together. Mark one diagonal, sew 1/4" from the line on both sides, then cut apart on the marked line — this makes 2 half-square-triangle units, but this quadrant only needs 1. Save the spare to combine with another spare later, or use it in a different project.';
+        return [
+          { piece: 'HST square, quadrant 1 (before cutting)', color: 'colorA', cutW: cutSquare, cutH: cutSquare, qtyPerBlock: 1, note: spareNote },
+          { piece: 'HST square, quadrant 1 (before cutting)', color: 'colorB', cutW: cutSquare, cutH: cutSquare, qtyPerBlock: 1 },
+          { piece: 'HST square, quadrant 2 (before cutting)', color: 'colorB', cutW: cutSquare, cutH: cutSquare, qtyPerBlock: 1 },
+          { piece: 'HST square, quadrant 2 (before cutting)', color: 'colorC', cutW: cutSquare, cutH: cutSquare, qtyPerBlock: 1 },
+          { piece: 'HST square, quadrant 3 (before cutting)', color: 'colorC', cutW: cutSquare, cutH: cutSquare, qtyPerBlock: 1 },
+          { piece: 'HST square, quadrant 3 (before cutting)', color: 'colorD', cutW: cutSquare, cutH: cutSquare, qtyPerBlock: 1 },
+          { piece: 'HST square, quadrant 4 (before cutting)', color: 'colorD', cutW: cutSquare, cutH: cutSquare, qtyPerBlock: 1 },
+          { piece: 'HST square, quadrant 4 (before cutting)', color: 'colorA', cutW: cutSquare, cutH: cutSquare, qtyPerBlock: 1 }
+        ];
+      }
       return [
         {
           piece: 'HST square (before cutting)', color: 'colorA', cutW: cutSquare, cutH: cutSquare, qtyPerBlock: 2,
@@ -2201,6 +2295,42 @@
         { piece: 'Goose point (cut oversized, trim to shape)', color: 'colorA', cutW: pointW + 1, cutH: pointH + 1, qtyPerBlock: 4, note: trimNote },
         { piece: 'Goose background wedge (cut oversized, trim to shape)', color: 'colorB', cutW: wedgeW + 1, cutH: wedgeH + 1, qtyPerBlock: 8 }
       ];
+    },
+
+    // Irish Chain alternates two different block types across the grid (unlike every
+    // other pattern, which repeats one block), so its piece counts depend on the
+    // exact number of "chain" vs. "plain" blocks in this specific quilt size — not
+    // just a fixed count per block. The chain/plain split isn't always an even 50/50
+    // (e.g. a 3x3 grid is 5 chain blocks to 4 plain, not 4.5/4.5), so this counts the
+    // real checkerboard split for the actual grid rather than assuming a ratio.
+    // qtyPerBlock values here are deliberately fractional "quilt-wide average per
+    // block" figures — only the final displayed total (qtyPerBlock × total blocks)
+    // needs to be a whole number, and it always works out to one since it's built
+    // from the exact real counts.
+    irishchain(blockSizeInches, use4Color, blocksAcross, blocksDown) {
+      const toIn = (px) => px / CUT_LIST_DESIGN_BLOCK * blockSizeInches;
+      const across = blocksAcross || 3;
+      const down = blocksDown || 3;
+      let chainCount = 0, plainCount = 0;
+      for (let by = 0; by < down; by++) {
+        for (let bx = 0; bx < across; bx++) {
+          if ((bx + by) % 2 === 0) chainCount++; else plainCount++;
+        }
+      }
+      const totalBlocks = chainCount + plainCount;
+      const finishedSquare = toIn(squareSize);
+      const cutSquare = finishedSquare + 0.5;
+      const finishedPlain = toIn(blockSize);
+      const cutPlain = finishedPlain + 0.5;
+
+      return [
+        {
+          piece: 'Chain block square', color: 'colorA', cutW: cutSquare, cutH: cutSquare, qtyPerBlock: (5 * chainCount) / totalBlocks,
+          note: `This quilt's ${across}×${down} grid has ${chainCount} chain blocks and ${plainCount} plain blocks. Each chain block is pieced exactly like a Nine Patch block (5 Color A + 4 Color B squares).`
+        },
+        { piece: 'Chain block square', color: 'colorB', cutW: cutSquare, cutH: cutSquare, qtyPerBlock: (4 * chainCount) / totalBlocks },
+        { piece: 'Plain block (no piecing needed)', color: 'colorB', cutW: cutPlain, cutH: cutPlain, qtyPerBlock: plainCount / totalBlocks }
+      ];
     }
   };
 
@@ -2337,10 +2467,48 @@
       'Arrange the 4 quadrants in a 2x2 grid, rotating each one 90° from its neighbor so the points all curve around the center in the same rotational direction, creating a pinwheel spin.',
       'Sew the top 2 quadrants together into a row, and the bottom 2 quadrants together into a row, pressing seams in opposite directions.',
       'Sew the top and bottom rows together to complete the block.'
+    ],
+    irishchain: [
+      'This pattern uses two different blocks that alternate across your quilt, not one repeating block — check the cut list above for exactly how many of each this quilt needs.',
+      'Piece your chain blocks first: each one is a standard Nine Patch (5 Color A + 4 Color B squares in a checkerboard). Sew each of the 3 rows together, pressing seams in alternating directions, then sew the 3 rows together.',
+      'Cut your plain blocks to size — no piecing needed, they\'re a single square.',
+      'Lay out your whole quilt top with chain blocks and plain blocks alternating in a checkerboard, so no two chain blocks (or two plain blocks) touch edge to edge.',
+      'Sew the blocks together into rows, then sew the rows together, same as assembling any quilt top. The diagonal "chain" look appears on its own from how the chain blocks\' corner squares line up across the plain blocks — no extra piecing required to create it.'
     ]
   };
 
-  function renderCutList(patternKey, blockSizeInches, blocksAcross, blocksDown) {
+  // 4-color variants of the piecing order for the 4 patterns that support 4-color
+  // mode. Only these need their own version — every other pattern's steps already
+  // apply exactly as written, since 4-color mode doesn't change piece count or
+  // assembly order for them (it isn't offered on patterns where it would).
+  const ASSEMBLY_STEPS_4COLOR = {
+    ninepatch: [
+      'Arrange your 9 squares into a 3x3 grid: Color A in the two main-diagonal corners (top-left and bottom-right), Color D in the two other corners (top-right and bottom-left), Color B in the 4 edge positions, and Color C in the very center.',
+      'Sew each row\'s 3 squares together into a strip. Press the seams in Row 1 and Row 3 toward the edge squares, and the seams in Row 2 toward the center square — this makes the seams nest when you join the rows.',
+      'Sew the 3 rows together to complete the block.'
+    ],
+    logcabin: [
+      'Sew a Round 1 Color B "right strip" to the right edge of the Color A center square. Press the seam away from the center.',
+      'Sew the Round 1 Color C "bottom strip" across the bottom of that unit. Press away from the center.',
+      'Sew the Round 1 Color D "left strip" to the left edge. Press away from the center.',
+      'Sew the Round 1 Color A "top strip" across the top. Press away from the center.',
+      'Repeat this same right (Color B) → bottom (Color C) → left (Color D) → top (Color A) order for Rounds 2, 3, and 4, always sewing directly onto the growing block and pressing each new strip away from the center before adding the next one.'
+    ],
+    pinwheel: [
+      'Piece 4 half-square-triangle units, one per quadrant, using 4 different color pairs: quadrant 1 uses Color A + Color B, quadrant 2 uses Color B + Color C, quadrant 3 uses Color C + Color D, and quadrant 4 uses Color D + Color A. Each pair yields 2 units but this block only needs 1 from each — save the spares for another project.',
+      'Arrange the 4 HST units in a 2x2 grid in that same order (quadrant 1 top-left, quadrant 2 top-right, quadrant 3 bottom-left, quadrant 4 bottom-right — or rotate the whole arrangement to taste), all oriented so the color pairs flow in one direction around the center, creating the spin.',
+      'Sew the top 2 units together into a row, and the bottom 2 units together into a row. Press the two rows\' seams in opposite directions so they nest.',
+      'Sew the top and bottom rows together to complete the block.'
+    ],
+    ohiostar: [
+      'Piece your 4 star-point half-square-triangle units first, following the cut list instructions above (these stay Color A/Color B regardless of 4-color mode). Orient each one so the Color A triangle points toward where the block\'s center will be.',
+      'Lay out the block in a 3x3 grid: a Color D corner square, a star-point unit, and a Color D corner square across the top row; a star-point unit, the Color C center square, and a star-point unit in the middle row; a Color D corner square, a star-point unit, and a Color D corner square across the bottom row.',
+      'Sew each row together. Press the top and bottom row seams toward the corner squares, and the middle row seams toward the center square, so they nest.',
+      'Sew the 3 rows together to complete the block.'
+    ]
+  };
+
+  function renderCutList(patternKey, blockSizeInches, blocksAcross, blocksDown, use4Color) {
     if (!isPro()) {
       cutListResults.innerHTML = '';
       return;
@@ -2352,8 +2520,8 @@
     }
 
     const totalBlocks = blocksAcross * blocksDown;
-    const rows = generator(blockSizeInches);
-    const colorLabel = { colorA: 'Color A', colorB: 'Color B' };
+    const rows = generator(blockSizeInches, use4Color, blocksAcross, blocksDown);
+    const colorLabel = { colorA: 'Color A', colorB: 'Color B', colorC: 'Color C', colorD: 'Color D' };
 
     let html = '<span class="yardage-title">Cut list</span>';
     html += '<span class="yardage-note">Sizes include a standard 1/4" seam allowance. Totals are for the whole quilt top.</span>';
@@ -2369,7 +2537,7 @@
       html += `<span class="cutlist-note">${note}</span>`;
     });
 
-    const steps = ASSEMBLY_STEPS[patternKey];
+    const steps = use4Color && ASSEMBLY_STEPS_4COLOR[patternKey] ? ASSEMBLY_STEPS_4COLOR[patternKey] : ASSEMBLY_STEPS[patternKey];
     if (steps) {
       html += '<span class="yardage-title" style="display:block; margin-top:18px;">How to piece this block</span>';
       html += '<ol class="piecing-steps">';
@@ -2451,7 +2619,7 @@
   });
 
   function redraw() {
-    areaTotals = { colorA: 0, colorB: 0, sashing: 0, border: 0 };
+    areaTotals = { colorA: 0, colorB: 0, colorC: 0, colorD: 0, sashing: 0, border: 0 };
 
     const patternMap = {
       ninepatch: drawNinePatchBlock,
@@ -2476,7 +2644,8 @@
       fourpatch: drawFourPatchBlock,
       hourglass: drawHourglassBlock,
       doubleninepatch: drawDoubleNinePatchBlock,
-      dutchmanspuzzle: drawDutchmansPuzzleBlock
+      dutchmanspuzzle: drawDutchmansPuzzleBlock,
+      irishchain: drawNinePatchBlock
     };
     const blockDrawFn = patternMap[patternSelect.value];
     const alternateRotation = alternateRotationInput.checked;
@@ -2489,11 +2658,15 @@
     const borderColor = borderColorInput.value;
     const colorA = swatchImages.colorA ? 'url(#fabricPatternA)' : colorAInput.value;
     const colorB = swatchImages.colorB ? 'url(#fabricPatternB)' : colorBInput.value;
+    const use4Color = isPro() && FOUR_COLOR_PATTERNS.has(patternSelect.value) && use4ColorInput.checked;
+    const colorC = colorCInput.value;
+    const colorD = colorDInput.value;
+    const alternateBlockDrawFn = patternSelect.value === 'irishchain' ? drawPlainBlock : null;
 
-    drawQuilt(blockDrawFn, blocksAcross, blocksDown, sashingWidth, sashingColor, borderWidth, borderColor, colorA, colorB, alternateRotation);
+    drawQuilt(blockDrawFn, blocksAcross, blocksDown, sashingWidth, sashingColor, borderWidth, borderColor, colorA, colorB, alternateRotation, colorC, colorD, use4Color, alternateBlockDrawFn);
     updateYardage(blockSizeInches);
     updateBackingYardage(blockSizeInches, blocksAcross, blocksDown, sashingWidth, borderWidth);
-    renderCutList(patternSelect.value, blockSizeInches, blocksAcross, blocksDown);
+    renderCutList(patternSelect.value, blockSizeInches, blocksAcross, blocksDown, use4Color);
     updateActivePreset();
     pushHistoryIfChanged();
   }
@@ -2503,6 +2676,17 @@
 
   // Pattern select gets its own listener (rather than the generic redraw list above)
   // so a Pro-only pattern can be intercepted and reverted before it ever draws.
+  // Keeps the "Use 4 colors" checkbox in sync with whether the current pattern
+  // actually has a 4-color variant, and whether Pro is unlocked.
+  function updateFourColorAvailability() {
+    const available = FOUR_COLOR_PATTERNS.has(patternSelect.value) && isPro();
+    use4ColorInput.disabled = !available;
+    if (!available) {
+      use4ColorInput.checked = false;
+    }
+    colorCDRow.style.display = use4ColorInput.checked ? 'flex' : 'none';
+  }
+
   patternSelect.addEventListener('change', () => {
     if (PRO_PATTERNS.has(patternSelect.value) && !isPro()) {
       patternSelect.value = lastFreePattern;
@@ -2510,8 +2694,16 @@
       return;
     }
     lastFreePattern = patternSelect.value;
+    updateFourColorAvailability();
     redraw();
   });
+
+  use4ColorInput.addEventListener('change', () => {
+    colorCDRow.style.display = use4ColorInput.checked ? 'flex' : 'none';
+    redraw();
+  });
+  colorCInput.addEventListener('input', redraw);
+  colorDInput.addEventListener('input', redraw);
 
   // Manually picking a solid color overrides an active fabric photo for that slot.
   colorAInput.addEventListener('input', () => {
@@ -2684,6 +2876,9 @@
       borderColor: borderColorInput.value,
       colorA: colorAInput.value,
       colorB: colorBInput.value,
+      colorC: colorCInput.value,
+      colorD: colorDInput.value,
+      use4Color: use4ColorInput.checked,
       swatchImages: { colorA: swatchImages.colorA, colorB: swatchImages.colorB },
       directionalA: directionalAInput.checked,
       directionalB: directionalBInput.checked,
@@ -2703,6 +2898,11 @@
     borderColorInput.value = state.borderColor;
     colorAInput.value = state.colorA;
     colorBInput.value = state.colorB;
+    colorCInput.value = state.colorC || colorCInput.value;
+    colorDInput.value = state.colorD || colorDInput.value;
+    updateFourColorAvailability();
+    use4ColorInput.checked = !!state.use4Color && !use4ColorInput.disabled;
+    colorCDRow.style.display = use4ColorInput.checked ? 'flex' : 'none';
     swatchImages.colorA = (state.swatchImages && state.swatchImages.colorA) || null;
     swatchImages.colorB = (state.swatchImages && state.swatchImages.colorB) || null;
     clearSwatchA.hidden = !swatchImages.colorA;
@@ -2923,6 +3123,8 @@
     const rows = [
       { label: 'Color A', px: areaTotals.colorA, color: colorAInput.value, image: swatchImages.colorA, directional: swatchImages.colorA && directionalAInput.checked },
       { label: 'Color B', px: areaTotals.colorB, color: colorBInput.value, image: swatchImages.colorB, directional: swatchImages.colorB && directionalBInput.checked },
+      { label: 'Color C', px: areaTotals.colorC, color: colorCInput.value },
+      { label: 'Color D', px: areaTotals.colorD, color: colorDInput.value },
       { label: 'Sashing', px: areaTotals.sashing, color: sashingColorInput.value },
       { label: 'Border', px: areaTotals.border, color: borderColorInput.value }
     ];
@@ -2961,11 +3163,12 @@
     const generator = CUT_LIST_GENERATORS[patternSelect.value];
     if (generator) {
       const totalBlocks = parseInt(blocksAcross, 10) * parseInt(blocksDown, 10);
-      const colorLabel = { colorA: 'Color A', colorB: 'Color B' };
+      const printUse4Color = isPro() && FOUR_COLOR_PATTERNS.has(patternSelect.value) && use4ColorInput.checked;
+      const colorLabel = { colorA: 'Color A', colorB: 'Color B', colorC: 'Color C', colorD: 'Color D' };
       const headerRow = document.createElement('tr');
       headerRow.innerHTML = '<th colspan="4">Cut list</th>';
       cutListTable.insertBefore(headerRow, cutListTable.firstChild);
-      const rows = generator(blockSizeInches);
+      const rows = generator(blockSizeInches, printUse4Color, parseInt(blocksAcross, 10), parseInt(blocksDown, 10));
       rows.forEach(row => {
         const totalQty = row.qtyPerBlock * totalBlocks;
         const tr = document.createElement('tr');
@@ -2984,7 +3187,8 @@
     }
 
     const piecingSection = printSheet.querySelector('.piecing-section-print');
-    const piecingSteps = ASSEMBLY_STEPS[patternSelect.value];
+    const printUse4ColorSteps = isPro() && FOUR_COLOR_PATTERNS.has(patternSelect.value) && use4ColorInput.checked;
+    const piecingSteps = printUse4ColorSteps && ASSEMBLY_STEPS_4COLOR[patternSelect.value] ? ASSEMBLY_STEPS_4COLOR[patternSelect.value] : ASSEMBLY_STEPS[patternSelect.value];
     if (piecingSteps) {
       const ol = piecingSection.querySelector('ol');
       piecingSteps.forEach(step => {
@@ -3025,6 +3229,7 @@
     brokendishes: 'Confident Beginner',
     squareinsquare: 'Confident Beginner',
     doublefourpatch: 'Confident Beginner',
+    irishchain: 'Confident Beginner',
     hourglass: 'Confident Beginner',
     ohiostar: 'Intermediate',
     flyinggeese: 'Intermediate',
@@ -3065,6 +3270,7 @@
     }
 
     [proFeatureTargetSize, proFeatureColors, proFeatureDesigns, proFeatureBacking, proFeatureCutList, proFeatureRoomPreview].forEach(el => setFeatureLock(el, !pro));
+    updateFourColorAvailability();
     updatePatternOptionLabels();
     printSheetBtn.textContent = pro ? 'Download pattern sheet' : 'Download pattern sheet 🔒';
 
