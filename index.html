@@ -98,19 +98,17 @@
   }
 
   legend {
+    display: block;
     font-family: 'Bitter', serif;
     font-weight: 700;
-    font-size: 14px;
-    letter-spacing: 0.03em;
+    font-size: 13px;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--navy);
-    margin-bottom: 10px;
-    padding: 0;
-  }
-
-  legend::before {
-    content: '— ';
     color: var(--gold);
+    margin-bottom: 12px;
+    padding: 0 0 6px;
+    width: 100%;
+    border-bottom: 1px solid rgba(201, 162, 39, 0.35);
   }
 
   label {
@@ -181,6 +179,95 @@
   }
   .swatch-clear-btn:hover { border-color: var(--navy); }
 
+  .tool-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    background: #fff;
+    border: 1px solid #cfc6b3;
+    border-radius: 4px;
+    padding: 9px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'Work Sans', sans-serif;
+    color: var(--navy);
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(42, 40, 37, 0.08);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.05s ease;
+  }
+  .tool-btn:hover:not(:disabled) {
+    border-color: var(--navy);
+    box-shadow: 0 2px 6px rgba(42, 40, 37, 0.12);
+  }
+  .tool-btn:active:not(:disabled) { transform: translateY(1px); box-shadow: 0 1px 2px rgba(42, 40, 37, 0.1); }
+  .tool-btn:disabled {
+    color: #b8b0a0;
+    background: #f4f0e8;
+    cursor: default;
+    box-shadow: none;
+  }
+
+  .icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    color: #fff;
+    box-shadow: 0 1px 3px rgba(42, 40, 37, 0.15);
+    transition: transform 0.1s ease, box-shadow 0.15s ease;
+  }
+  .icon-btn:hover { transform: translateY(-1px); box-shadow: 0 3px 8px rgba(42, 40, 37, 0.2); }
+  .icon-btn:active { transform: translateY(0); box-shadow: 0 1px 3px rgba(42, 40, 37, 0.15); }
+  .icon-btn-pinterest { background: #E60023; }
+  .icon-btn-facebook { background: #1877F2; font-weight: 700; font-family: Georgia, serif; font-style: italic; font-size: 18px; }
+
+  .fabric-swatch-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .fabric-swatch-well {
+    position: relative;
+    height: 56px;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid #cfc6b3;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+  .fabric-swatch-well::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.16) 0px, rgba(255,255,255,0.16) 2px, transparent 2px, transparent 7px);
+    pointer-events: none;
+  }
+  .fabric-swatch-well input[type="color"] {
+    width: 100%;
+    height: 100%;
+    border: none;
+    padding: 0;
+    display: block;
+  }
+  .fabric-swatch-well input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+  .fabric-swatch-well input[type="color"]::-webkit-color-swatch { border: none; }
+  .fabric-swatch-well input[type="color"]::-moz-color-swatch { border: none; }
+
+  .fabric-swatch-label {
+    text-align: center;
+    font-size: 11px;
+    color: var(--stitch);
+    margin: 6px 0 0;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
   .swatch-hint {
     font-size: 10px;
     color: var(--stitch);
@@ -235,6 +322,9 @@
     display: block;
     margin: 0 auto;
     transition: opacity 0.12s ease;
+    border: 6px solid var(--navy);
+    border-radius: 4px;
+    box-shadow: 0 3px 12px rgba(42, 40, 37, 0.15);
   }
 
   button#downloadBtn {
@@ -506,8 +596,8 @@
   <div class="panel controls-panel">
 
     <div style="display:flex; gap:8px; margin-bottom:14px;">
-      <button type="button" id="undoBtn" class="swatch-clear-btn" style="margin-top:0; flex:1;" disabled>↶ Undo</button>
-      <button type="button" id="redoBtn" class="swatch-clear-btn" style="margin-top:0; flex:1;" disabled>↷ Redo</button>
+      <button type="button" id="undoBtn" class="tool-btn" style="flex:1;" disabled>↶ Undo</button>
+      <button type="button" id="redoBtn" class="tool-btn" style="flex:1;" disabled>↷ Redo</button>
     </div>
 
     <fieldset>
@@ -636,29 +726,29 @@
       <div class="pro-lock-banner">🔒 Choosing your own colors is part of Quilt Designer Pro. Free designs use the default Navy &amp; Cream palette.</div>
       <legend>Fabric Colors</legend>
       <div class="palette-grid" id="presetContainer"></div>
-      <div class="field-row" style="margin-top:14px;">
-        <div>
-          <label for="colorAInput">Color A</label>
-          <input type="color" id="colorAInput" value="#1F3A5F">
+      <div class="fabric-swatch-grid" style="margin-top:14px;">
+        <div class="fabric-swatch">
+          <div class="fabric-swatch-well"><input type="color" id="colorAInput" value="#1F3A5F"></div>
+          <label for="colorAInput" class="fabric-swatch-label">Color A</label>
         </div>
-        <div>
-          <label for="colorBInput">Color B</label>
-          <input type="color" id="colorBInput" value="#F0E6D2">
+        <div class="fabric-swatch">
+          <div class="fabric-swatch-well"><input type="color" id="colorBInput" value="#F0E6D2"></div>
+          <label for="colorBInput" class="fabric-swatch-label">Color B</label>
         </div>
       </div>
 
       <div class="checkbox-row" style="margin-top:12px;">
         <input type="checkbox" id="use4ColorInput" disabled>
-        <label for="use4ColorInput" style="margin:0; font-size:12px;">Use 4 colors (available on Nine Patch, Log Cabin, Pinwheel, Ohio Star, Shoo Fly, Churn Dash, Friendship Star, and Courthouse Steps)</label>
+        <label for="use4ColorInput" style="margin:0; font-size:12px;">Use 4 colors (available on Nine Patch, Log Cabin, Pinwheel, Ohio Star, Shoo Fly, Churn Dash, Friendship Star, Courthouse Steps, Four Patch, Hourglass, Broken Dishes, and Bear's Paw)</label>
       </div>
-      <div class="field-row" id="colorCDRow" style="margin-top:10px; display:none;">
-        <div>
-          <label for="colorCInput">Color C</label>
-          <input type="color" id="colorCInput" value="#A8461E">
+      <div class="fabric-swatch-grid" id="colorCDRow" style="margin-top:12px; display:none;">
+        <div class="fabric-swatch">
+          <div class="fabric-swatch-well"><input type="color" id="colorCInput" value="#A8461E"></div>
+          <label for="colorCInput" class="fabric-swatch-label">Color C</label>
         </div>
-        <div>
-          <label for="colorDInput">Color D</label>
-          <input type="color" id="colorDInput" value="#7C8B6F">
+        <div class="fabric-swatch">
+          <div class="fabric-swatch-well"><input type="color" id="colorDInput" value="#7C8B6F"></div>
+          <label for="colorDInput" class="fabric-swatch-label">Color D</label>
         </div>
       </div>
 
@@ -729,12 +819,12 @@
     <svg id="quilt-canvas"></svg>
     <button id="downloadBtn">Download design</button>
     <button id="printSheetBtn">Download pattern sheet 🔒</button>
-    <div style="margin-top:12px;">
-      <button id="shareDesignBtn" class="swatch-clear-btn" style="margin-top:0;">Share design</button>
-      <button id="pinterestBtn" class="swatch-clear-btn" style="margin-top:0;">📌 Pin on Pinterest</button>
-      <button id="facebookBtn" class="swatch-clear-btn" style="margin-top:0;">Share on Facebook</button>
-      <span class="swatch-hint" id="shareStatusNote"></span>
+    <div style="display:flex; align-items:center; justify-content:center; gap:10px; margin-top:12px; flex-wrap:wrap;">
+      <button id="shareDesignBtn" class="tool-btn">Share design</button>
+      <button id="pinterestBtn" class="icon-btn icon-btn-pinterest" aria-label="Pin on Pinterest" title="Pin on Pinterest">📌</button>
+      <button id="facebookBtn" class="icon-btn icon-btn-facebook" aria-label="Share on Facebook" title="Share on Facebook">f</button>
     </div>
+    <span class="swatch-hint" id="shareStatusNote" style="display:block; text-align:center; margin-top:6px;"></span>
     <div id="yardageResults"></div>
     <div id="backingResults"></div>
     <div class="pro-feature" id="proFeatureCutList">
@@ -1135,7 +1225,7 @@
   // Patterns whose color logic has a dedicated, natural 4-color variant. All other
   // patterns simply ignore the extra colorC/colorD/use4Color arguments (JS silently
   // drops unused function parameters), so they're unaffected either way.
-  const FOUR_COLOR_PATTERNS = new Set(['ninepatch', 'logcabin', 'pinwheel', 'ohiostar', 'shoofly', 'churndash', 'friendshipstar', 'courthousesteps']);
+  const FOUR_COLOR_PATTERNS = new Set(['ninepatch', 'logcabin', 'pinwheel', 'ohiostar', 'shoofly', 'churndash', 'friendshipstar', 'courthousesteps', 'fourpatch', 'hourglass', 'brokendishes', 'bearspaw']);
   const presetContainer = document.getElementById('presetContainer');
   const swatchAInput = document.getElementById('swatchAInput');
   const swatchBInput = document.getElementById('swatchBInput');
@@ -1438,19 +1528,22 @@
   // Simplified interpretation: a solid center pad, plain squares on each edge, and a
   // "claw" of 3 small half-square-triangle cells in each corner. One edge unit and one
   // corner unit are drawn once, then rotated 3 times each around the block center.
-  function drawBearsPawBlock(group, offsetX, offsetY, colorA, colorB) {
+  function drawBearsPawBlock(group, offsetX, offsetY, colorA, colorB, colorC, colorD, use4Color) {
     const unit = blockSize / 3;
     const sub = unit / 2;
     const cx = offsetX + blockSize / 2;
     const cy = offsetY + blockSize / 2;
 
-    addRect(group, offsetX + unit, offsetY + unit, unit, unit, colorA, 'colorA');
+    const centerColor = use4Color ? colorC : colorA, centerRole = use4Color ? 'colorC' : 'colorA';
+    const edgeColor = use4Color ? colorD : colorB, edgeRole = use4Color ? 'colorD' : 'colorB';
+
+    addRect(group, offsetX + unit, offsetY + unit, unit, unit, centerColor, centerRole);
 
     for (let i = 0; i < 4; i++) {
       const g = document.createElementNS(SVG_NS, 'g');
       g.setAttribute('transform', `rotate(${90 * i} ${cx} ${cy})`);
       group.appendChild(g);
-      addRect(g, offsetX + unit, offsetY, unit, unit, colorB, 'colorB');
+      addRect(g, offsetX + unit, offsetY, unit, unit, edgeColor, edgeRole);
     }
 
     const claws = [[0, 0], [sub, 0], [0, sub]];
@@ -1649,12 +1742,16 @@
   // Four half-square-triangle units in a static 2x2 grid, all sharing the same
   // diagonal orientation (unlike Pinwheel's rotated version) — creates parallel
   // diagonal stripes across the block instead of a spinning look.
-  function drawBrokenDishesBlock(group, offsetX, offsetY, colorA, colorB) {
+  function drawBrokenDishesBlock(group, offsetX, offsetY, colorA, colorB, colorC, colorD, use4Color) {
     const half = blockSize / 2;
-    [[0, 0], [1, 0], [0, 1], [1, 1]].forEach(([qx, qy]) => {
+    const colorPairs = [[colorA, colorB], [colorB, colorC], [colorC, colorD], [colorD, colorA]];
+    const rolePairs = [['colorA', 'colorB'], ['colorB', 'colorC'], ['colorC', 'colorD'], ['colorD', 'colorA']];
+    [[0, 0], [1, 0], [0, 1], [1, 1]].forEach(([qx, qy], i) => {
       const x = offsetX + qx * half, y = offsetY + qy * half;
-      addPolygon(group, [[x, y], [x + half, y], [x, y + half]], colorA, 'colorA');
-      addPolygon(group, [[x + half, y], [x + half, y + half], [x, y + half]], colorB, 'colorB');
+      const [cA, cB] = use4Color ? colorPairs[i] : [colorA, colorB];
+      const [rA, rB] = use4Color ? rolePairs[i] : ['colorA', 'colorB'];
+      addPolygon(group, [[x, y], [x + half, y], [x, y + half]], cA, rA);
+      addPolygon(group, [[x + half, y], [x + half, y + half], [x, y + half]], cB, rB);
     });
   }
 
@@ -1748,25 +1845,29 @@
 
   // The simplest possible multi-color block: four equal squares in a 2x2 grid,
   // alternating diagonally.
-  function drawFourPatchBlock(group, offsetX, offsetY, colorA, colorB) {
+  function drawFourPatchBlock(group, offsetX, offsetY, colorA, colorB, colorC, colorD, use4Color) {
     const half = blockSize / 2;
+    const blColor = use4Color ? colorC : colorB, blRole = use4Color ? 'colorC' : 'colorB';
+    const brColor = use4Color ? colorD : colorA, brRole = use4Color ? 'colorD' : 'colorA';
     addRect(group, offsetX, offsetY, half, half, colorA, 'colorA');
     addRect(group, offsetX + half, offsetY, half, half, colorB, 'colorB');
-    addRect(group, offsetX, offsetY + half, half, half, colorB, 'colorB');
-    addRect(group, offsetX + half, offsetY + half, half, half, colorA, 'colorA');
+    addRect(group, offsetX, offsetY + half, half, half, blColor, blRole);
+    addRect(group, offsetX + half, offsetY + half, half, half, brColor, brRole);
   }
 
   // Four triangles meeting at the exact center of the block, formed by both
   // diagonals — the classic "quarter-square triangle" construction, distinct from
   // a half-square-triangle since the right angle sits at the block's center rather
   // than at a corner.
-  function drawHourglassBlock(group, offsetX, offsetY, colorA, colorB) {
+  function drawHourglassBlock(group, offsetX, offsetY, colorA, colorB, colorC, colorD, use4Color) {
     const x = offsetX, y = offsetY, s = blockSize;
     const cx = x + s / 2, cy = y + s / 2;
+    const bottomColor = use4Color ? colorC : colorA, bottomRole = use4Color ? 'colorC' : 'colorA';
+    const leftColor = use4Color ? colorD : colorB, leftRole = use4Color ? 'colorD' : 'colorB';
     addPolygon(group, [[x, y], [x + s, y], [cx, cy]], colorA, 'colorA');
     addPolygon(group, [[x + s, y], [x + s, y + s], [cx, cy]], colorB, 'colorB');
-    addPolygon(group, [[x + s, y + s], [x, y + s], [cx, cy]], colorA, 'colorA');
-    addPolygon(group, [[x, y + s], [x, y], [cx, cy]], colorB, 'colorB');
+    addPolygon(group, [[x + s, y + s], [x, y + s], [cx, cy]], bottomColor, bottomRole);
+    addPolygon(group, [[x, y + s], [x, y], [cx, cy]], leftColor, leftRole);
   }
 
   // A 3x3 grid where the four corners and the center are each a full mini Nine
@@ -2099,20 +2200,22 @@
       ];
     },
 
-    bearspaw(blockSizeInches) {
+    bearspaw(blockSizeInches, use4Color) {
       const toIn = (px) => px / CUT_LIST_DESIGN_BLOCK * blockSizeInches;
       const unitFinished = toIn(blockSize / 3);
       const subFinished = unitFinished / 2;
       const plainCut = unitFinished + 0.5;
       const subPlainCut = subFinished + 0.5;
       const subHstCut = subFinished + 0.875;
+      const centerColor = use4Color ? 'colorC' : 'colorA';
+      const edgeColor = use4Color ? 'colorD' : 'colorB';
       return [
-        { piece: 'Center square', color: 'colorA', cutW: plainCut, cutH: plainCut, qtyPerBlock: 1 },
-        { piece: 'Edge square', color: 'colorB', cutW: plainCut, cutH: plainCut, qtyPerBlock: 4 },
+        { piece: 'Center square', color: centerColor, cutW: plainCut, cutH: plainCut, qtyPerBlock: 1 },
+        { piece: 'Edge square', color: edgeColor, cutW: plainCut, cutH: plainCut, qtyPerBlock: 4 },
         { piece: 'Claw corner square', color: 'colorB', cutW: subPlainCut, cutH: subPlainCut, qtyPerBlock: 4 },
         {
           piece: 'Claw HST square (before cutting)', color: 'colorA', cutW: subHstCut, cutH: subHstCut, qtyPerBlock: 6,
-          note: 'Layer each Color A square with a Color B square of the same size, mark one diagonal, sew 1/4" on both sides of the line, cut apart on the line — each pair makes 2 half-square-triangle units. This block needs 12 claw units total (3 per corner).'
+          note: 'Layer each Color A square with a Color B square of the same size, mark one diagonal, sew 1/4" on both sides of the line, cut apart on the line — each pair makes 2 half-square-triangle units. This block needs 12 claw units total (3 per corner). Claws always stay Color A/Color B, even in 4-color mode.'
         },
         { piece: 'Claw HST square (before cutting)', color: 'colorB', cutW: subHstCut, cutH: subHstCut, qtyPerBlock: 6 }
       ];
@@ -2206,10 +2309,23 @@
       ];
     },
 
-    brokendishes(blockSizeInches) {
+    brokendishes(blockSizeInches, use4Color) {
       const toIn = (px) => px / CUT_LIST_DESIGN_BLOCK * blockSizeInches;
       const finishedHst = toIn(blockSize / 2);
       const cutSquare = finishedHst + 0.875;
+      if (use4Color) {
+        const spareNote = 'Layer these two squares, right sides together. Mark one diagonal, sew 1/4" from the line on both sides, then cut apart on the marked line — this makes 2 half-square-triangle units, but this quadrant only needs 1. Save the spare to combine with another spare later, or use it in a different project.';
+        return [
+          { piece: 'HST square, quadrant 1 (before cutting)', color: 'colorA', cutW: cutSquare, cutH: cutSquare, qtyPerBlock: 1, note: spareNote },
+          { piece: 'HST square, quadrant 1 (before cutting)', color: 'colorB', cutW: cutSquare, cutH: cutSquare, qtyPerBlock: 1 },
+          { piece: 'HST square, quadrant 2 (before cutting)', color: 'colorB', cutW: cutSquare, cutH: cutSquare, qtyPerBlock: 1 },
+          { piece: 'HST square, quadrant 2 (before cutting)', color: 'colorC', cutW: cutSquare, cutH: cutSquare, qtyPerBlock: 1 },
+          { piece: 'HST square, quadrant 3 (before cutting)', color: 'colorC', cutW: cutSquare, cutH: cutSquare, qtyPerBlock: 1 },
+          { piece: 'HST square, quadrant 3 (before cutting)', color: 'colorD', cutW: cutSquare, cutH: cutSquare, qtyPerBlock: 1 },
+          { piece: 'HST square, quadrant 4 (before cutting)', color: 'colorD', cutW: cutSquare, cutH: cutSquare, qtyPerBlock: 1 },
+          { piece: 'HST square, quadrant 4 (before cutting)', color: 'colorA', cutW: cutSquare, cutH: cutSquare, qtyPerBlock: 1 }
+        ];
+      }
       return [
         {
           piece: 'HST square (before cutting)', color: 'colorA', cutW: cutSquare, cutH: cutSquare, qtyPerBlock: 2,
@@ -2287,20 +2403,36 @@
       ];
     },
 
-    fourpatch(blockSizeInches) {
+    fourpatch(blockSizeInches, use4Color) {
       const toIn = (px) => px / CUT_LIST_DESIGN_BLOCK * blockSizeInches;
       const finishedHalf = toIn(blockSize / 2);
       const cut = finishedHalf + 0.5;
+      if (use4Color) {
+        return [
+          { piece: 'Square (top-left)', color: 'colorA', cutW: cut, cutH: cut, qtyPerBlock: 1 },
+          { piece: 'Square (top-right)', color: 'colorB', cutW: cut, cutH: cut, qtyPerBlock: 1 },
+          { piece: 'Square (bottom-left)', color: 'colorC', cutW: cut, cutH: cut, qtyPerBlock: 1 },
+          { piece: 'Square (bottom-right)', color: 'colorD', cutW: cut, cutH: cut, qtyPerBlock: 1 }
+        ];
+      }
       return [
         { piece: 'Square', color: 'colorA', cutW: cut, cutH: cut, qtyPerBlock: 2 },
         { piece: 'Square', color: 'colorB', cutW: cut, cutH: cut, qtyPerBlock: 2 }
       ];
     },
 
-    hourglass(blockSizeInches) {
+    hourglass(blockSizeInches, use4Color) {
       const wideFinished = blockSizeInches;
       const narrowFinished = blockSizeInches / 2;
       const trimNote = 'This piece is oversized on purpose. Cut it to this size, then trim to the triangle shape shown in the block diagram (a triangle with its point at the block\'s center), leaving at least 1/4" of fabric beyond each finished edge for the seam allowance.';
+      if (use4Color) {
+        return [
+          { piece: 'Top triangle (cut oversized, trim to shape)', color: 'colorA', cutW: wideFinished + 1, cutH: narrowFinished + 1, qtyPerBlock: 1, note: trimNote },
+          { piece: 'Right triangle (cut oversized, trim to shape)', color: 'colorB', cutW: narrowFinished + 1, cutH: wideFinished + 1, qtyPerBlock: 1 },
+          { piece: 'Bottom triangle (cut oversized, trim to shape)', color: 'colorC', cutW: wideFinished + 1, cutH: narrowFinished + 1, qtyPerBlock: 1 },
+          { piece: 'Left triangle (cut oversized, trim to shape)', color: 'colorD', cutW: narrowFinished + 1, cutH: wideFinished + 1, qtyPerBlock: 1 }
+        ];
+      }
       return [
         { piece: 'Top/bottom triangle (cut oversized, trim to shape)', color: 'colorA', cutW: wideFinished + 1, cutH: narrowFinished + 1, qtyPerBlock: 2, note: trimNote },
         { piece: 'Left/right triangle (cut oversized, trim to shape)', color: 'colorB', cutW: narrowFinished + 1, cutH: wideFinished + 1, qtyPerBlock: 2 }
@@ -2564,6 +2696,28 @@
       'Sew a Round 1 Color D strip to the left edge. Press away from the center.',
       'Sew a Round 1 Color A strip to the right edge. Press away from the center.',
       'Repeat this same top (Color B) → bottom (Color C) → left (Color D) → right (Color A) order for Rounds 2, 3, and 4, always sewing directly onto the growing block and pressing each new strip away from the center before adding the next one.'
+    ],
+    fourpatch: [
+      'Arrange your 4 squares in a 2x2 grid: Color A top-left, Color B top-right, Color C bottom-left, Color D bottom-right.',
+      'Sew the top 2 squares together, and the bottom 2 squares together. Press the two seams in opposite directions so they nest.',
+      'Sew the top and bottom rows together to complete the block.'
+    ],
+    hourglass: [
+      'Cut and trim your 4 triangles, following the cut list instructions above: Color A (top), Color B (right), Color C (bottom), Color D (left).',
+      'Sew the top triangle to the left triangle along one angled edge, then sew the bottom triangle to the right triangle along one angled edge, to make two half-block units.',
+      'Sew the two half-block units together down the remaining diagonal seam, carefully matching the point where all four triangles meet at the center, to complete the block.'
+    ],
+    brokendishes: [
+      'Piece 4 half-square-triangle units, one per quadrant, using 4 different color pairs: quadrant 1 (top-left) uses Color A + Color B, quadrant 2 (top-right) uses Color B + Color C, quadrant 3 (bottom-left) uses Color C + Color D, and quadrant 4 (bottom-right) uses Color D + Color A. Each pair yields 2 units but this block only needs 1 from each — save the spares for another project.',
+      'Arrange the 4 HST units in a 2x2 grid in that same order, all facing the same direction (unlike Pinwheel, don\'t rotate them).',
+      'Sew the top 2 units together into a row, and the bottom 2 units together into a row. Press the two rows\' seams in opposite directions so they nest.',
+      'Sew the top and bottom rows together to complete the block.'
+    ],
+    bearspaw: [
+      'Piece the 12 half-square-triangle units needed for the four "claws" first, following the cut list instructions above (these stay Color A/Color B regardless of 4-color mode).',
+      'Build each claw as a 2x2 grid: three HST units in the top-left, top-right, and bottom-left positions, and one plain Color B square in the bottom-right position. Sew into two rows of two, then sew those two rows together. Repeat for all 4 claws.',
+      'Lay out the full block in a 3x3 grid: a claw, a Color D edge square, and a claw across the top row; a Color D edge square, the Color C center square, and a Color D edge square in the middle row; a claw, a Color D edge square, and a claw across the bottom row.',
+      'Sew each row together, then sew the 3 rows together to complete the block.'
     ]
   };
 
@@ -2743,7 +2897,7 @@
     if (!available) {
       use4ColorInput.checked = false;
     }
-    colorCDRow.style.display = use4ColorInput.checked ? 'flex' : 'none';
+    colorCDRow.style.display = use4ColorInput.checked ? 'grid' : 'none';
   }
 
   patternSelect.addEventListener('change', () => {
@@ -2758,7 +2912,7 @@
   });
 
   use4ColorInput.addEventListener('change', () => {
-    colorCDRow.style.display = use4ColorInput.checked ? 'flex' : 'none';
+    colorCDRow.style.display = use4ColorInput.checked ? 'grid' : 'none';
     redraw();
   });
   colorCInput.addEventListener('input', redraw);
@@ -2961,7 +3115,7 @@
     colorDInput.value = state.colorD || colorDInput.value;
     updateFourColorAvailability();
     use4ColorInput.checked = !!state.use4Color && !use4ColorInput.disabled;
-    colorCDRow.style.display = use4ColorInput.checked ? 'flex' : 'none';
+    colorCDRow.style.display = use4ColorInput.checked ? 'grid' : 'none';
     swatchImages.colorA = (state.swatchImages && state.swatchImages.colorA) || null;
     swatchImages.colorB = (state.swatchImages && state.swatchImages.colorB) || null;
     clearSwatchA.hidden = !swatchImages.colorA;
