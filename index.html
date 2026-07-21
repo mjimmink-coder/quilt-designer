@@ -555,6 +555,25 @@
   button#unlockProBtn:hover { background: #b48f1e; }
   button#unlockProBtn:disabled { opacity: 0.6; cursor: default; }
 
+  .promo-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+  .promo-row input[type="text"] {
+    width: 140px;
+    padding: 6px 8px;
+    border: 1px solid #cfc6b3;
+    border-radius: 3px;
+    font-size: 12px;
+    font-family: 'Work Sans', sans-serif;
+  }
+  .promo-row .tool-btn { padding: 6px 12px; font-size: 12px; }
+  .promo-row .swatch-hint { margin: 0; flex-basis: 100%; text-align: center; }
+
   .pro-feature { position: relative; transition: opacity 0.15s ease; }
   .pro-feature.is-locked { opacity: 0.5; }
   .pro-lock-banner {
@@ -588,6 +607,12 @@
   <div class="pro-banner-inner" id="proBannerInner">
     <span class="pro-banner-text" id="proBannerText">🔒 Unlock Quilt Designer Pro — 23 block patterns, custom colors, cut lists & piecing steps, calculators, and more, $14.99 one time (not a subscription)</span>
     <button id="unlockProBtn">Unlock Pro</button>
+  </div>
+  <div class="promo-row" id="promoRow">
+    <label for="promoCodeInput" style="margin:0; font-size:11px;">Have a promo code?</label>
+    <input type="text" id="promoCodeInput" placeholder="Enter code" style="text-transform:uppercase;">
+    <button type="button" class="tool-btn" id="applyPromoBtn">Apply</button>
+    <span class="swatch-hint" id="promoStatusNote"></span>
   </div>
 </div>
 
@@ -853,15 +878,6 @@
         <span class="swatch-hint" id="roomCreditsNote" style="margin-top:0;"></span>
       </div>
       <span class="swatch-hint">AI-generated image — a realistic mockup, not a pixel-exact reproduction of your design.</span>
-
-      <div style="margin-top:14px;">
-        <label for="promoCodeInput">Have a promo code?</label>
-        <div class="field-row" style="align-items:center;">
-          <input type="text" id="promoCodeInput" placeholder="Enter code" style="text-transform:uppercase;">
-          <button type="button" class="swatch-clear-btn" id="applyPromoBtn" style="margin-top:0;">Apply</button>
-        </div>
-        <span class="swatch-hint" id="promoStatusNote"></span>
-      </div>
     </fieldset>
     <div style="text-align:center; margin-top:16px;">
       <div id="roomPreviewStatus" class="swatch-hint" style="display:none;"></div>
@@ -1123,10 +1139,6 @@
   }
 
   applyPromoBtn.addEventListener('click', async () => {
-    if (!isPro()) {
-      flashUnlockPrompt('Promo codes are part of Quilt Designer Pro.');
-      return;
-    }
     const code = promoCodeInput.value.trim().toUpperCase();
     if (!code) {
       promoStatusNote.textContent = 'Enter a code first.';
@@ -1158,7 +1170,14 @@
       redeemed.add(code);
       localStorage.setItem(REDEEMED_PROMOS_KEY, JSON.stringify(Array.from(redeemed)));
       setRoomCredits(getRoomCredits() + PROMO_CREDIT_BONUS);
-      promoStatusNote.textContent = `Success! ${PROMO_CREDIT_BONUS} preview credits added.`;
+
+      if (data.grantsFullAccess) {
+        localStorage.setItem(PRO_STORAGE_KEY, 'true');
+        updateProUI();
+        promoStatusNote.textContent = `Success! Quilt Designer Pro unlocked, plus ${PROMO_CREDIT_BONUS} preview credits added.`;
+      } else {
+        promoStatusNote.textContent = `Success! ${PROMO_CREDIT_BONUS} preview credits added.`;
+      }
       promoCodeInput.value = '';
     } catch (err) {
       console.error('Promo code error:', err);
