@@ -502,6 +502,16 @@
     margin-top: 4px;
   }
 
+  #printSheet .print-size-banner {
+    font-size: 12px;
+    color: #33472e;
+    background: #eef3e9;
+    border: 1px solid #7d9c6b;
+    border-radius: 4px;
+    padding: 8px 10px;
+    margin: 10px 0;
+  }
+
   #printSheet .piecing-section-print h3 {
     font-family: 'Bitter', serif;
     text-transform: uppercase;
@@ -587,6 +597,19 @@
     margin-bottom: 10px;
   }
   .pro-feature.is-locked .pro-lock-banner { display: block; }
+
+  .size-note-banner {
+    display: none;
+    font-size: 12px;
+    color: #33472e;
+    background: #eef3e9;
+    border: 1px solid #7d9c6b;
+    border-radius: 4px;
+    padding: 10px 12px;
+    margin-bottom: 14px;
+    text-align: left;
+  }
+  .size-note-banner a { color: #33472e; text-decoration: underline; font-weight: 600; }
 </style>
 </head>
 <body>
@@ -841,6 +864,7 @@
   </div>
 
   <div class="panel canvas-panel">
+    <div id="sizeMismatchBanner" class="size-note-banner"></div>
     <svg id="quilt-canvas"></svg>
     <button id="downloadBtn">Download design</button>
     <button id="printSheetBtn">Download pattern sheet 🔒</button>
@@ -1258,6 +1282,7 @@
   const targetHeightInput = document.getElementById('targetHeightInput');
   const fitBlocksBtn = document.getElementById('fitBlocksBtn');
   const actualSizeNote = document.getElementById('actualSizeNote');
+  const sizeMismatchBanner = document.getElementById('sizeMismatchBanner');
   const designNameInput = document.getElementById('designNameInput');
   const saveDesignBtn = document.getElementById('saveDesignBtn');
   const savedDesignsSelect = document.getElementById('savedDesignsSelect');
@@ -2740,7 +2765,7 @@
     ]
   };
 
-  function renderCutList(patternKey, blockSizeInches, blocksAcross, blocksDown, use4Color) {
+  function renderCutList(patternKey, blockSizeInches, blocksAcross, blocksDown, use4Color, sashingWidthPx, borderWidthPx) {
     if (!isPro()) {
       cutListResults.innerHTML = '';
       return;
@@ -2775,7 +2800,7 @@
       html += '<ol class="piecing-steps">';
       steps.forEach(step => { html += `<li>${step}</li>`; });
       html += '</ol>';
-      html += '<span class="cutlist-note">Steps describe one block. Repeat for every block in your quilt, then sew the finished blocks together with your sashing between them.</span>';
+      html += '<span class="cutlist-note">' + buildAssemblyClosingNote(blocksAcross, blocksDown, sashingWidthPx || 0, borderWidthPx || 0, blockSizeInches) + '</span>';
     }
 
     cutListResults.innerHTML = html;
@@ -2850,6 +2875,90 @@
     }
   });
 
+  // Compares the size someone asked for (via Target Quilt Size) against what the
+  // current block/sashing/border settings actually produce. Block counts are always
+  // whole numbers, so an exact match isn't guaranteed — this surfaces that gap
+  // wherever the design is shown, not just in the moment right after clicking "Fit
+  // blocks", since that context would otherwise be lost by the time someone
+  // downloads a pattern sheet later.
+  // Builds the closing note that follows every pattern's per-block piecing steps,
+  // explaining how to assemble the whole quilt top. Our sashing model wraps the full
+  // perimeter (sashing goes between AND around every block, like grout around
+  // tiles), not just between blocks — so the guidance here matches that exactly,
+  // with real computed strip counts rather than a generic one-line reminder.
+  function buildAssemblyClosingNote(blocksAcross, blocksDown, sashingWidthPx, borderWidthPx, blockSizeInches) {
+    const pixelsPerInch = blockSize / blockSizeInches;
+    const sashingIn = sashingWidthPx / pixelsPerInch;
+    const borderIn = borderWidthPx / pixelsPerInch;
+    const hasSashing = sashingWidthPx > 0;
+    const hasBorder = borderWidthPx > 0;
+
+    if (!hasSashing && !hasBorder) {
+      return 'Steps describe one block. Repeat for every block in your quilt, then sew the blocks directly edge to edge into rows, and sew the rows together, to complete the quilt top.';
+    }
+
+    let note = 'Steps describe one block. Repeat for every block in your quilt. ';
+
+    if (hasSashing) {
+      const verticalPiecesPerRow = blocksAcross + 1;
+      const totalVerticalPieces = verticalPiecesPerRow * blocksDown;
+      const horizontalStrips = blocksDown + 1;
+      const bodyWidthPx = blocksAcross * blockSize + (blocksAcross + 1) * sashingWidthPx;
+      const bodyWidthIn = (bodyWidthPx / pixelsPerInch).toFixed(1);
+      const sashingInStr = sashingIn.toFixed(1);
+
+      note += `Your sashing wraps around every block, not just between them, so assembly happens in two stages. First, build each row: alternate sashing strip, block, sashing strip, block, ... ending with a sashing strip — that's ${verticalPiecesPerRow} short sashing strips (${sashingInStr}" × ${blockSizeInches}") per row, ${totalVerticalPieces} total across all ${blocksDown} rows. Second, join the rows: cut ${horizontalStrips} full-width sashing strips (${sashingInStr}" × ${bodyWidthIn}"), then alternate sashing strip, block row, sashing strip, block row, ... starting and ending with a sashing strip. `;
+    } else {
+      note += 'Sew the blocks directly edge to edge into rows, then sew the rows together. ';
+    }
+
+    if (hasBorder) {
+      note += `Finally, sew ${borderIn.toFixed(1)}"-wide border strips to all 4 sides to complete the quilt top.`;
+    }
+
+    return note.trim();
+  }
+
+  function computeSizeMismatch() {
+    const targetWidthIn = parseFloat(targetWidthInput.value);
+    const targetHeightIn = parseFloat(targetHeightInput.value);
+    if (!targetWidthIn || !targetHeightIn) return null;
+
+    const blockSizeInches = parseFloat(blockSizeInchesInput.value) || 12;
+    const pixelsPerInch = blockSize / blockSizeInches;
+    const sashingWidthPx = parseInt(sashingWidthInput.value, 10) || 0;
+    const borderWidthPx = parseInt(borderWidthInput.value, 10) || 0;
+    const blocksAcross = parseInt(blocksAcrossInput.value, 10) || 1;
+    const blocksDown = parseInt(blocksDownInput.value, 10) || 1;
+
+    const actualBodyWidthPx = blocksAcross * blockSize + (blocksAcross + 1) * sashingWidthPx;
+    const actualBodyHeightPx = blocksDown * blockSize + (blocksDown + 1) * sashingWidthPx;
+    const actualWidthIn = (actualBodyWidthPx + 2 * borderWidthPx) / pixelsPerInch;
+    const actualHeightIn = (actualBodyHeightPx + 2 * borderWidthPx) / pixelsPerInch;
+
+    const TOLERANCE_IN = 0.15;
+    if (Math.abs(actualWidthIn - targetWidthIn) < TOLERANCE_IN && Math.abs(actualHeightIn - targetHeightIn) < TOLERANCE_IN) {
+      return null;
+    }
+
+    return {
+      targetWidthIn, targetHeightIn,
+      actualWidthIn: Math.round(actualWidthIn * 10) / 10,
+      actualHeightIn: Math.round(actualHeightIn * 10) / 10
+    };
+  }
+
+  function updateSizeMismatchBanner() {
+    const mismatch = computeSizeMismatch();
+    if (!mismatch) {
+      sizeMismatchBanner.style.display = 'none';
+      sizeMismatchBanner.innerHTML = '';
+      return;
+    }
+    sizeMismatchBanner.style.display = 'block';
+    sizeMismatchBanner.innerHTML = `<strong>Heads up:</strong> your finished quilt will be ${mismatch.actualWidthIn}" × ${mismatch.actualHeightIn}" — not the ${mismatch.targetWidthIn}" × ${mismatch.targetHeightIn}" you originally asked for. Block counts have to be whole numbers, so this is the closest exact fit. All the yardage and cut list below are for the actual ${mismatch.actualWidthIn}" × ${mismatch.actualHeightIn}" size.`;
+  }
+
   function redraw() {
     areaTotals = { colorA: 0, colorB: 0, colorC: 0, colorD: 0, sashing: 0, border: 0 };
 
@@ -2898,8 +3007,9 @@
     drawQuilt(blockDrawFn, blocksAcross, blocksDown, sashingWidth, sashingColor, borderWidth, borderColor, colorA, colorB, alternateRotation, colorC, colorD, use4Color, alternateBlockDrawFn);
     updateYardage(blockSizeInches);
     updateBackingYardage(blockSizeInches, blocksAcross, blocksDown, sashingWidth, borderWidth);
-    renderCutList(patternSelect.value, blockSizeInches, blocksAcross, blocksDown, use4Color);
+    renderCutList(patternSelect.value, blockSizeInches, blocksAcross, blocksDown, use4Color, sashingWidth, borderWidth);
     updateActivePreset();
+    updateSizeMismatchBanner();
     pushHistoryIfChanged();
   }
 
@@ -3111,6 +3221,8 @@
       colorC: colorCInput.value,
       colorD: colorDInput.value,
       use4Color: use4ColorInput.checked,
+      targetWidth: targetWidthInput.value,
+      targetHeight: targetHeightInput.value,
       swatchImages: { colorA: swatchImages.colorA, colorB: swatchImages.colorB },
       directionalA: directionalAInput.checked,
       directionalB: directionalBInput.checked,
@@ -3135,6 +3247,8 @@
     updateFourColorAvailability();
     use4ColorInput.checked = !!state.use4Color && !use4ColorInput.disabled;
     colorCDRow.style.display = use4ColorInput.checked ? 'grid' : 'none';
+    targetWidthInput.value = state.targetWidth || '';
+    targetHeightInput.value = state.targetHeight || '';
     swatchImages.colorA = (state.swatchImages && state.swatchImages.colorA) || null;
     swatchImages.colorB = (state.swatchImages && state.swatchImages.colorB) || null;
     clearSwatchA.hidden = !swatchImages.colorA;
@@ -3316,6 +3430,7 @@
     printSheet.innerHTML = `
       <h2>${designName}</h2>
       <div class="print-meta">Quilt Designer pattern sheet — generated ${dateStr}</div>
+      <div class="print-size-banner" style="display:none;"></div>
       <div class="print-image"></div>
       <table>
         <tr><th colspan="2">Design specs</th></tr>
@@ -3339,12 +3454,19 @@
       <div class="piecing-section-print">
         <h3>How to piece this block</h3>
         <ol></ol>
-        <p class="print-note">Steps describe one block. Repeat for every block in your quilt, then sew the finished blocks together with your sashing between them.</p>
+        <p class="print-note assembly-closing-note"></p>
       </div>
       <div class="print-note">Yardage is based on 42" usable fabric width with no waste margin, and does not include seam allowance — add your standard seam allowance (typically 1/4") when cutting each piece.</div>
     `;
 
     printSheet.querySelector('.print-image').appendChild(svgClone);
+
+    const printMismatch = computeSizeMismatch();
+    if (printMismatch) {
+      const banner = printSheet.querySelector('.print-size-banner');
+      banner.style.display = 'block';
+      banner.innerHTML = `<strong>Heads up:</strong> this quilt finishes at ${printMismatch.actualWidthIn}" × ${printMismatch.actualHeightIn}" — not the ${printMismatch.targetWidthIn}" × ${printMismatch.targetHeightIn}" originally requested. Block counts must be whole numbers, so this is the closest exact fit. Everything below reflects the actual ${printMismatch.actualWidthIn}" × ${printMismatch.actualHeightIn}" size.`;
+    }
 
     // Rebuild the yardage rows directly (rather than reusing the live yardageResults
     // markup) so swatch-photo backgrounds and directional-print notes still render
@@ -3428,6 +3550,13 @@
         li.textContent = step;
         ol.appendChild(li);
       });
+
+      const printSashingPx = parseInt(sashingWidthInput.value, 10) || 0;
+      const printBorderPx = parseInt(borderWidthInput.value, 10) || 0;
+      const printBlocksAcross = parseInt(blocksAcrossInput.value, 10) || 1;
+      const printBlocksDown = parseInt(blocksDownInput.value, 10) || 1;
+      const closingNote = buildAssemblyClosingNote(printBlocksAcross, printBlocksDown, printSashingPx, printBorderPx, blockSizeInches);
+      piecingSection.querySelector('.assembly-closing-note').textContent = closingNote;
     } else {
       piecingSection.style.display = 'none';
     }
