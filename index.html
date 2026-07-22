@@ -876,6 +876,7 @@
     <span class="swatch-hint" id="shareStatusNote" style="display:block; text-align:center; margin-top:6px;"></span>
     <div id="yardageResults"></div>
     <div id="backingResults"></div>
+    <div id="otherMaterialsResults"></div>
     <div class="pro-feature" id="proFeatureCutList">
       <div class="pro-lock-banner">🔒 The piece-by-piece cut list is part of Quilt Designer Pro.</div>
       <div id="cutListResults"></div>
@@ -920,6 +921,7 @@
   const svg = document.getElementById('quilt-canvas');
   const yardageResults = document.getElementById('yardageResults');
   const backingResults = document.getElementById('backingResults');
+  const otherMaterialsResults = document.getElementById('otherMaterialsResults');
   const undoBtn = document.getElementById('undoBtn');
   const redoBtn = document.getElementById('redoBtn');
   let undoStack = [];
@@ -2080,6 +2082,65 @@
     return { finishedWidthIn, finishedHeightIn, backingWidthIn, backingHeightIn, panelsNeeded, yards };
   }
 
+  // Batting and binding both build directly on the backing calculator's already-
+  // computed finished quilt size and backing piece size, rather than recomputing
+  // dimensions independently — batting should match the backing piece, and binding
+  // wraps the actual finished quilt-top perimeter (not the backing, which is larger).
+  function computeOtherMaterials(backingInfo) {
+    const { finishedWidthIn, finishedHeightIn, backingWidthIn, backingHeightIn } = backingInfo;
+
+    // Batting: needs to be at least as large as the backing piece. Off-the-roll
+    // batting is typically sold at a fixed width (commonly 90"+) and cut to any
+    // length, so orient the smaller quilt dimension across the roll's width.
+    const BATTING_ROLL_WIDTH_IN = 90;
+    const battingSmallerDim = Math.min(backingWidthIn, backingHeightIn);
+    const battingLargerDim = Math.max(backingWidthIn, backingHeightIn);
+    const battingFitsSingleWidth = battingSmallerDim <= BATTING_ROLL_WIDTH_IN;
+    const battingYardsOffRoll = Math.ceil((battingLargerDim / 36) * 4) / 4;
+
+    // Binding: standard double-fold binding, 2.5"-wide strips cut across the fabric
+    // width, pieced end-to-end. The perimeter uses the finished quilt-top size (not
+    // the backing, which includes overhang that gets trimmed away before binding).
+    const BINDING_STRIP_WIDTH_IN = 2.5;
+    const BINDING_BUFFER_IN = 15; // covers 4 mitered corners, the diagonal joining seams, and folding under the starting end
+    const perimeterIn = 2 * (finishedWidthIn + finishedHeightIn);
+    const bindingNeededIn = perimeterIn + BINDING_BUFFER_IN;
+    const stripsNeeded = Math.max(1, Math.ceil(bindingNeededIn / FABRIC_USABLE_WIDTH_IN));
+    const bindingYieldedIn = stripsNeeded * FABRIC_USABLE_WIDTH_IN;
+    const bindingYardsRaw = (stripsNeeded * BINDING_STRIP_WIDTH_IN) / 36;
+    const bindingYards = Math.ceil(bindingYardsRaw * 4) / 4;
+
+    return {
+      backingWidthIn, backingHeightIn, battingFitsSingleWidth, battingYardsOffRoll,
+      perimeterIn, stripsNeeded, bindingYieldedIn, bindingYards, BINDING_STRIP_WIDTH_IN
+    };
+  }
+
+  function updateOtherMaterials(backingInfo) {
+    if (!isPro()) {
+      otherMaterialsResults.innerHTML = '<span class="yardage-title">Other materials you\'ll need</span><span class="yardage-note">🔒 Unlock Quilt Designer Pro to see batting, binding, and thread requirements.</span>';
+      return;
+    }
+
+    const m = computeOtherMaterials(backingInfo);
+    let html = '<span class="yardage-title">Other materials you\'ll need</span>';
+
+    html += `<div class="yardage-row"><span>Batting (size needed)</span><span>${m.backingWidthIn.toFixed(1)}" × ${m.backingHeightIn.toFixed(1)}"</span></div>`;
+    if (m.battingFitsSingleWidth) {
+      html += `<span class="yardage-note">Grab a pre-cut package at least this size, or buy about ${m.battingYardsOffRoll.toFixed(2)} yd off a wide roll (90"+ wide).</span>`;
+    } else {
+      html += `<span class="yardage-note">This is larger than standard 90" batting rolls in both directions — you'll likely need to piece two batting widths together (same idea as backing fabric), or look for an extra-wide roll (108"+) at your fabric store.</span>`;
+    }
+
+    html += `<div class="yardage-row" style="margin-top:10px;"><span>Binding fabric</span><span>${m.bindingYards.toFixed(2)} yd</span></div>`;
+    html += `<span class="yardage-note">Cut ${m.stripsNeeded} strip${m.stripsNeeded > 1 ? 's' : ''} at ${m.BINDING_STRIP_WIDTH_IN}" wide across the fabric width. Sewn end-to-end, this makes about ${Math.round(m.bindingYieldedIn)}" of binding — enough to wrap the ${Math.round(m.perimeterIn)}" perimeter of your finished quilt, plus extra for mitered corners and joining seams. You can use one of your existing fabrics, but it'll need this much extra on top of what's already calculated above.</span>`;
+
+    html += `<div class="yardage-row" style="margin-top:10px;"><span>Thread</span><span>2 spools</span></div>`;
+    html += `<span class="yardage-note">One spool of neutral piecing thread (cream, grey, or white) for sewing pieces together, and one spool of quilting thread in a color of your choice for the decorative stitching that holds the layers together.</span>`;
+
+    otherMaterialsResults.innerHTML = html;
+  }
+
   // --- Piece-by-piece cut lists. Only implemented for patterns whose pieces map to ---
   // genuine, standard quilting techniques (plain squares/rectangles, or classic
   // half-square-triangle units) so the numbers are ones a quilter can actually trust.
@@ -3006,7 +3067,8 @@
 
     drawQuilt(blockDrawFn, blocksAcross, blocksDown, sashingWidth, sashingColor, borderWidth, borderColor, colorA, colorB, alternateRotation, colorC, colorD, use4Color, alternateBlockDrawFn);
     updateYardage(blockSizeInches);
-    updateBackingYardage(blockSizeInches, blocksAcross, blocksDown, sashingWidth, borderWidth);
+    const backingInfo = updateBackingYardage(blockSizeInches, blocksAcross, blocksDown, sashingWidth, borderWidth);
+    updateOtherMaterials(backingInfo);
     renderCutList(patternSelect.value, blockSizeInches, blocksAcross, blocksDown, use4Color, sashingWidth, borderWidth);
     updateActivePreset();
     updateSizeMismatchBanner();
@@ -3446,6 +3508,11 @@
           <tr><th colspan="2">Backing fabric</th></tr>
         </table>
       </div>
+      <div class="yardage-section yardage-section-other">
+        <table>
+          <tr><th colspan="2">Other materials you'll need</th></tr>
+        </table>
+      </div>
       <div class="cutlist-section-print">
         <table>
           <tr><th>Piece</th><th>Color</th><th>Cut size</th><th>Total qty</th></tr>
@@ -3511,6 +3578,18 @@
     const backingRow3 = document.createElement('tr');
     backingRow3.innerHTML = `<td>Total backing yardage</td><td>${backingCalc.yards.toFixed(2)} yd</td>`;
     backingTable.appendChild(backingRow3);
+
+    const otherMaterialsTable = printSheet.querySelector('.yardage-section-other table');
+    const m = computeOtherMaterials(backingCalc);
+    const battingRow = document.createElement('tr');
+    battingRow.innerHTML = `<td>Batting (size needed)</td><td>${m.backingWidthIn.toFixed(1)}" × ${m.backingHeightIn.toFixed(1)}"</td>`;
+    otherMaterialsTable.appendChild(battingRow);
+    const bindingRow = document.createElement('tr');
+    bindingRow.innerHTML = `<td>Binding fabric (${m.stripsNeeded} strip${m.stripsNeeded > 1 ? 's' : ''} at ${m.BINDING_STRIP_WIDTH_IN}" wide)</td><td>${m.bindingYards.toFixed(2)} yd</td>`;
+    otherMaterialsTable.appendChild(bindingRow);
+    const threadRow = document.createElement('tr');
+    threadRow.innerHTML = `<td>Thread (piecing + quilting)</td><td>2 spools</td>`;
+    otherMaterialsTable.appendChild(threadRow);
 
     const cutListSection = printSheet.querySelector('.cutlist-section-print');
     const cutListTable = cutListSection.querySelector('table');
