@@ -604,6 +604,9 @@
     max-width: 4.5in;
     width: 100%;
     height: auto;
+    border: 4px solid #2F4858;
+    border-radius: 3px;
+    box-sizing: border-box;
   }
   #printSheet table {
     width: 100%;
@@ -4109,9 +4112,18 @@
 
   // Converts the current live design into a PNG blob, reused by the download button
   // and the share buttons below.
+  // Matches the live preview's CSS border (svg#quilt-canvas { border: 6px solid
+  // var(--navy); border-radius: 4px; }) — without this, the exported image doesn't
+  // match what's actually shown on screen, since a CSS border on the <svg> element
+  // is applied by the browser as page decoration and isn't part of the SVG's own
+  // serialized content, so it never survives being rasterized on its own.
+  const CANVAS_BORDER_WIDTH = 6;
+  const CANVAS_BORDER_RADIUS = 4;
+  const CANVAS_BORDER_COLOR = '#2F4858'; // matches the --navy CSS variable
+
   function generateDesignPNGBlob(callback) {
-    const svgWidth = svg.getAttribute('width');
-    const svgHeight = svg.getAttribute('height');
+    const svgWidth = parseFloat(svg.getAttribute('width'));
+    const svgHeight = parseFloat(svg.getAttribute('height'));
 
     const svgString = new XMLSerializer().serializeToString(svg);
     const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
@@ -4120,10 +4132,20 @@
     const img = new Image();
     img.onload = () => {
       const canvas = document.createElement('canvas');
-      canvas.width = svgWidth;
-      canvas.height = svgHeight;
+      canvas.width = svgWidth + CANVAS_BORDER_WIDTH * 2;
+      canvas.height = svgHeight + CANVAS_BORDER_WIDTH * 2;
       const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, svgWidth, svgHeight);
+
+      ctx.fillStyle = CANVAS_BORDER_COLOR;
+      if (ctx.roundRect) {
+        ctx.beginPath();
+        ctx.roundRect(0, 0, canvas.width, canvas.height, CANVAS_BORDER_RADIUS);
+        ctx.fill();
+      } else {
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+
+      ctx.drawImage(img, CANVAS_BORDER_WIDTH, CANVAS_BORDER_WIDTH, svgWidth, svgHeight);
       URL.revokeObjectURL(svgUrl);
       canvas.toBlob((pngBlob) => callback(pngBlob), 'image/png');
     };
