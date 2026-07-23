@@ -343,7 +343,7 @@
   button#downloadBtn:hover { background: #263e4c; }
   button#downloadBtn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 
-  #yardageResults, #backingResults, #cutListResults {
+  #yardageResults, #backingResults, #cutListResults, #otherMaterialsResults {
     margin-top: 20px;
     text-align: left;
     border: 2px dashed var(--stitch);
@@ -389,7 +389,7 @@
     margin-bottom: 8px;
   }
 
-  #yardageResults .yardage-title, #backingResults .yardage-title {
+  #yardageResults .yardage-title, #backingResults .yardage-title, #otherMaterialsResults .yardage-title {
     font-family: 'Bitter', serif;
     font-weight: 700;
     font-size: 14px;
@@ -400,14 +400,14 @@
     margin-bottom: 2px;
   }
 
-  #yardageResults .yardage-note, #backingResults .yardage-note {
+  #yardageResults .yardage-note, #backingResults .yardage-note, #otherMaterialsResults .yardage-note {
     font-size: 11px;
     color: var(--stitch);
     display: block;
     margin-bottom: 10px;
   }
 
-  #yardageResults .yardage-row, #backingResults .yardage-row {
+  #yardageResults .yardage-row, #backingResults .yardage-row, #otherMaterialsResults .yardage-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -496,6 +496,18 @@
     padding: 5px 8px 5px 0;
     border-bottom: 1px solid #ddd;
   }
+  #printSheet .yardage-section-other table,
+  #printSheet .yardage-section-other th,
+  #printSheet .yardage-section-other td {
+    font-size: 13px !important;
+    text-align: left !important;
+    font-family: 'Work Sans', sans-serif !important;
+  }
+  #printSheet .yardage-section-other th {
+    font-family: 'Bitter', serif !important;
+    font-size: 11px !important;
+  }
+
   #printSheet .print-note {
     font-size: 11px;
     color: #555;
