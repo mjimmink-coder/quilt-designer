@@ -861,6 +861,27 @@
       </div>
       <span class="swatch-hint">Upload a photo of your fabric and it replaces the flat color in the design.</span>
 
+      <div class="field-row" id="swatchCDRow" style="margin-top:12px; display:none;">
+        <div>
+          <label for="swatchCInput">Fabric photo (C)</label>
+          <input type="file" id="swatchCInput" accept="image/*">
+          <div class="checkbox-row" style="margin-top:6px;">
+            <input type="checkbox" id="directionalCInput">
+            <label for="directionalCInput" style="margin:0; font-size:11px;">Directional print (stripe/floral)</label>
+          </div>
+          <button type="button" class="swatch-clear-btn" id="clearSwatchC" hidden>Use solid color</button>
+        </div>
+        <div>
+          <label for="swatchDInput">Fabric photo (D)</label>
+          <input type="file" id="swatchDInput" accept="image/*">
+          <div class="checkbox-row" style="margin-top:6px;">
+            <input type="checkbox" id="directionalDInput">
+            <label for="directionalDInput" style="margin:0; font-size:11px;">Directional print (stripe/floral)</label>
+          </div>
+          <button type="button" class="swatch-clear-btn" id="clearSwatchD" hidden>Use solid color</button>
+        </div>
+      </div>
+
       <div style="margin-top:12px;">
         <label for="swatchScaleInput">Fabric print scale (inches per repeat)</label>
         <input type="number" id="swatchScaleInput" value="4" min="1" max="12" step="0.5">
@@ -1327,11 +1348,18 @@
   const presetContainer = document.getElementById('presetContainer');
   const swatchAInput = document.getElementById('swatchAInput');
   const swatchBInput = document.getElementById('swatchBInput');
+  const swatchCInput = document.getElementById('swatchCInput');
+  const swatchDInput = document.getElementById('swatchDInput');
   const clearSwatchA = document.getElementById('clearSwatchA');
   const clearSwatchB = document.getElementById('clearSwatchB');
+  const clearSwatchC = document.getElementById('clearSwatchC');
+  const clearSwatchD = document.getElementById('clearSwatchD');
   const swatchScaleInput = document.getElementById('swatchScaleInput');
   const directionalAInput = document.getElementById('directionalAInput');
   const directionalBInput = document.getElementById('directionalBInput');
+  const directionalCInput = document.getElementById('directionalCInput');
+  const directionalDInput = document.getElementById('directionalDInput');
+  const swatchCDRow = document.getElementById('swatchCDRow');
   const targetSizeSelect = document.getElementById('targetSizeSelect');
   const targetWidthInput = document.getElementById('targetWidthInput');
   const targetHeightInput = document.getElementById('targetHeightInput');
@@ -1355,7 +1383,7 @@
     king: { width: 108, height: 108 }
   };
 
-  let swatchImages = { colorA: null, colorB: null };
+  let swatchImages = { colorA: null, colorB: null, colorC: null, colorD: null };
   const MAX_SWATCH_DIMENSION = 500;
   const DIRECTIONAL_YARDAGE_BUFFER = 1.4; // rule-of-thumb extra allowance for directional prints
 
@@ -1667,7 +1695,7 @@
   // SVG <pattern> defs so block-drawing functions can just use 'url(#fabricPatternA)'
   // as a fill value exactly like they'd use a hex color.
   function injectSwatchPatterns() {
-    if (!swatchImages.colorA && !swatchImages.colorB) return;
+    if (!swatchImages.colorA && !swatchImages.colorB && !swatchImages.colorC && !swatchImages.colorD) return;
 
     const defs = document.createElementNS(SVG_NS, 'defs');
     const blockSizeInches = parseFloat(blockSizeInchesInput.value) || 12;
@@ -1700,6 +1728,8 @@
 
     if (swatchImages.colorA) makePattern('fabricPatternA', swatchImages.colorA, directionalAInput.checked);
     if (swatchImages.colorB) makePattern('fabricPatternB', swatchImages.colorB, directionalBInput.checked);
+    if (swatchImages.colorC) makePattern('fabricPatternC', swatchImages.colorC, directionalCInput.checked);
+    if (swatchImages.colorD) makePattern('fabricPatternD', swatchImages.colorD, directionalDInput.checked);
 
     svg.appendChild(defs);
   }
@@ -2069,8 +2099,8 @@
     const rows = [
       { label: 'Color A', px: areaTotals.colorA, color: colorAInput.value, image: swatchImages.colorA, directional: swatchImages.colorA && directionalAInput.checked },
       { label: 'Color B', px: areaTotals.colorB, color: colorBInput.value, image: swatchImages.colorB, directional: swatchImages.colorB && directionalBInput.checked },
-      { label: 'Color C', px: areaTotals.colorC, color: colorCInput.value },
-      { label: 'Color D', px: areaTotals.colorD, color: colorDInput.value },
+      { label: 'Color C', px: areaTotals.colorC, color: colorCInput.value, image: swatchImages.colorC, directional: swatchImages.colorC && directionalCInput.checked },
+      { label: 'Color D', px: areaTotals.colorD, color: colorDInput.value, image: swatchImages.colorD, directional: swatchImages.colorD && directionalDInput.checked },
       { label: 'Sashing', px: areaTotals.sashing, color: sashingColorInput.value },
       { label: 'Border', px: areaTotals.border, color: borderColorInput.value }
     ];
@@ -3182,8 +3212,8 @@
     const colorA = swatchImages.colorA ? 'url(#fabricPatternA)' : colorAInput.value;
     const colorB = swatchImages.colorB ? 'url(#fabricPatternB)' : colorBInput.value;
     const use4Color = isPro() && FOUR_COLOR_PATTERNS.has(patternSelect.value) && use4ColorInput.checked;
-    const colorC = colorCInput.value;
-    const colorD = colorDInput.value;
+    const colorC = swatchImages.colorC ? 'url(#fabricPatternC)' : colorCInput.value;
+    const colorD = swatchImages.colorD ? 'url(#fabricPatternD)' : colorDInput.value;
     const alternateBlockDrawFn = patternSelect.value === 'irishchain' ? drawPlainBlock : null;
 
     drawQuilt(blockDrawFn, blocksAcross, blocksDown, sashingWidth, sashingColor, borderWidth, borderColor, colorA, colorB, alternateRotation, colorC, colorD, use4Color, alternateBlockDrawFn);
@@ -3220,6 +3250,7 @@
       use4ColorInput.checked = false;
     }
     colorCDRow.style.display = use4ColorInput.checked ? 'grid' : 'none';
+    swatchCDRow.style.display = use4ColorInput.checked ? 'grid' : 'none';
   }
 
   patternSelect.addEventListener('change', () => {
@@ -3235,10 +3266,13 @@
 
   use4ColorInput.addEventListener('change', () => {
     colorCDRow.style.display = use4ColorInput.checked ? 'grid' : 'none';
+    swatchCDRow.style.display = use4ColorInput.checked ? 'grid' : 'none';
     redraw();
   });
   colorCInput.addEventListener('input', redraw);
   colorDInput.addEventListener('input', redraw);
+  directionalCInput.addEventListener('change', redraw);
+  directionalDInput.addEventListener('change', redraw);
 
   // Manually picking a solid color overrides an active fabric photo for that slot.
   colorAInput.addEventListener('input', () => {
@@ -3253,6 +3287,20 @@
       swatchImages.colorB = null;
       swatchBInput.value = '';
       clearSwatchB.hidden = true;
+    }
+  });
+  colorCInput.addEventListener('input', () => {
+    if (swatchImages.colorC) {
+      swatchImages.colorC = null;
+      swatchCInput.value = '';
+      clearSwatchC.hidden = true;
+    }
+  });
+  colorDInput.addEventListener('input', () => {
+    if (swatchImages.colorD) {
+      swatchImages.colorD = null;
+      swatchDInput.value = '';
+      clearSwatchD.hidden = true;
     }
   });
 
@@ -3313,6 +3361,40 @@
     swatchImages.colorB = null;
     swatchBInput.value = '';
     clearSwatchB.hidden = true;
+    redraw();
+  });
+
+  swatchCInput.addEventListener('change', () => {
+    const file = swatchCInput.files[0];
+    if (!file) return;
+    readAndResizeSwatch(file, (dataUrl) => {
+      swatchImages.colorC = dataUrl;
+      clearSwatchC.hidden = false;
+      redraw();
+    });
+  });
+
+  swatchDInput.addEventListener('change', () => {
+    const file = swatchDInput.files[0];
+    if (!file) return;
+    readAndResizeSwatch(file, (dataUrl) => {
+      swatchImages.colorD = dataUrl;
+      clearSwatchD.hidden = false;
+      redraw();
+    });
+  });
+
+  clearSwatchC.addEventListener('click', () => {
+    swatchImages.colorC = null;
+    swatchCInput.value = '';
+    clearSwatchC.hidden = true;
+    redraw();
+  });
+
+  clearSwatchD.addEventListener('click', () => {
+    swatchImages.colorD = null;
+    swatchDInput.value = '';
+    clearSwatchD.hidden = true;
     redraw();
   });
 
@@ -3417,9 +3499,11 @@
       use4Color: use4ColorInput.checked,
       targetWidth: targetWidthInput.value,
       targetHeight: targetHeightInput.value,
-      swatchImages: { colorA: swatchImages.colorA, colorB: swatchImages.colorB },
+      swatchImages: { colorA: swatchImages.colorA, colorB: swatchImages.colorB, colorC: swatchImages.colorC, colorD: swatchImages.colorD },
       directionalA: directionalAInput.checked,
       directionalB: directionalBInput.checked,
+      directionalC: directionalCInput.checked,
+      directionalD: directionalDInput.checked,
       swatchScale: swatchScaleInput.value
     };
   }
@@ -3442,16 +3526,25 @@
     updateFourColorAvailability();
     use4ColorInput.checked = !!state.use4Color && !use4ColorInput.disabled;
     colorCDRow.style.display = use4ColorInput.checked ? 'grid' : 'none';
+    swatchCDRow.style.display = use4ColorInput.checked ? 'grid' : 'none';
     targetWidthInput.value = state.targetWidth || '';
     targetHeightInput.value = state.targetHeight || '';
     swatchImages.colorA = (state.swatchImages && state.swatchImages.colorA) || null;
     swatchImages.colorB = (state.swatchImages && state.swatchImages.colorB) || null;
+    swatchImages.colorC = (state.swatchImages && state.swatchImages.colorC) || null;
+    swatchImages.colorD = (state.swatchImages && state.swatchImages.colorD) || null;
     clearSwatchA.hidden = !swatchImages.colorA;
     clearSwatchB.hidden = !swatchImages.colorB;
+    clearSwatchC.hidden = !swatchImages.colorC;
+    clearSwatchD.hidden = !swatchImages.colorD;
     swatchAInput.value = '';
     swatchBInput.value = '';
+    swatchCInput.value = '';
+    swatchDInput.value = '';
     directionalAInput.checked = !!state.directionalA;
     directionalBInput.checked = !!state.directionalB;
+    directionalCInput.checked = !!state.directionalC;
+    directionalDInput.checked = !!state.directionalD;
     swatchScaleInput.value = state.swatchScale || 4;
     redraw();
   }
@@ -3677,8 +3770,8 @@
     const rows = [
       { label: 'Color A', px: areaTotals.colorA, color: colorAInput.value, image: swatchImages.colorA, directional: swatchImages.colorA && directionalAInput.checked },
       { label: 'Color B', px: areaTotals.colorB, color: colorBInput.value, image: swatchImages.colorB, directional: swatchImages.colorB && directionalBInput.checked },
-      { label: 'Color C', px: areaTotals.colorC, color: colorCInput.value },
-      { label: 'Color D', px: areaTotals.colorD, color: colorDInput.value },
+      { label: 'Color C', px: areaTotals.colorC, color: colorCInput.value, image: swatchImages.colorC, directional: swatchImages.colorC && directionalCInput.checked },
+      { label: 'Color D', px: areaTotals.colorD, color: colorDInput.value, image: swatchImages.colorD, directional: swatchImages.colorD && directionalDInput.checked },
       { label: 'Sashing', px: areaTotals.sashing, color: sashingColorInput.value },
       { label: 'Border', px: areaTotals.border, color: borderColorInput.value }
     ];
