@@ -111,6 +111,53 @@
     border-bottom: 1px solid rgba(201, 162, 39, 0.35);
   }
 
+  details.collapsible-section {
+    margin-top: 16px;
+  }
+  details.collapsible-section summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    font-family: 'Bitter', serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--gold);
+    padding: 0 0 6px;
+    border-bottom: 1px solid rgba(201, 162, 39, 0.35);
+    list-style: none;
+  }
+  details.collapsible-section summary::-webkit-details-marker { display: none; }
+  details.collapsible-section summary::after {
+    content: '▾';
+    font-size: 11px;
+    color: var(--gold);
+    transition: transform 0.15s ease;
+    margin-left: 8px;
+  }
+  details.collapsible-section[open] summary::after { transform: rotate(180deg); }
+  details.collapsible-section summary:hover { color: #b48f1e; }
+  details.collapsible-section > fieldset { margin-top: 12px; }
+  details.collapsible-section summary.summary-accent {
+    background: linear-gradient(90deg, rgba(201,162,39,0.08), transparent);
+    padding-left: 4px;
+  }
+  details.collapsible-section summary.summary-accent::before { content: '✨ '; }
+
+  .section-group-heading {
+    font-family: 'Work Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--stitch);
+    margin: 24px 0 -4px;
+    padding-top: 16px;
+    border-top: 2px dashed var(--stitch);
+  }
+
   label {
     display: block;
     font-size: 13px;
@@ -449,7 +496,7 @@
     margin-bottom: 8px;
   }
 
-  #yardageResults .yardage-title, #backingResults .yardage-title, #otherMaterialsResults .yardage-title, #costCalculatorResults .yardage-title {
+  #yardageResults .yardage-title, #backingResults .yardage-title, #otherMaterialsResults .yardage-title, #costCalculatorResults .yardage-title, #settingTriangleResults .yardage-title {
     font-family: 'Bitter', serif;
     font-weight: 700;
     font-size: 14px;
@@ -460,14 +507,14 @@
     margin-bottom: 2px;
   }
 
-  #yardageResults .yardage-note, #backingResults .yardage-note, #otherMaterialsResults .yardage-note, #costCalculatorResults .yardage-note {
+  #yardageResults .yardage-note, #backingResults .yardage-note, #otherMaterialsResults .yardage-note, #costCalculatorResults .yardage-note, #settingTriangleResults .yardage-note {
     font-size: 11px;
     color: var(--stitch);
     display: block;
     margin-bottom: 10px;
   }
 
-  #yardageResults .yardage-row, #backingResults .yardage-row, #otherMaterialsResults .yardage-row, #costCalculatorResults .yardage-row {
+  #yardageResults .yardage-row, #backingResults .yardage-row, #otherMaterialsResults .yardage-row, #costCalculatorResults .yardage-row, #settingTriangleResults .yardage-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -703,6 +750,23 @@
     text-align: left;
   }
   .size-note-banner a { color: #33472e; text-decoration: underline; font-weight: 600; }
+
+  .precut-match {
+    font-size: 12px;
+    color: #33472e;
+    background: #eef3e9;
+    border: 1px solid #7d9c6b;
+    border-radius: 4px;
+    padding: 8px 10px;
+  }
+  .precut-nomatch {
+    font-size: 12px;
+    color: #5c4a1f;
+    background: #fbf3e2;
+    border: 1px solid #c9a227;
+    border-radius: 4px;
+    padding: 8px 10px;
+  }
 </style>
 </head>
 <body>
@@ -721,7 +785,7 @@
 
 <div class="pro-banner">
   <div class="pro-banner-inner" id="proBannerInner">
-    <span class="pro-banner-text" id="proBannerText">🔒 Unlock Quilt Designer Pro — 23 block patterns, custom colors, cut lists & piecing steps, calculators, and more, $14.99 one time (not a subscription)</span>
+    <span class="pro-banner-text" id="proBannerText">🔒 Unlock Quilt Designer Pro — 24 block patterns, custom colors, cut lists & piecing steps, calculators, and more, $14.99 one time (not a subscription)</span>
     <button id="unlockProBtn">Unlock Pro</button>
   </div>
   <div class="promo-row" id="promoRow">
@@ -741,259 +805,286 @@
       <button type="button" id="redoBtn" class="tool-btn" style="flex:1;" disabled>↷ Redo</button>
     </div>
 
-    <fieldset>
-      <legend>Pattern</legend>
-      <select id="patternSelect">
-        <optgroup label="Beginner">
-          <option value="fourpatch">Four Patch</option>
-          <option value="ninepatch">Nine Patch</option>
-          <option value="railfence">Rail Fence</option>
-          <option value="snowball">Snowball</option>
-          <option value="trianglesquares">Triangle Squares Grid</option>
-        </optgroup>
-        <optgroup label="Confident Beginner">
-          <option value="brokendishes">Broken Dishes</option>
-          <option value="courthousesteps">Courthouse Steps</option>
-          <option value="doublefourpatch">Double Four Patch</option>
-          <option value="hourglass">Hourglass</option>
-          <option value="irishchain">Irish Chain</option>
-          <option value="logcabin">Log Cabin</option>
-          <option value="pinwheel">Pinwheel</option>
-          <option value="squareinsquare">Square in a Square</option>
-        </optgroup>
-        <optgroup label="Intermediate">
-          <option value="bowtie">Bowtie</option>
-          <option value="churndash">Churn Dash</option>
-          <option value="flyinggeese">Flying Geese</option>
-          <option value="friendshipstar">Friendship Star</option>
-          <option value="ohiostar">Ohio Star</option>
-          <option value="shoofly">Shoo Fly</option>
-        </optgroup>
-        <optgroup label="Advanced">
-          <option value="bearspaw">Bear's Paw</option>
-          <option value="doubleninepatch">Double Nine Patch</option>
-          <option value="dutchmanspuzzle">Dutchman's Puzzle</option>
-          <option value="jacobsladder">Jacob's Ladder</option>
-          <option value="sawtoothstar">Sawtooth Star</option>
-        </optgroup>
-      </select>
-      <div class="checkbox-row" style="margin-top:10px;">
-        <input type="checkbox" id="alternateRotationInput">
-        <label for="alternateRotationInput">Alternate block rotation</label>
-      </div>
-    </fieldset>
-
-    <hr class="divider">
-
-    <fieldset class="pro-feature" id="proFeatureTargetSize">
-      <div class="pro-lock-banner">🔒 Auto-fit to a target size is part of Quilt Designer Pro.</div>
-      <legend>Target Quilt Size</legend>
-      <label for="targetSizeSelect">Quilt size</label>
-      <select id="targetSizeSelect">
-        <option value="">Custom (set blocks manually)</option>
-        <option value="baby">Baby / Crib (approx 36×52")</option>
-        <option value="throw">Throw / Lap (approx 50×65")</option>
-        <option value="twin">Twin (approx 65×88")</option>
-        <option value="queen">Full / Queen (approx 90×90")</option>
-        <option value="king">King (approx 108×108")</option>
-      </select>
-      <div class="field-row" style="margin-top:10px;">
-        <div>
-          <label for="targetWidthInput">Target width (in)</label>
-          <input type="number" id="targetWidthInput" min="10" max="200" step="1">
-        </div>
-        <div>
-          <label for="targetHeightInput">Target height (in)</label>
-          <input type="number" id="targetHeightInput" min="10" max="200" step="1">
-        </div>
-      </div>
-      <button type="button" class="swatch-clear-btn" id="fitBlocksBtn" style="margin-top:10px;">Fit blocks to this size</button>
-      <span class="swatch-hint" id="actualSizeNote"></span>
-    </fieldset>
-
-    <hr class="divider">
-
-    <fieldset>
-      <legend>Size &amp; Layout</legend>
-      <label for="blockSizeInchesInput">Block size (inches)</label>
-      <input type="number" id="blockSizeInchesInput" value="12" min="4" max="24">
-      <div class="field-row">
-        <div>
-          <label for="blocksAcrossInput">Blocks across</label>
-          <input type="number" id="blocksAcrossInput" value="3" min="1" max="10">
-        </div>
-        <div>
-          <label for="blocksDownInput">Blocks down</label>
-          <input type="number" id="blocksDownInput" value="3" min="1" max="10">
-        </div>
-      </div>
-      <label for="fabricWidthInput" style="margin-top:10px; display:block;">Usable fabric width (inches)</label>
-      <input type="number" id="fabricWidthInput" value="42" min="20" max="120" step="0.5">
-      <span class="swatch-hint">Standard quilting cotton is ~44" off the bolt, ~42" usable after trimming selvages. Change this if you're working with wider fabric.</span>
-    </fieldset>
-
-    <hr class="divider">
-
-    <fieldset>
-      <legend>Sashing</legend>
-      <div class="field-row">
-        <div>
-          <label for="sashingWidthInput">Width</label>
-          <input type="number" id="sashingWidthInput" value="10" min="0" max="40">
-        </div>
-        <div>
-          <label for="sashingColorInput">Color</label>
-          <input type="color" id="sashingColorInput" value="#ffffff">
-        </div>
-      </div>
-    </fieldset>
-
-    <hr class="divider">
-
-    <fieldset>
-      <legend>Border</legend>
-      <div class="field-row">
-        <div>
-          <label for="borderWidthInput">Width</label>
-          <input type="number" id="borderWidthInput" value="20" min="0" max="60">
-        </div>
-        <div>
-          <label for="borderColorInput">Color</label>
-          <input type="color" id="borderColorInput" value="#2b4c7e">
-        </div>
-      </div>
-    </fieldset>
-
-    <hr class="divider">
-
-    <fieldset class="pro-feature" id="proFeatureColors">
-      <div class="pro-lock-banner">🔒 Choosing your own colors is part of Quilt Designer Pro. Free designs use the default Navy &amp; Cream palette.</div>
-      <legend>Fabric Colors</legend>
-      <div class="palette-grid" id="presetContainer"></div>
-      <div class="fabric-swatch-grid" style="margin-top:14px;">
-        <div class="fabric-swatch">
-          <div class="fabric-swatch-well"><input type="color" id="colorAInput" value="#1F3A5F"></div>
-          <label for="colorAInput" class="fabric-swatch-label">Color A</label>
-        </div>
-        <div class="fabric-swatch">
-          <div class="fabric-swatch-well"><input type="color" id="colorBInput" value="#F0E6D2"></div>
-          <label for="colorBInput" class="fabric-swatch-label">Color B</label>
-        </div>
-      </div>
-
-      <div class="checkbox-row" style="margin-top:12px;">
-        <input type="checkbox" id="use4ColorInput" disabled>
-        <label for="use4ColorInput" style="margin:0; font-size:12px;">Use 4 colors (available on Nine Patch, Log Cabin, Pinwheel, Ohio Star, Shoo Fly, Churn Dash, Friendship Star, Courthouse Steps, Four Patch, Hourglass, Broken Dishes, and Bear's Paw)</label>
-      </div>
-      <div class="fabric-swatch-grid" id="colorCDRow" style="margin-top:12px; display:none;">
-        <div class="fabric-swatch">
-          <div class="fabric-swatch-well"><input type="color" id="colorCInput" value="#A8461E"></div>
-          <label for="colorCInput" class="fabric-swatch-label">Color C</label>
-        </div>
-        <div class="fabric-swatch">
-          <div class="fabric-swatch-well"><input type="color" id="colorDInput" value="#7C8B6F"></div>
-          <label for="colorDInput" class="fabric-swatch-label">Color D</label>
-        </div>
-      </div>
-
-      <div class="field-row" style="margin-top:12px;">
-        <div>
-          <label for="swatchAInput">Fabric photo (A)</label>
-          <input type="file" id="swatchAInput" accept="image/*">
-          <div class="checkbox-row" style="margin-top:6px;">
-            <input type="checkbox" id="directionalAInput">
-            <label for="directionalAInput" style="margin:0; font-size:11px;">Directional print (stripe/floral)</label>
-          </div>
-          <button type="button" class="swatch-clear-btn" id="clearSwatchA" hidden>Use solid color</button>
-          <button type="button" class="swatch-clear-btn" id="saveStashA" hidden>💾 Save to stash</button>
-        </div>
-        <div>
-          <label for="swatchBInput">Fabric photo (B)</label>
-          <input type="file" id="swatchBInput" accept="image/*">
-          <div class="checkbox-row" style="margin-top:6px;">
-            <input type="checkbox" id="directionalBInput">
-            <label for="directionalBInput" style="margin:0; font-size:11px;">Directional print (stripe/floral)</label>
-          </div>
-          <button type="button" class="swatch-clear-btn" id="clearSwatchB" hidden>Use solid color</button>
-          <button type="button" class="swatch-clear-btn" id="saveStashB" hidden>💾 Save to stash</button>
-        </div>
-      </div>
-      <span class="swatch-hint">Upload a photo of your fabric and it replaces the flat color in the design.</span>
-
-      <div class="field-row" id="swatchCDRow" style="margin-top:12px; display:none;">
-        <div>
-          <label for="swatchCInput">Fabric photo (C)</label>
-          <input type="file" id="swatchCInput" accept="image/*">
-          <div class="checkbox-row" style="margin-top:6px;">
-            <input type="checkbox" id="directionalCInput">
-            <label for="directionalCInput" style="margin:0; font-size:11px;">Directional print (stripe/floral)</label>
-          </div>
-          <button type="button" class="swatch-clear-btn" id="clearSwatchC" hidden>Use solid color</button>
-          <button type="button" class="swatch-clear-btn" id="saveStashC" hidden>💾 Save to stash</button>
-        </div>
-        <div>
-          <label for="swatchDInput">Fabric photo (D)</label>
-          <input type="file" id="swatchDInput" accept="image/*">
-          <div class="checkbox-row" style="margin-top:6px;">
-            <input type="checkbox" id="directionalDInput">
-            <label for="directionalDInput" style="margin:0; font-size:11px;">Directional print (stripe/floral)</label>
-          </div>
-          <button type="button" class="swatch-clear-btn" id="clearSwatchD" hidden>Use solid color</button>
-          <button type="button" class="swatch-clear-btn" id="saveStashD" hidden>💾 Save to stash</button>
-        </div>
-      </div>
-
-      <div style="margin-top:12px;">
-        <label for="swatchScaleInput">Fabric print scale (inches per repeat)</label>
-        <input type="number" id="swatchScaleInput" value="4" min="1" max="12" step="0.5">
-      </div>
-    </fieldset>
-
-    <hr class="divider">
-
-    <fieldset class="pro-feature" id="proFeatureStash">
-      <div class="pro-lock-banner">🔒 The fabric stash is part of Quilt Designer Pro.</div>
-      <legend>Fabric Stash</legend>
-      <span class="swatch-hint">Save fabric photos here once, then reuse them across any design without re-uploading — pick a saved fabric below, or save one you're currently using above.</span>
-      <div id="fabricStashGrid" class="fabric-stash-grid" style="margin-top:10px;"></div>
-      <div style="margin-top:12px;">
-        <label for="stashUploadInput">Add a new fabric to your stash</label>
-        <input type="file" id="stashUploadInput" accept="image/*">
-      </div>
-    </fieldset>
-
-    <hr class="divider">
-
-    <fieldset class="pro-feature" id="proFeatureDesigns">
-      <div class="pro-lock-banner">🔒 Saving and loading designs is part of Quilt Designer Pro.</div>
-      <legend>My Designs</legend>
-      <label for="designNameInput">Design name</label>
-      <input type="text" id="designNameInput" placeholder="e.g. Baby quilt for Emma" maxlength="60">
-      <button type="button" class="swatch-clear-btn" id="saveDesignBtn" style="margin-top:8px;">Save design</button>
-
-
-      <div style="margin-top:16px;">
-        <label for="savedDesignsSelect">Saved designs</label>
-        <select id="savedDesignsSelect">
-          <option value="">— none saved yet —</option>
+    <details class="collapsible-section" open>
+      <summary>Pattern</summary>
+      <fieldset>
+        <select id="patternSelect">
+          <optgroup label="Beginner">
+            <option value="fourpatch">Four Patch</option>
+            <option value="ninepatch">Nine Patch</option>
+            <option value="railfence">Rail Fence</option>
+            <option value="snowball">Snowball</option>
+            <option value="trianglesquares">Triangle Squares Grid</option>
+          </optgroup>
+          <optgroup label="Confident Beginner">
+            <option value="brokendishes">Broken Dishes</option>
+            <option value="courthousesteps">Courthouse Steps</option>
+            <option value="doublefourpatch">Double Four Patch</option>
+            <option value="hourglass">Hourglass</option>
+            <option value="irishchain">Irish Chain</option>
+            <option value="logcabin">Log Cabin</option>
+            <option value="pinwheel">Pinwheel</option>
+            <option value="squareinsquare">Square in a Square</option>
+          </optgroup>
+          <optgroup label="Intermediate">
+            <option value="bowtie">Bowtie</option>
+            <option value="churndash">Churn Dash</option>
+            <option value="flyinggeese">Flying Geese</option>
+            <option value="friendshipstar">Friendship Star</option>
+            <option value="ohiostar">Ohio Star</option>
+            <option value="shoofly">Shoo Fly</option>
+          </optgroup>
+          <optgroup label="Advanced">
+            <option value="bearspaw">Bear's Paw</option>
+            <option value="doubleninepatch">Double Nine Patch</option>
+            <option value="dutchmanspuzzle">Dutchman's Puzzle</option>
+            <option value="jacobsladder">Jacob's Ladder</option>
+            <option value="sawtoothstar">Sawtooth Star</option>
+          </optgroup>
         </select>
-        <div class="field-row" style="margin-top:8px;">
-          <button type="button" class="swatch-clear-btn" id="loadDesignBtn">Load</button>
-          <button type="button" class="swatch-clear-btn" id="deleteDesignBtn">Delete</button>
+        <div class="checkbox-row" style="margin-top:10px;">
+          <input type="checkbox" id="alternateRotationInput">
+          <label for="alternateRotationInput">Alternate block rotation</label>
         </div>
-      </div>
-      <span class="swatch-hint" id="designStatusNote"></span>
-    </fieldset>
+      </fieldset>
+    </details>
 
-    <hr class="divider">
+    <details class="collapsible-section" open>
+      <summary>Fabric Colors</summary>
+      <fieldset class="pro-feature" id="proFeatureColors">
+        <div class="pro-lock-banner">🔒 Choosing your own colors is part of Quilt Designer Pro. Free designs use the default Navy &amp; Cream palette.</div>
+        <div class="palette-grid" id="presetContainer"></div>
+        <div class="fabric-swatch-grid" style="margin-top:14px;">
+          <div class="fabric-swatch">
+            <div class="fabric-swatch-well"><input type="color" id="colorAInput" value="#1F3A5F"></div>
+            <label for="colorAInput" class="fabric-swatch-label">Color A</label>
+          </div>
+          <div class="fabric-swatch">
+            <div class="fabric-swatch-well"><input type="color" id="colorBInput" value="#F0E6D2"></div>
+            <label for="colorBInput" class="fabric-swatch-label">Color B</label>
+          </div>
+        </div>
 
-    <fieldset class="pro-feature" id="proFeatureBacking">
-      <div class="pro-lock-banner">🔒 The backing fabric calculator is part of Quilt Designer Pro.</div>
-      <legend>Backing Fabric</legend>
-      <label for="backingOverhangInput">Overhang buffer per side (inches)</label>
-      <input type="number" id="backingOverhangInput" value="4" min="0" max="12" step="1">
-      <span class="swatch-hint">Extra fabric on each edge for quilting/longarm loading — 4" is a common default.</span>
-    </fieldset>
+        <div class="checkbox-row" style="margin-top:12px;">
+          <input type="checkbox" id="use4ColorInput" disabled>
+          <label for="use4ColorInput" style="margin:0; font-size:12px;">Use 4 colors (available on Nine Patch, Log Cabin, Pinwheel, Ohio Star, Shoo Fly, Churn Dash, Friendship Star, Courthouse Steps, Four Patch, Hourglass, Broken Dishes, and Bear's Paw)</label>
+        </div>
+        <div class="fabric-swatch-grid" id="colorCDRow" style="margin-top:12px; display:none;">
+          <div class="fabric-swatch">
+            <div class="fabric-swatch-well"><input type="color" id="colorCInput" value="#A8461E"></div>
+            <label for="colorCInput" class="fabric-swatch-label">Color C</label>
+          </div>
+          <div class="fabric-swatch">
+            <div class="fabric-swatch-well"><input type="color" id="colorDInput" value="#7C8B6F"></div>
+            <label for="colorDInput" class="fabric-swatch-label">Color D</label>
+          </div>
+        </div>
+
+        <div class="field-row" style="margin-top:12px;">
+          <div>
+            <label for="swatchAInput">Fabric photo (A)</label>
+            <input type="file" id="swatchAInput" accept="image/*">
+            <div class="checkbox-row" style="margin-top:6px;">
+              <input type="checkbox" id="directionalAInput">
+              <label for="directionalAInput" style="margin:0; font-size:11px;">Directional print (stripe/floral)</label>
+            </div>
+            <button type="button" class="swatch-clear-btn" id="clearSwatchA" hidden>Use solid color</button>
+            <button type="button" class="swatch-clear-btn" id="saveStashA" hidden>💾 Save to stash</button>
+          </div>
+          <div>
+            <label for="swatchBInput">Fabric photo (B)</label>
+            <input type="file" id="swatchBInput" accept="image/*">
+            <div class="checkbox-row" style="margin-top:6px;">
+              <input type="checkbox" id="directionalBInput">
+              <label for="directionalBInput" style="margin:0; font-size:11px;">Directional print (stripe/floral)</label>
+            </div>
+            <button type="button" class="swatch-clear-btn" id="clearSwatchB" hidden>Use solid color</button>
+            <button type="button" class="swatch-clear-btn" id="saveStashB" hidden>💾 Save to stash</button>
+          </div>
+        </div>
+        <span class="swatch-hint">Upload a photo of your fabric and it replaces the flat color in the design.</span>
+
+        <div class="field-row" id="swatchCDRow" style="margin-top:12px; display:none;">
+          <div>
+            <label for="swatchCInput">Fabric photo (C)</label>
+            <input type="file" id="swatchCInput" accept="image/*">
+            <div class="checkbox-row" style="margin-top:6px;">
+              <input type="checkbox" id="directionalCInput">
+              <label for="directionalCInput" style="margin:0; font-size:11px;">Directional print (stripe/floral)</label>
+            </div>
+            <button type="button" class="swatch-clear-btn" id="clearSwatchC" hidden>Use solid color</button>
+            <button type="button" class="swatch-clear-btn" id="saveStashC" hidden>💾 Save to stash</button>
+          </div>
+          <div>
+            <label for="swatchDInput">Fabric photo (D)</label>
+            <input type="file" id="swatchDInput" accept="image/*">
+            <div class="checkbox-row" style="margin-top:6px;">
+              <input type="checkbox" id="directionalDInput">
+              <label for="directionalDInput" style="margin:0; font-size:11px;">Directional print (stripe/floral)</label>
+            </div>
+            <button type="button" class="swatch-clear-btn" id="clearSwatchD" hidden>Use solid color</button>
+            <button type="button" class="swatch-clear-btn" id="saveStashD" hidden>💾 Save to stash</button>
+          </div>
+        </div>
+
+        <div style="margin-top:12px;">
+          <label for="swatchScaleInput">Fabric print scale (inches per repeat)</label>
+          <input type="number" id="swatchScaleInput" value="4" min="1" max="12" step="0.5">
+        </div>
+      </fieldset>
+    </details>
+
+    <details class="collapsible-section" open>
+      <summary>Size &amp; Layout</summary>
+      <fieldset>
+        <label for="blockSizeInchesInput">Block size (inches)</label>
+        <input type="number" id="blockSizeInchesInput" value="12" min="4" max="24">
+        <div class="field-row">
+          <div>
+            <label for="blocksAcrossInput">Blocks across</label>
+            <input type="number" id="blocksAcrossInput" value="3" min="1" max="10">
+          </div>
+          <div>
+            <label for="blocksDownInput">Blocks down</label>
+            <input type="number" id="blocksDownInput" value="3" min="1" max="10">
+          </div>
+        </div>
+        <label for="fabricWidthInput" style="margin-top:10px; display:block;">Usable fabric width (inches)</label>
+        <input type="number" id="fabricWidthInput" value="42" min="20" max="120" step="0.5">
+        <span class="swatch-hint">Standard quilting cotton is ~44" off the bolt, ~42" usable after trimming selvages. Change this if you're working with wider fabric.</span>
+      </fieldset>
+    </details>
+
+    <details class="collapsible-section">
+      <summary>Target Quilt Size</summary>
+      <fieldset class="pro-feature" id="proFeatureTargetSize">
+        <div class="pro-lock-banner">🔒 Auto-fit to a target size is part of Quilt Designer Pro.</div>
+        <label for="targetSizeSelect">Quilt size</label>
+        <select id="targetSizeSelect">
+          <option value="">Custom (set blocks manually)</option>
+          <option value="potholder">Potholder (approx 9×9")</option>
+          <option value="placemat">Placemat (approx 12×18")</option>
+          <option value="tablerunner">Table Runner (approx 16×40")</option>
+          <option value="baby">Baby / Crib (approx 36×52")</option>
+          <option value="throw">Throw / Lap (approx 50×65")</option>
+          <option value="twin">Twin mattress (39×75")</option>
+          <option value="full">Full / Double mattress (54×75")</option>
+          <option value="queen">Queen mattress (60×80")</option>
+          <option value="king">King mattress (76×80")</option>
+        </select>
+
+        <div class="field-row" id="bedDropRow" style="margin-top:10px; display:none;">
+          <div>
+            <label for="sideDropInput">Side drop (in)</label>
+            <input type="number" id="sideDropInput" value="12" min="0" max="30" step="1">
+          </div>
+          <div>
+            <label for="footDropInput">Foot drop (in)</label>
+            <input type="number" id="footDropInput" value="12" min="0" max="30" step="1">
+          </div>
+        </div>
+        <div id="pillowTuckWrap" style="margin-top:10px; display:none;">
+          <label for="pillowTuckInput">Pillow tuck (in) — extra length at the head to tuck over pillows</label>
+          <input type="number" id="pillowTuckInput" value="0" min="0" max="24" step="1">
+        </div>
+        <span class="swatch-hint" id="bedDropHint" style="display:none;">Side and foot drop are how far the quilt hangs down past the mattress edge on each side. Adjust these and the target size below updates automatically.</span>
+
+        <div class="field-row" style="margin-top:10px;">
+          <div>
+            <label for="targetWidthInput">Target width (in)</label>
+            <input type="number" id="targetWidthInput" min="10" max="200" step="1">
+          </div>
+          <div>
+            <label for="targetHeightInput">Target height (in)</label>
+            <input type="number" id="targetHeightInput" min="10" max="200" step="1">
+          </div>
+        </div>
+        <button type="button" class="swatch-clear-btn" id="fitBlocksBtn" style="margin-top:10px;">Fit blocks to this size</button>
+        <span class="swatch-hint" id="actualSizeNote"></span>
+      </fieldset>
+    </details>
+
+    <details class="collapsible-section">
+      <summary>Sashing</summary>
+      <fieldset>
+        <div class="field-row">
+          <div>
+            <label for="sashingWidthInput">Width</label>
+            <input type="number" id="sashingWidthInput" value="10" min="0" max="40">
+          </div>
+          <div>
+            <label for="sashingColorInput">Color</label>
+            <input type="color" id="sashingColorInput" value="#ffffff">
+          </div>
+        </div>
+      </fieldset>
+    </details>
+
+    <details class="collapsible-section">
+      <summary>Border</summary>
+      <fieldset>
+        <div class="field-row">
+          <div>
+            <label for="borderWidthInput">Width</label>
+            <input type="number" id="borderWidthInput" value="20" min="0" max="60">
+          </div>
+          <div>
+            <label for="borderColorInput">Color</label>
+            <input type="color" id="borderColorInput" value="#2b4c7e">
+          </div>
+        </div>
+      </fieldset>
+    </details>
+
+    <div class="section-group-heading">My Fabrics &amp; Designs</div>
+
+    <details class="collapsible-section">
+      <summary>Fabric Stash</summary>
+      <fieldset class="pro-feature" id="proFeatureStash">
+        <div class="pro-lock-banner">🔒 The fabric stash is part of Quilt Designer Pro.</div>
+        <span class="swatch-hint">Save fabric photos here once, then reuse them across any design without re-uploading — pick a saved fabric below, or save one you're currently using above.</span>
+        <div id="fabricStashGrid" class="fabric-stash-grid" style="margin-top:10px;"></div>
+        <div style="margin-top:12px;">
+          <label for="stashUploadInput">Add a new fabric to your stash</label>
+          <input type="file" id="stashUploadInput" accept="image/*">
+        </div>
+      </fieldset>
+    </details>
+
+    <details class="collapsible-section">
+      <summary>My Designs</summary>
+      <fieldset class="pro-feature" id="proFeatureDesigns">
+        <div class="pro-lock-banner">🔒 Saving and loading designs is part of Quilt Designer Pro.</div>
+        <label for="designNameInput">Design name</label>
+        <input type="text" id="designNameInput" placeholder="e.g. Baby quilt for Emma" maxlength="60">
+        <button type="button" class="swatch-clear-btn" id="saveDesignBtn" style="margin-top:8px;">Save design</button>
+
+
+        <div style="margin-top:16px;">
+          <label for="savedDesignsSelect">Saved designs</label>
+          <select id="savedDesignsSelect">
+            <option value="">— none saved yet —</option>
+          </select>
+          <div class="field-row" style="margin-top:8px;">
+            <button type="button" class="swatch-clear-btn" id="loadDesignBtn">Load</button>
+            <button type="button" class="swatch-clear-btn" id="deleteDesignBtn">Delete</button>
+          </div>
+        </div>
+        <span class="swatch-hint" id="designStatusNote"></span>
+      </fieldset>
+    </details>
+
+    <div class="section-group-heading">Finishing Up</div>
+
+    <details class="collapsible-section">
+      <summary>Backing Fabric</summary>
+      <fieldset class="pro-feature" id="proFeatureBacking">
+        <div class="pro-lock-banner">🔒 The backing fabric calculator is part of Quilt Designer Pro.</div>
+        <label for="backingOverhangInput">Overhang buffer per side (inches)</label>
+        <input type="number" id="backingOverhangInput" value="4" min="0" max="12" step="1">
+        <span class="swatch-hint">Extra fabric on each edge for quilting/longarm loading — 4" is a common default.</span>
+      </fieldset>
+    </details>
 
   </div>
 
@@ -1019,6 +1110,17 @@
     <div class="pro-feature" id="proFeatureCutList">
       <div class="pro-lock-banner">🔒 The piece-by-piece cut list is part of Quilt Designer Pro.</div>
       <div id="cutListResults"></div>
+      <div style="margin-top:14px;">
+        <label for="precutSelect">Check compatibility with a precut</label>
+        <select id="precutSelect">
+          <option value="">None</option>
+          <option value="minicharm">Mini Charm Pack (2.5" squares)</option>
+          <option value="charm">Charm Pack (5" squares)</option>
+          <option value="layercake">Layer Cake (10" squares)</option>
+          <option value="jellyroll">Jelly Roll (2.5" strips)</option>
+        </select>
+        <div id="precutCheckerResults" style="margin-top:8px;"></div>
+      </div>
     </div>
   </div>
 
@@ -1031,6 +1133,9 @@
       <legend>AI Room Preview (photo-realistic, Pro)</legend>
       <label for="roomPreviewSelect">Show this design on a...</label>
       <select id="roomPreviewSelect">
+        <option value="potholder">Potholder (kitchen counter)</option>
+        <option value="placemat">Placemat (table setting)</option>
+        <option value="tablerunner">Table runner (dining table)</option>
         <option value="baby">Baby crib</option>
         <option value="throw">Chair / throw</option>
         <option value="twin">Twin bed</option>
@@ -1051,6 +1156,28 @@
     <div style="text-align:center; margin-top:12px;">
       <button type="button" class="swatch-clear-btn" id="buyRoomCreditsBtn" style="display:none;">Buy 10 more credits — $2.99</button>
     </div>
+  </div>
+</div>
+
+<div style="max-width:1100px; margin:0 auto 40px; padding:0 24px;">
+  <div class="panel pro-feature" id="proFeatureSettingTriangles">
+    <div class="pro-lock-banner">🔒 The setting triangle calculator is part of Quilt Designer Pro.</div>
+    <fieldset>
+      <legend>Setting Triangle Calculator</legend>
+      <span class="swatch-hint">For "on-point" (diagonal) layouts, where blocks are rotated 45°. This is a standalone calculator — it figures out cutting sizes and yardage for the triangles needed to square off the outer edges, but doesn't change the quilt design above.</span>
+      <div class="field-row" style="margin-top:12px;">
+        <div>
+          <label for="settingBlockSizeInput">Finished block size (in)</label>
+          <input type="number" id="settingBlockSizeInput" value="12" min="2" max="24" step="0.5">
+        </div>
+        <div>
+          <label for="settingSideCountInput">Side triangles needed</label>
+          <input type="number" id="settingSideCountInput" value="8" min="0" max="200" step="1">
+        </div>
+      </div>
+      <span class="swatch-hint">Not sure how many side triangles you need? A common formula for a straight on-point layout: 2 × (rows + columns of on-point blocks) − 2. Corner triangles are always exactly 4, regardless of layout size.</span>
+      <div id="settingTriangleResults" style="margin-top:12px;"></div>
+    </fieldset>
   </div>
 </div>
 
@@ -1101,6 +1228,10 @@
   const proFeatureCutList = document.getElementById('proFeatureCutList');
 
   const proFeatureRoomPreview = document.getElementById('proFeatureRoomPreview');
+  const proFeatureSettingTriangles = document.getElementById('proFeatureSettingTriangles');
+  const settingBlockSizeInput = document.getElementById('settingBlockSizeInput');
+  const settingSideCountInput = document.getElementById('settingSideCountInput');
+  const settingTriangleResults = document.getElementById('settingTriangleResults');
   const roomPreviewSelect = document.getElementById('roomPreviewSelect');
   const generateRoomPreviewBtn = document.getElementById('generateRoomPreviewBtn');
   const roomCreditsNote = document.getElementById('roomCreditsNote');
@@ -1125,6 +1256,9 @@
   let currentRoomPreviewUrl = null;
 
   const ROOM_PROMPTS = {
+    potholder: 'a rustic kitchen counter near a stovetop, warm natural light, a quilted potholder laid flat on the counter next to a pot, or hanging from a small hook',
+    placemat: 'a simply set dining table with a plate, glass, and utensils, warm natural light, a quilted placemat laid flat under the place setting',
+    tablerunner: 'a dining table or console table with simple decor, warm natural light, a quilted table runner laid flat down the center of the table',
     baby: 'a cozy nursery with a wooden baby crib, soft natural window light, the crib neatly made with a folded quilt draped over the crib rail',
     throw: 'a comfortable armchair in a warm living room, soft natural light, a quilt draped casually over the seat and armrest',
     twin: 'a neatly made twin bed in a simple bedroom, soft natural window light, a quilt laid flat across the bed with two pillows at the headboard',
@@ -1444,6 +1578,14 @@
   const targetSizeSelect = document.getElementById('targetSizeSelect');
   const targetWidthInput = document.getElementById('targetWidthInput');
   const targetHeightInput = document.getElementById('targetHeightInput');
+  const bedDropRow = document.getElementById('bedDropRow');
+  const sideDropInput = document.getElementById('sideDropInput');
+  const footDropInput = document.getElementById('footDropInput');
+  const pillowTuckWrap = document.getElementById('pillowTuckWrap');
+  const pillowTuckInput = document.getElementById('pillowTuckInput');
+  const bedDropHint = document.getElementById('bedDropHint');
+  const precutSelect = document.getElementById('precutSelect');
+  const precutCheckerResults = document.getElementById('precutCheckerResults');
   const fitBlocksBtn = document.getElementById('fitBlocksBtn');
   const actualSizeNote = document.getElementById('actualSizeNote');
   const sizeMismatchBanner = document.getElementById('sizeMismatchBanner');
@@ -1456,12 +1598,26 @@
   const backingOverhangInput = document.getElementById('backingOverhangInput');
   const DESIGNS_STORAGE_KEY = 'quiltDesignerSavedDesigns';
 
+  // Standard precut dimensions quilters commonly buy — used to check whether any
+  // piece in the current cut list is already the right size to use straight from
+  // the pack, with no extra cutting.
+  const PRECUT_TYPES = {
+    minicharm: { label: 'Mini Charm Pack', shape: 'square', size: 2.5 },
+    charm: { label: 'Charm Pack', shape: 'square', size: 5 },
+    layercake: { label: 'Layer Cake', shape: 'square', size: 10 },
+    jellyroll: { label: 'Jelly Roll', shape: 'strip', width: 2.5 }
+  };
+
   const QUILT_SIZE_PRESETS = {
-    baby: { width: 36, height: 52 },
-    throw: { width: 50, height: 65 },
-    twin: { width: 65, height: 88 },
-    queen: { width: 90, height: 90 },
-    king: { width: 108, height: 108 }
+    potholder: { type: 'flat', width: 9, height: 9, battingNote: 'insulated' },
+    placemat: { type: 'flat', width: 12, height: 18, battingNote: 'thin' },
+    tablerunner: { type: 'flat', width: 16, height: 40, battingNote: 'thin' },
+    baby: { type: 'flat', width: 36, height: 52 },
+    throw: { type: 'flat', width: 50, height: 65 },
+    twin: { type: 'bed', mattressWidth: 39, mattressLength: 75 },
+    full: { type: 'bed', mattressWidth: 54, mattressLength: 75 },
+    queen: { type: 'bed', mattressWidth: 60, mattressLength: 80 },
+    king: { type: 'bed', mattressWidth: 76, mattressLength: 80 }
   };
 
   let swatchImages = { colorA: null, colorB: null, colorC: null, colorD: null };
@@ -2309,6 +2465,12 @@
     } else {
       html += `<span class="yardage-note">This is larger than standard 90" batting rolls in both directions — you'll likely need to piece two batting widths together (same idea as backing fabric), or look for an extra-wide roll (108"+) at your fabric store.</span>`;
     }
+    const presetBattingNote = QUILT_SIZE_PRESETS[targetSizeSelect.value]?.battingNote;
+    if (presetBattingNote === 'insulated') {
+      html += `<span class="yardage-note">⚠️ Potholders need heat-resistant <strong>insulated batting</strong> (like Insul-Bright), not standard quilt batting — standard batting isn't safe near heat.</span>`;
+    } else if (presetBattingNote === 'thin') {
+      html += `<span class="yardage-note">For a project this size, thinner batting is usually easier to quilt and gives a flatter finish than standard-weight batting.</span>`;
+    }
 
     html += `<div class="yardage-row" style="margin-top:10px;"><span>Binding fabric</span><span>${m.bindingYards.toFixed(2)} yd</span></div>`;
     html += `<span class="yardage-note">Cut ${m.stripsNeeded} strip${m.stripsNeeded > 1 ? 's' : ''} at ${m.BINDING_STRIP_WIDTH_IN}" wide across the fabric width. Sewn end-to-end, this makes about ${Math.round(m.bindingYieldedIn)}" of binding — enough to wrap the ${Math.round(m.perimeterIn)}" perimeter of your finished quilt, plus extra for mitered corners and joining seams. You can use one of your existing fabrics, but it'll need this much extra on top of what's already calculated above.</span>`;
@@ -3101,6 +3263,120 @@
     cutListResults.innerHTML = html;
   }
 
+  // Checks a set of cut-list rows for any piece matching a precut's raw dimensions
+  // (within a small tolerance, since real fabric can be trimmed slightly short).
+  function findPrecutMatch(rows, precut) {
+    const TOLERANCE = 0.15;
+    for (const row of rows) {
+      if (precut.shape === 'square') {
+        if (Math.abs(row.cutW - precut.size) < TOLERANCE && Math.abs(row.cutH - precut.size) < TOLERANCE) {
+          return row;
+        }
+      } else if (precut.shape === 'strip') {
+        const wMatches = Math.abs(row.cutW - precut.width) < TOLERANCE;
+        const hMatches = Math.abs(row.cutH - precut.width) < TOLERANCE;
+        const otherDim = wMatches ? row.cutH : row.cutW;
+        // Must actually be strip-shaped (elongated), not a small square that
+        // happens to share the strip width — otherwise a 2.5" charm-sized square
+        // would falsely count as a jelly-roll-strip match.
+        if ((wMatches || hMatches) && otherDim > precut.width * 2) {
+          return row;
+        }
+      }
+    }
+    return null;
+  }
+
+  // Tries a range of standard block sizes (the current pattern's own generator,
+  // just re-run at different sizes) to find one that WOULD produce a piece matching
+  // the precut, without needing pattern-specific reverse math for each of the 24
+  // different patterns' internal proportions.
+  function findBlockSizeForPrecut(patternKey, precut, use4Color) {
+    const generator = CUT_LIST_GENERATORS[patternKey];
+    if (!generator) return null;
+    for (let bs = 4; bs <= 24; bs += 0.5) {
+      const rows = generator(bs, use4Color, 3, 3);
+      const match = findPrecutMatch(rows, precut);
+      if (match) return { blockSize: bs, match };
+    }
+    return null;
+  }
+
+  function updatePrecutChecker(patternKey, blockSizeInches, blocksAcross, blocksDown, use4Color) {
+    const precutKey = precutSelect.value;
+    if (!precutKey || !isPro()) {
+      precutCheckerResults.innerHTML = '';
+      return;
+    }
+    const generator = CUT_LIST_GENERATORS[patternKey];
+    if (!generator) {
+      precutCheckerResults.innerHTML = '';
+      return;
+    }
+    const precut = PRECUT_TYPES[precutKey];
+    const totalBlocks = blocksAcross * blocksDown;
+    const currentRows = generator(blockSizeInches, use4Color, blocksAcross, blocksDown);
+    const match = findPrecutMatch(currentRows, precut);
+
+    if (match) {
+      const totalNeeded = match.qtyPerBlock * totalBlocks;
+      precutCheckerResults.innerHTML = `<div class="precut-match">✓ Good news — the "${match.piece}" piece in this pattern is already ${formatInches(match.cutW)} × ${formatInches(match.cutH)}, a match for your ${precut.label}. You'll need about ${totalNeeded} piece${totalNeeded === 1 ? '' : 's'} from the pack.</div>`;
+    } else {
+      const suggestion = findBlockSizeForPrecut(patternKey, precut, use4Color);
+      if (suggestion) {
+        precutCheckerResults.innerHTML = `<div class="precut-nomatch">No piece at your current block size (${blockSizeInches}") matches a ${precut.label} exactly. Try a ${suggestion.blockSize}" block size instead — that would make the "${suggestion.match.piece}" piece the right size to use straight from the pack.</div>`;
+      } else {
+        precutCheckerResults.innerHTML = `<div class="precut-nomatch">No block size for this pattern produces a piece matching a ${precut.label} — you'll need to trim precut pieces to fit, or cut from yardage instead.</div>`;
+      }
+    }
+  }
+
+  // Standard, widely-published setting-triangle formulas for "on-point" layouts:
+  // side triangles are quarter-square triangles (cut on an X so the straight grain
+  // runs along the outer edge of the quilt, for stability), corner triangles are
+  // half-square triangles (cut on a single diagonal). This is intentionally a
+  // standalone calculator, independent of the main design above — someone doing an
+  // on-point layout knows their own block count, so the side-triangle quantity is a
+  // direct input here rather than something this tool tries to derive on its own.
+  function updateSettingTriangleCalculator() {
+    if (!isPro()) {
+      settingTriangleResults.innerHTML = '<span class="yardage-note">🔒 Unlock Quilt Designer Pro to use this calculator.</span>';
+      return;
+    }
+    const blockSizeIn = parseFloat(settingBlockSizeInput.value) || 12;
+    const sideCount = Math.max(0, parseInt(settingSideCountInput.value, 10) || 0);
+    const cornerCount = 4; // a rectangular on-point quilt always has exactly 4 corners
+
+    const sideCutSize = blockSizeIn * Math.SQRT2 + 1.25;
+    const cornerCutSize = blockSizeIn / Math.SQRT2 + 0.875;
+
+    const fabricWidth = getFabricWidthIn();
+    function yardageFor(cutSize, squaresNeeded) {
+      const perStrip = Math.max(1, Math.floor(fabricWidth / cutSize));
+      const stripsNeeded = Math.max(1, Math.ceil(squaresNeeded / perStrip));
+      const yards = Math.ceil((stripsNeeded * cutSize / 36) * 4) / 4;
+      return yards;
+    }
+
+    let html = '';
+    if (sideCount > 0) {
+      const sideSquaresNeeded = Math.ceil(sideCount / 4);
+      const sideYards = yardageFor(sideCutSize, sideSquaresNeeded);
+      html += `<div class="yardage-row"><span>Side setting triangles</span><span>${sideCount} needed</span></div>`;
+      html += `<span class="yardage-note">Cut ${sideSquaresNeeded} square${sideSquaresNeeded === 1 ? '' : 's'} at ${formatInches(sideCutSize)} × ${formatInches(sideCutSize)}, then cut each square along BOTH diagonals (an X-cut) to make 4 side triangles per square — this keeps the straight grain running along the outer edge of the quilt, which matters for stability. Yields ${sideSquaresNeeded * 4} triangles (${sideSquaresNeeded * 4 - sideCount} spare). About ${sideYards.toFixed(2)} yd needed.</span>`;
+    }
+
+    const cornerSquaresNeeded = 2;
+    const cornerYards = yardageFor(cornerCutSize, cornerSquaresNeeded);
+    html += `<div class="yardage-row" style="margin-top:${sideCount > 0 ? '10px' : '0'};"><span>Corner setting triangles</span><span>4 needed</span></div>`;
+    html += `<span class="yardage-note">Cut 2 squares at ${formatInches(cornerCutSize)} × ${formatInches(cornerCutSize)}, then cut each square along just ONE diagonal to make 2 corner triangles per square. About ${cornerYards.toFixed(2)} yd needed.</span>`;
+
+    settingTriangleResults.innerHTML = html;
+  }
+
+  settingBlockSizeInput.addEventListener('input', updateSettingTriangleCalculator);
+  settingSideCountInput.addEventListener('input', updateSettingTriangleCalculator);
+
   // Debounced so rapid changes (typing a number, dragging a color picker) collapse
   // into a single undo step instead of one per keystroke. Only pushes when the
   // design actually changed, and skips entirely while an undo/redo is in progress
@@ -3314,6 +3590,7 @@
     }
     updateCostCalculator(costMaterials);
     renderCutList(patternSelect.value, blockSizeInches, blocksAcross, blocksDown, use4Color, sashingWidth, borderWidth);
+    updatePrecutChecker(patternSelect.value, blockSizeInches, blocksAcross, blocksDown, use4Color);
     updateActivePreset();
     updateSizeMismatchBanner();
     pushHistoryIfChanged();
@@ -3590,13 +3867,44 @@
     redraw();
   });
 
-  targetSizeSelect.addEventListener('change', () => {
+  // For "flat" presets (baby/throw), the target size is just the preset value. For
+  // "bed" presets, the target size is computed from the real mattress dimensions
+  // plus adjustable side drop, foot drop, and pillow tuck — recalculated any time
+  // the preset or any drop/tuck value changes.
+  function updateTargetSizeFromPreset() {
     const preset = QUILT_SIZE_PRESETS[targetSizeSelect.value];
-    if (preset) {
+    if (!preset) {
+      bedDropRow.style.display = 'none';
+      pillowTuckWrap.style.display = 'none';
+      bedDropHint.style.display = 'none';
+      return;
+    }
+    if (preset.type === 'flat') {
       targetWidthInput.value = preset.width;
       targetHeightInput.value = preset.height;
+      bedDropRow.style.display = 'none';
+      pillowTuckWrap.style.display = 'none';
+      bedDropHint.style.display = 'none';
+      return;
     }
+    // Bed type: show the drop/tuck controls and compute from mattress + drops.
+    bedDropRow.style.display = 'grid';
+    pillowTuckWrap.style.display = 'block';
+    bedDropHint.style.display = 'block';
+    const sideDrop = parseFloat(sideDropInput.value) || 0;
+    const footDrop = parseFloat(footDropInput.value) || 0;
+    const pillowTuck = parseFloat(pillowTuckInput.value) || 0;
+    targetWidthInput.value = preset.mattressWidth + sideDrop * 2;
+    targetHeightInput.value = preset.mattressLength + footDrop + pillowTuck;
+  }
+
+  targetSizeSelect.addEventListener('change', updateTargetSizeFromPreset);
+  [sideDropInput, footDropInput, pillowTuckInput].forEach(input => {
+    input.addEventListener('input', () => {
+      if (QUILT_SIZE_PRESETS[targetSizeSelect.value]?.type === 'bed') updateTargetSizeFromPreset();
+    });
   });
+  precutSelect.addEventListener('change', redraw);
 
   // Back-calculates how many blocks (rounded to the nearest whole block, since you
   // can't sew a fractional one) get closest to the requested finished dimensions,
@@ -3689,6 +3997,10 @@
       colorC: colorCInput.value,
       colorD: colorDInput.value,
       use4Color: use4ColorInput.checked,
+      targetSizePreset: targetSizeSelect.value,
+      sideDrop: sideDropInput.value,
+      footDrop: footDropInput.value,
+      pillowTuck: pillowTuckInput.value,
       targetWidth: targetWidthInput.value,
       targetHeight: targetHeightInput.value,
       swatchImages: { colorA: swatchImages.colorA, colorB: swatchImages.colorB, colorC: swatchImages.colorC, colorD: swatchImages.colorD },
@@ -3719,6 +4031,11 @@
     use4ColorInput.checked = !!state.use4Color && !use4ColorInput.disabled;
     colorCDRow.style.display = use4ColorInput.checked ? 'grid' : 'none';
     swatchCDRow.style.display = use4ColorInput.checked ? 'grid' : 'none';
+    targetSizeSelect.value = state.targetSizePreset || '';
+    sideDropInput.value = state.sideDrop || 12;
+    footDropInput.value = state.footDrop || 12;
+    pillowTuckInput.value = state.pillowTuck || 0;
+    updateTargetSizeFromPreset();
     targetWidthInput.value = state.targetWidth || '';
     targetHeightInput.value = state.targetHeight || '';
     swatchImages.colorA = (state.swatchImages && state.swatchImages.colorA) || null;
@@ -4006,6 +4323,16 @@
     const battingRow = document.createElement('tr');
     battingRow.innerHTML = `<td>Batting (size needed)</td><td>${m.backingWidthIn.toFixed(1)}" × ${m.backingHeightIn.toFixed(1)}"</td>`;
     otherMaterialsTable.appendChild(battingRow);
+    const presetBattingNotePrint = QUILT_SIZE_PRESETS[targetSizeSelect.value]?.battingNote;
+    if (presetBattingNotePrint === 'insulated') {
+      const noteRow = document.createElement('tr');
+      noteRow.innerHTML = `<td colspan="2" style="font-size:11px; color:#5c4a1f;">⚠️ Needs heat-resistant insulated batting (like Insul-Bright), not standard quilt batting.</td>`;
+      otherMaterialsTable.appendChild(noteRow);
+    } else if (presetBattingNotePrint === 'thin') {
+      const noteRow = document.createElement('tr');
+      noteRow.innerHTML = `<td colspan="2" style="font-size:11px; color:#555;">Thinner batting is usually easier to quilt at this size and gives a flatter finish.</td>`;
+      otherMaterialsTable.appendChild(noteRow);
+    }
     const bindingRow = document.createElement('tr');
     bindingRow.innerHTML = `<td>Binding fabric (${m.stripsNeeded} strip${m.stripsNeeded > 1 ? 's' : ''} at ${m.BINDING_STRIP_WIDTH_IN}" wide)</td><td>${m.bindingYards.toFixed(2)} yd</td>`;
     otherMaterialsTable.appendChild(bindingRow);
@@ -4116,6 +4443,20 @@
     });
   }
 
+  // Shows a 🔒 on a collapsed Pro section's header itself, so someone can tell it's
+  // gated without needing to expand it first. Sections not wrapped in a <details>
+  // (like the standalone Cut List / AI Room Preview panels) are safely skipped.
+  function updateSectionLockIndicators(pro) {
+    [proFeatureTargetSize, proFeatureColors, proFeatureStash, proFeatureDesigns, proFeatureBacking, proFeatureCutList, proFeatureRoomPreview, proFeatureSettingTriangles].forEach(el => {
+      if (!el) return;
+      const details = el.closest('details');
+      const summary = details ? details.querySelector('summary') : null;
+      if (!summary) return;
+      if (!summary.dataset.baseLabel) summary.dataset.baseLabel = summary.textContent.trim();
+      summary.textContent = pro ? summary.dataset.baseLabel : `${summary.dataset.baseLabel} 🔒`;
+    });
+  }
+
   function updateProUI() {
     const pro = isPro();
 
@@ -4125,15 +4466,17 @@
       unlockProBtn.style.display = 'none';
     } else {
       proBannerInner.classList.remove('is-unlocked');
-      proBannerText.textContent = '🔒 Unlock Quilt Designer Pro — 23 block patterns, custom colors, cut lists & piecing steps, calculators, and more, $14.99 one time (not a subscription)';
+      proBannerText.textContent = '🔒 Unlock Quilt Designer Pro — 24 block patterns, custom colors, cut lists & piecing steps, calculators, and more, $14.99 one time (not a subscription)';
       unlockProBtn.style.display = 'inline-block';
       unlockProBtn.disabled = false;
       unlockProBtn.textContent = 'Unlock Pro';
     }
 
-    [proFeatureTargetSize, proFeatureColors, proFeatureStash, proFeatureDesigns, proFeatureBacking, proFeatureCutList, proFeatureRoomPreview].forEach(el => setFeatureLock(el, !pro));
+    [proFeatureTargetSize, proFeatureColors, proFeatureStash, proFeatureDesigns, proFeatureBacking, proFeatureCutList, proFeatureRoomPreview, proFeatureSettingTriangles].forEach(el => setFeatureLock(el, !pro));
+    updateSectionLockIndicators(pro);
     updateFourColorAvailability();
     updatePatternOptionLabels();
+    updateSettingTriangleCalculator();
     printSheetBtn.textContent = pro ? 'Download pattern sheet' : 'Download pattern sheet 🔒';
 
     if (pro && localStorage.getItem(ROOM_CREDITS_INITIALIZED_KEY) !== 'true') {
@@ -4156,7 +4499,7 @@
     proBannerInner.style.borderColor = 'var(--rust)';
     setTimeout(() => {
       proBannerInner.style.borderColor = '';
-      if (!isPro()) proBannerText.textContent = '🔒 Unlock Quilt Designer Pro — 23 block patterns, custom colors, cut lists & piecing steps, calculators, and more, $14.99 one time (not a subscription)';
+      if (!isPro()) proBannerText.textContent = '🔒 Unlock Quilt Designer Pro — 24 block patterns, custom colors, cut lists & piecing steps, calculators, and more, $14.99 one time (not a subscription)';
     }, 3000);
   }
 
@@ -4214,6 +4557,7 @@
   updateProUI();
   checkForCheckoutReturn();
   renderFabricStash();
+  updateSettingTriangleCalculator();
 
   redraw();
 </script>
