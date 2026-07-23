@@ -321,10 +321,13 @@
     max-width: 560px;
     display: block;
     margin: 0 auto;
-    transition: opacity 0.12s ease;
+    transition: opacity 0.12s ease, filter 0.15s ease;
     border: 6px solid var(--navy);
     border-radius: 4px;
     box-shadow: 0 3px 12px rgba(42, 40, 37, 0.15);
+  }
+  svg#quilt-canvas.value-checker-active {
+    filter: grayscale(1);
   }
 
   button#downloadBtn {
@@ -343,7 +346,7 @@
   button#downloadBtn:hover { background: #263e4c; }
   button#downloadBtn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 
-  #yardageResults, #backingResults, #cutListResults, #otherMaterialsResults {
+  #yardageResults, #backingResults, #cutListResults, #otherMaterialsResults, #costCalculatorResults {
     margin-top: 20px;
     text-align: left;
     border: 2px dashed var(--stitch);
@@ -389,7 +392,7 @@
     margin-bottom: 8px;
   }
 
-  #yardageResults .yardage-title, #backingResults .yardage-title, #otherMaterialsResults .yardage-title {
+  #yardageResults .yardage-title, #backingResults .yardage-title, #otherMaterialsResults .yardage-title, #costCalculatorResults .yardage-title {
     font-family: 'Bitter', serif;
     font-weight: 700;
     font-size: 14px;
@@ -400,20 +403,41 @@
     margin-bottom: 2px;
   }
 
-  #yardageResults .yardage-note, #backingResults .yardage-note, #otherMaterialsResults .yardage-note {
+  #yardageResults .yardage-note, #backingResults .yardage-note, #otherMaterialsResults .yardage-note, #costCalculatorResults .yardage-note {
     font-size: 11px;
     color: var(--stitch);
     display: block;
     margin-bottom: 10px;
   }
 
-  #yardageResults .yardage-row, #backingResults .yardage-row, #otherMaterialsResults .yardage-row {
+  #yardageResults .yardage-row, #backingResults .yardage-row, #otherMaterialsResults .yardage-row, #costCalculatorResults .yardage-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
     font-family: 'IBM Plex Mono', monospace;
     font-size: 13px;
     padding: 4px 0;
+  }
+
+  #costCalculatorResults input[type="number"] {
+    width: 70px;
+    padding: 3px 6px;
+    border: 1px solid #cfc6b3;
+    border-radius: 3px;
+    font-size: 12px;
+    text-align: right;
+  }
+  #costCalculatorResults .cost-total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid #cfc6b3;
+    font-family: 'Bitter', serif;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--navy);
   }
 
   #yardageResults .yardage-row .swatch-dot {
@@ -746,6 +770,9 @@
           <input type="number" id="blocksDownInput" value="3" min="1" max="10">
         </div>
       </div>
+      <label for="fabricWidthInput" style="margin-top:10px; display:block;">Usable fabric width (inches)</label>
+      <input type="number" id="fabricWidthInput" value="42" min="20" max="120" step="0.5">
+      <span class="swatch-hint">Standard quilting cotton is ~44" off the bolt, ~42" usable after trimming selvages. Change this if you're working with wider fabric.</span>
     </fieldset>
 
     <hr class="divider">
@@ -877,6 +904,10 @@
 
   <div class="panel canvas-panel">
     <div id="sizeMismatchBanner" class="size-note-banner"></div>
+    <div class="checkbox-row" style="justify-content:center; margin-bottom:10px;">
+      <input type="checkbox" id="valueCheckerInput">
+      <label for="valueCheckerInput" style="margin:0; font-size:12px;">Show value (grayscale) — check contrast before you cut</label>
+    </div>
     <svg id="quilt-canvas"></svg>
     <button id="downloadBtn">Download design</button>
     <button id="printSheetBtn">Download pattern sheet 🔒</button>
@@ -889,6 +920,7 @@
     <div id="yardageResults"></div>
     <div id="backingResults"></div>
     <div id="otherMaterialsResults"></div>
+    <div id="costCalculatorResults"></div>
     <div class="pro-feature" id="proFeatureCutList">
       <div class="pro-lock-banner">🔒 The piece-by-piece cut list is part of Quilt Designer Pro.</div>
       <div id="cutListResults"></div>
@@ -931,9 +963,18 @@
 
 <script>
   const svg = document.getElementById('quilt-canvas');
+  const valueCheckerInput = document.getElementById('valueCheckerInput');
+  valueCheckerInput.addEventListener('change', () => {
+    svg.classList.toggle('value-checker-active', valueCheckerInput.checked);
+  });
   const yardageResults = document.getElementById('yardageResults');
   const backingResults = document.getElementById('backingResults');
   const otherMaterialsResults = document.getElementById('otherMaterialsResults');
+  const costCalculatorResults = document.getElementById('costCalculatorResults');
+  // Persists across redraws (which rebuild the table's HTML) so prices already
+  // typed in don't get wiped out when an unrelated setting changes elsewhere.
+  const costPrices = {};
+  let lastCostMaterials = [];
   const undoBtn = document.getElementById('undoBtn');
   const redoBtn = document.getElementById('redoBtn');
   let undoStack = [];
@@ -1322,8 +1363,11 @@
   const blockGrid = 3;
   const blockSize = squareSize * blockGrid; // 300px design unit, scaled to "Block Size (inches)"
 
-  const FABRIC_USABLE_WIDTH_IN = 42;
-  const SQ_IN_PER_YARD = FABRIC_USABLE_WIDTH_IN * 36;
+  const fabricWidthInput = document.getElementById('fabricWidthInput');
+  function getFabricWidthIn() {
+    const val = parseFloat(fabricWidthInput.value);
+    return (val && val > 0) ? val : 42;
+  }
 
   let areaTotals = { colorA: 0, colorB: 0, colorC: 0, colorD: 0, sashing: 0, border: 0 };
 
@@ -2037,7 +2081,7 @@
     rows.forEach(r => {
       if (r.px <= 0) return;
       const sqIn = r.px / sqPxPerSqIn;
-      let yards = sqIn / SQ_IN_PER_YARD;
+      let yards = sqIn / (getFabricWidthIn() * 36);
       if (r.directional) {
         yards *= DIRECTIONAL_YARDAGE_BUFFER;
         anyDirectional = true;
@@ -2052,6 +2096,15 @@
       html += '<span class="yardage-note" style="margin-top:8px; margin-bottom:0;">*Includes ~40% extra for directional print matching — a rule-of-thumb estimate, not exact.</span>';
     }
     yardageResults.innerHTML = html;
+
+    return rows
+      .filter(r => r.px > 0)
+      .map(r => {
+        const sqIn = r.px / sqPxPerSqIn;
+        let yards = sqIn / (getFabricWidthIn() * 36);
+        if (r.directional) yards *= DIRECTIONAL_YARDAGE_BUFFER;
+        return { key: r.label.toLowerCase().replace(/\s+/g, ''), label: r.label, yards };
+      });
   }
 
   // Backing fabric almost always needs to be pieced from multiple widths of fabric
@@ -2071,7 +2124,7 @@
     const backingWidthIn = finishedWidthIn + overhang * 2;
     const backingHeightIn = finishedHeightIn + overhang * 2;
 
-    const panelsNeeded = Math.max(1, Math.ceil(backingWidthIn / FABRIC_USABLE_WIDTH_IN));
+    const panelsNeeded = Math.max(1, Math.ceil(backingWidthIn / getFabricWidthIn()));
     const totalLengthIn = panelsNeeded * backingHeightIn;
     const rawYards = totalLengthIn / 36;
     const yards = Math.ceil(rawYards * 4) / 4; // round up to the nearest quarter yard
@@ -2117,8 +2170,8 @@
     const BINDING_BUFFER_IN = 15; // covers 4 mitered corners, the diagonal joining seams, and folding under the starting end
     const perimeterIn = 2 * (finishedWidthIn + finishedHeightIn);
     const bindingNeededIn = perimeterIn + BINDING_BUFFER_IN;
-    const stripsNeeded = Math.max(1, Math.ceil(bindingNeededIn / FABRIC_USABLE_WIDTH_IN));
-    const bindingYieldedIn = stripsNeeded * FABRIC_USABLE_WIDTH_IN;
+    const stripsNeeded = Math.max(1, Math.ceil(bindingNeededIn / getFabricWidthIn()));
+    const bindingYieldedIn = stripsNeeded * getFabricWidthIn();
     const bindingYardsRaw = (stripsNeeded * BINDING_STRIP_WIDTH_IN) / 36;
     const bindingYards = Math.ceil(bindingYardsRaw * 4) / 4;
 
@@ -2151,6 +2204,62 @@
     html += `<span class="yardage-note">One spool of neutral piecing thread (cream, grey, or white) for sewing pieces together, and one spool of quilting thread in a color of your choice for the decorative stitching that holds the layers together.</span>`;
 
     otherMaterialsResults.innerHTML = html;
+  }
+
+  // A consolidated "bring this to the store" cost estimator, pulling already-
+  // computed yardage from the fabric, backing, and other-materials calculators
+  // rather than recomputing anything. Prices persist in costPrices across redraws;
+  // typing a price only updates that row's subtotal and the grand total directly
+  // (not the whole table), so the input never loses focus mid-keystroke.
+  function updateCostCalculator(materials) {
+    lastCostMaterials = materials;
+
+    if (!isPro()) {
+      costCalculatorResults.innerHTML = '<span class="yardage-title">Cost calculator</span><span class="yardage-note">🔒 Unlock Quilt Designer Pro to estimate your total project cost.</span>';
+      return;
+    }
+
+    let html = '<span class="yardage-title">Cost calculator</span>';
+    html += '<span class="yardage-note">Enter a price per yard (or per package, for batting) to get a running total. Leave any field blank to skip it.</span>';
+    materials.forEach(m => {
+      const savedPrice = costPrices[m.key];
+      html += `<div class="yardage-row">
+        <span>${m.label} (${m.yards.toFixed(2)} yd)</span>
+        <span>
+          <input type="number" step="0.01" min="0" class="cost-price-input" data-key="${m.key}" value="${savedPrice != null ? savedPrice : ''}" placeholder="$/yd">
+          <span class="cost-subtotal" data-key="${m.key}" style="display:inline-block; min-width:60px; text-align:right;">—</span>
+        </span>
+      </div>`;
+    });
+    html += `<div class="cost-total-row"><span>Total estimated cost</span><span class="cost-total-value">$0.00</span></div>`;
+
+    costCalculatorResults.innerHTML = html;
+    attachCostInputListeners();
+    recomputeCostTotal();
+  }
+
+  function attachCostInputListeners() {
+    costCalculatorResults.querySelectorAll('.cost-price-input').forEach(input => {
+      input.addEventListener('input', () => {
+        const key = input.dataset.key;
+        const val = parseFloat(input.value);
+        costPrices[key] = (input.value === '' || isNaN(val)) ? null : val;
+        recomputeCostTotal();
+      });
+    });
+  }
+
+  function recomputeCostTotal() {
+    let total = 0;
+    lastCostMaterials.forEach(m => {
+      const price = costPrices[m.key];
+      const subtotal = (price != null && m.yards > 0) ? price * m.yards : null;
+      if (subtotal !== null) total += subtotal;
+      const cell = costCalculatorResults.querySelector(`.cost-subtotal[data-key="${m.key}"]`);
+      if (cell) cell.textContent = subtotal !== null ? `$${subtotal.toFixed(2)}` : '—';
+    });
+    const totalEl = costCalculatorResults.querySelector('.cost-total-value');
+    if (totalEl) totalEl.textContent = `$${total.toFixed(2)}`;
   }
 
   // --- Piece-by-piece cut lists. Only implemented for patterns whose pieces map to ---
@@ -3078,16 +3187,26 @@
     const alternateBlockDrawFn = patternSelect.value === 'irishchain' ? drawPlainBlock : null;
 
     drawQuilt(blockDrawFn, blocksAcross, blocksDown, sashingWidth, sashingColor, borderWidth, borderColor, colorA, colorB, alternateRotation, colorC, colorD, use4Color, alternateBlockDrawFn);
-    updateYardage(blockSizeInches);
+    const fabricMaterials = updateYardage(blockSizeInches);
     const backingInfo = updateBackingYardage(blockSizeInches, blocksAcross, blocksDown, sashingWidth, borderWidth);
     updateOtherMaterials(backingInfo);
+
+    const otherCalc = isPro() ? computeOtherMaterials(backingInfo) : null;
+    const costMaterials = [...fabricMaterials, { key: 'backing', label: 'Backing fabric', yards: backingInfo.yards }];
+    if (otherCalc && otherCalc.battingFitsSingleWidth) {
+      costMaterials.push({ key: 'batting', label: 'Batting', yards: otherCalc.battingYardsOffRoll });
+    }
+    if (otherCalc) {
+      costMaterials.push({ key: 'binding', label: 'Binding fabric', yards: otherCalc.bindingYards });
+    }
+    updateCostCalculator(costMaterials);
     renderCutList(patternSelect.value, blockSizeInches, blocksAcross, blocksDown, use4Color, sashingWidth, borderWidth);
     updateActivePreset();
     updateSizeMismatchBanner();
     pushHistoryIfChanged();
   }
 
-  [alternateRotationInput, blockSizeInchesInput, blocksAcrossInput, blocksDownInput, sashingWidthInput, sashingColorInput, borderWidthInput, borderColorInput, colorAInput, colorBInput, swatchScaleInput, directionalAInput, directionalBInput, backingOverhangInput]
+  [alternateRotationInput, blockSizeInchesInput, blocksAcrossInput, blocksDownInput, sashingWidthInput, sashingColorInput, borderWidthInput, borderColorInput, colorAInput, colorBInput, swatchScaleInput, directionalAInput, directionalBInput, backingOverhangInput, fabricWidthInput]
     .forEach(input => input.addEventListener('input', redraw));
 
   // Pattern select gets its own listener (rather than the generic redraw list above)
@@ -3286,6 +3405,7 @@
       blockSizeInches: blockSizeInchesInput.value,
       blocksAcross: blocksAcrossInput.value,
       blocksDown: blocksDownInput.value,
+      fabricWidth: fabricWidthInput.value,
       sashingWidth: sashingWidthInput.value,
       sashingColor: sashingColorInput.value,
       borderWidth: borderWidthInput.value,
@@ -3310,6 +3430,7 @@
     blockSizeInchesInput.value = state.blockSizeInches;
     blocksAcrossInput.value = state.blocksAcross;
     blocksDownInput.value = state.blocksDown;
+    fabricWidthInput.value = state.fabricWidth || 42;
     sashingWidthInput.value = state.sashingWidth;
     sashingColorInput.value = state.sashingColor;
     borderWidthInput.value = state.borderWidth;
@@ -3565,7 +3686,7 @@
     rows.forEach(r => {
       if (r.px <= 0) return;
       const sqIn = r.px / sqPxPerSqIn;
-      let yards = sqIn / SQ_IN_PER_YARD;
+      let yards = sqIn / (getFabricWidthIn() * 36);
       if (r.directional) { yards *= DIRECTIONAL_YARDAGE_BUFFER; anyDirectional = true; }
       const label = r.directional ? `${r.label}*` : r.label;
       const tr = document.createElement('tr');
