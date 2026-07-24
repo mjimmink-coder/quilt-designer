@@ -84,8 +84,45 @@
   }
 
   @media (max-width: 800px) {
-    .layout { grid-template-columns: 1fr; }
-    .canvas-panel { order: -1; }
+    .layout { display: flex; flex-direction: column; }
+
+    /* display:contents removes each panel's own box so its children can
+       compete for position directly within .layout's flex order — this
+       avoids restructuring the HTML itself, since desktop still renders
+       these as two normal, separately-boxed panels (this override only
+       applies inside this mobile media query). */
+    .controls-panel, .canvas-panel { display: contents; }
+
+    /* Stage 1: Pattern first, so you choose what you're making before
+       anything else. */
+    .controls-panel > details:nth-of-type(1) { order: 1; }
+
+    /* Stage 2: the design preview and its actions, right after Pattern,
+       for immediate visual feedback. */
+    #sizeMismatchBanner,
+    .canvas-panel > .checkbox-row,
+    svg#quilt-canvas,
+    button#downloadBtn,
+    button#printSheetBtn,
+    #shareButtonsRow,
+    #shareStatusNote {
+      order: 2;
+    }
+
+    /* Stage 3: the rest of the design controls (everything in
+       controls-panel except Pattern, which already claimed order 1). */
+    .controls-panel > * { order: 3; }
+    .controls-panel > details:nth-of-type(1) { order: 1; }
+
+    /* Stage 4: yardage, materials, and the cut list — reviewed once
+       you're happy with the design, not before you've made one. */
+    #yardageResults,
+    #backingResults,
+    #otherMaterialsResults,
+    #costCalculatorResults,
+    #proFeatureCutList {
+      order: 4;
+    }
   }
 
   .panel {
@@ -1123,7 +1160,7 @@
     <svg id="quilt-canvas"></svg>
     <button id="downloadBtn">Download design</button>
     <button id="printSheetBtn">Download pattern sheet 🔒</button>
-    <div style="display:flex; align-items:center; justify-content:center; gap:10px; margin-top:12px; flex-wrap:wrap;">
+    <div id="shareButtonsRow" style="display:flex; align-items:center; justify-content:center; gap:10px; margin-top:12px; flex-wrap:wrap;">
       <button id="shareDesignBtn" class="tool-btn">Share design</button>
       <button id="pinterestBtn" class="icon-btn icon-btn-pinterest" aria-label="Pin on Pinterest" title="Pin on Pinterest">📌</button>
       <button id="facebookBtn" class="icon-btn icon-btn-facebook" aria-label="Share on Facebook" title="Share on Facebook">f</button>
