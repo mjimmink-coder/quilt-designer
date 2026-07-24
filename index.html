@@ -20,8 +20,9 @@
     --ink: #2A2825;
     --navy: #2F4858;
     --gold: #C9A227;
+    --gold-text: #7A5F15;
     --rust: #A8461E;
-    --stitch: #8C8474;
+    --stitch: #6B6355;
   }
 
   * { box-sizing: border-box; }
@@ -110,7 +111,7 @@
     font-size: 13px;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--gold);
+    color: var(--gold-text);
     margin-bottom: 12px;
     padding: 0 0 6px;
     width: 100%;
@@ -130,7 +131,7 @@
     font-size: 13px;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--gold);
+    color: var(--gold-text);
     padding: 0 0 6px;
     border-bottom: 1px solid rgba(201, 162, 39, 0.35);
     list-style: none;
@@ -138,8 +139,8 @@
   details.collapsible-section summary::-webkit-details-marker { display: none; }
   details.collapsible-section summary::after {
     content: '▾';
-    font-size: 11px;
-    color: var(--gold);
+    font-size: 12px;
+    color: var(--gold-text);
     transition: transform 0.15s ease;
     margin-left: 8px;
   }
@@ -154,7 +155,7 @@
 
   .section-group-heading {
     font-family: 'Work Sans', sans-serif;
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 600;
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -166,7 +167,7 @@
 
   label {
     display: block;
-    font-size: 13px;
+    font-size: 14px;
     color: var(--ink);
     margin-bottom: 4px;
   }
@@ -181,12 +182,12 @@
 
   select, input[type="number"] {
     width: 100%;
-    padding: 7px 8px;
+    padding: 8px 8px;
     border: 1px solid #cfc6b3;
     border-radius: 3px;
     background: #fff;
     font-family: 'Work Sans', sans-serif;
-    font-size: 14px;
+    font-size: 16px;
     color: var(--ink);
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
   }
@@ -213,9 +214,29 @@
 
   input[type="file"] {
     width: 100%;
-    font-size: 11px;
+    font-size: 14px;
     color: var(--ink);
     font-family: 'Work Sans', sans-serif;
+  }
+
+  input[type="text"] {
+    width: 100%;
+    padding: 8px 8px;
+    border: 1px solid #cfc6b3;
+    border-radius: 3px;
+    background: #fff;
+    font-family: 'Work Sans', sans-serif;
+    font-size: 16px;
+    color: var(--ink);
+    box-sizing: border-box;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  input[type="text"]:hover { border-color: var(--navy); }
+  input[type="text"]:focus-visible {
+    outline: none;
+    border-color: var(--navy);
+    box-shadow: 0 0 0 3px rgba(47, 72, 88, 0.15);
   }
 
   .swatch-clear-btn {
@@ -314,7 +335,7 @@
 
   .fabric-swatch-label {
     text-align: center;
-    font-size: 11px;
+    font-size: 12px;
     color: var(--stitch);
     margin: 6px 0 0;
     text-transform: uppercase;
@@ -379,7 +400,7 @@
   }
 
   .swatch-hint {
-    font-size: 10px;
+    font-size: 13px;
     color: var(--stitch);
     margin: 4px 0 0;
     display: block;
@@ -486,7 +507,7 @@
     vertical-align: top;
   }
   #cutListResults .cutlist-note {
-    font-size: 11px;
+    font-size: 13px;
     color: var(--stitch);
     margin-top: 10px;
     display: block;
@@ -514,7 +535,7 @@
   }
 
   #yardageResults .yardage-note, #backingResults .yardage-note, #otherMaterialsResults .yardage-note, #costCalculatorResults .yardage-note, #settingTriangleResults .yardage-note {
-    font-size: 11px;
+    font-size: 13px;
     color: var(--stitch);
     display: block;
     margin-bottom: 10px;
@@ -531,10 +552,10 @@
 
   #costCalculatorResults input[type="number"] {
     width: 70px;
-    padding: 3px 6px;
+    padding: 6px;
     border: 1px solid #cfc6b3;
     border-radius: 3px;
-    font-size: 12px;
+    font-size: 16px;
     text-align: right;
   }
   #costCalculatorResults .cost-total-row {
@@ -724,10 +745,10 @@
   }
   .promo-row input[type="text"] {
     width: 140px;
-    padding: 6px 8px;
+    padding: 8px 8px;
     border: 1px solid #cfc6b3;
     border-radius: 3px;
-    font-size: 12px;
+    font-size: 16px;
     font-family: 'Work Sans', sans-serif;
   }
   .promo-row .tool-btn { padding: 6px 12px; font-size: 12px; }
@@ -737,7 +758,7 @@
   .pro-feature.is-locked { opacity: 0.5; }
   .pro-lock-banner {
     display: none;
-    font-size: 11px;
+    font-size: 13px;
     color: var(--navy);
     background: #fff8e6;
     border: 1px solid var(--gold);
@@ -4599,7 +4620,7 @@
   }
 </script>
 
-<footer style="text-align:center; padding:24px; font-size:12px; color:var(--stitch); border-top:2px dashed var(--stitch); margin-top:20px;">
+<footer style="text-align:center; padding:24px; font-size:13px; color:var(--stitch); border-top:2px dashed var(--stitch); margin-top:20px;">
   <a href="/terms-of-service.html" style="color:var(--stitch);">Terms of Service</a> ·
   <a href="/privacy-policy.html" style="color:var(--stitch);">Privacy Policy</a> ·
   <a href="/refund-policy.html" style="color:var(--stitch);">Refund Policy</a> ·
