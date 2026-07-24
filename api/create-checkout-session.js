@@ -25,6 +25,7 @@ module.exports = async function handler(req, res) {
       mode: 'payment',
       line_items: [{ price: priceId, quantity: 1 }],
       metadata: { type },
+      customer_creation: 'always', // guarantees a searchable Customer record, needed for the restore-purchase flow to find this later on another device
       success_url: `${origin}/?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/`,
     });

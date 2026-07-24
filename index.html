@@ -786,8 +786,8 @@
     flex-wrap: wrap;
     margin-top: 8px;
   }
-  .promo-row input[type="text"] {
-    width: 140px;
+  .promo-row input[type="text"], .promo-row input[type="email"] {
+    width: 180px;
     padding: 8px 8px;
     border: 1px solid #cfc6b3;
     border-radius: 3px;
@@ -796,6 +796,18 @@
   }
   .promo-row .tool-btn { padding: 6px 12px; font-size: 12px; }
   .promo-row .swatch-hint { margin: 0; flex-basis: 100%; text-align: center; }
+
+  .restore-purchase-details { text-align: center; margin-top: 6px; }
+  .restore-purchase-summary {
+    cursor: pointer;
+    font-size: 11px;
+    color: var(--stitch);
+    text-decoration: underline;
+    list-style: none;
+    display: inline-block;
+  }
+  .restore-purchase-summary::-webkit-details-marker { display: none; }
+  .restore-purchase-summary:hover { color: var(--navy); }
 
   .pro-feature { position: relative; transition: opacity 0.15s ease; }
   .pro-feature.is-locked { opacity: 0.5; }
@@ -867,6 +879,15 @@
     <button type="button" class="tool-btn" id="applyPromoBtn">Apply</button>
     <span class="swatch-hint" id="promoStatusNote"></span>
   </div>
+  <details class="restore-purchase-details">
+    <summary class="restore-purchase-summary">Already purchased on another device?</summary>
+    <div class="promo-row" id="restoreRow">
+      <label for="restoreEmailInput" style="margin:0; font-size:11px;">Email used at checkout</label>
+      <input type="email" id="restoreEmailInput" placeholder="you@example.com">
+      <button type="button" class="tool-btn" id="restorePurchaseBtn">Restore purchase</button>
+      <span class="swatch-hint" id="restoreStatusNote"></span>
+    </div>
+  </details>
 </div>
 
 <div class="layout">
@@ -1313,6 +1334,9 @@
   const promoCodeInput = document.getElementById('promoCodeInput');
   const applyPromoBtn = document.getElementById('applyPromoBtn');
   const promoStatusNote = document.getElementById('promoStatusNote');
+  const restoreEmailInput = document.getElementById('restoreEmailInput');
+  const restorePurchaseBtn = document.getElementById('restorePurchaseBtn');
+  const restoreStatusNote = document.getElementById('restoreStatusNote');
 
   // Promo codes are validated server-side (see api/validate-promo.js) so the actual
   // codes never appear in the page source. Redemption tracking (so the same code
@@ -1569,6 +1593,42 @@
     } finally {
       applyPromoBtn.disabled = false;
       applyPromoBtn.textContent = originalText;
+    }
+  });
+
+  restorePurchaseBtn.addEventListener('click', async () => {
+    const email = restoreEmailInput.value.trim().toLowerCase();
+    if (!email || !email.includes('@')) {
+      restoreStatusNote.textContent = 'Enter the email you used at checkout.';
+      return;
+    }
+
+    const originalText = restorePurchaseBtn.textContent;
+    restorePurchaseBtn.disabled = true;
+    restorePurchaseBtn.textContent = 'Checking...';
+    try {
+      const res = await fetch('/api/restore-purchase', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error('Unable to check right now.');
+
+      if (data.restored) {
+        localStorage.setItem(PRO_STORAGE_KEY, 'true');
+        updateProUI();
+        restoreStatusNote.textContent = 'Success! Quilt Designer Pro restored on this device.';
+        restoreEmailInput.value = '';
+      } else {
+        restoreStatusNote.textContent = "We couldn't find a Pro purchase under that email. Double-check it matches what you used at checkout, or contact hello@quiltdesigners.app for help.";
+      }
+    } catch (err) {
+      console.error('Restore purchase error:', err);
+      restoreStatusNote.textContent = 'Something went wrong checking your purchase. Please try again.';
+    } finally {
+      restorePurchaseBtn.disabled = false;
+      restorePurchaseBtn.textContent = originalText;
     }
   });
 
