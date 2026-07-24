@@ -879,6 +879,76 @@
       </fieldset>
     </details>
 
+
+    <details class="collapsible-section" open>
+      <summary>Size &amp; Layout</summary>
+      <fieldset>
+        <label for="blockSizeInchesInput">Block size (inches)</label>
+        <input type="number" id="blockSizeInchesInput" value="12" min="4" max="24">
+        <div class="field-row">
+          <div>
+            <label for="blocksAcrossInput">Blocks across</label>
+            <input type="number" id="blocksAcrossInput" value="3" min="1" max="10">
+          </div>
+          <div>
+            <label for="blocksDownInput">Blocks down</label>
+            <input type="number" id="blocksDownInput" value="3" min="1" max="10">
+          </div>
+        </div>
+        <label for="fabricWidthInput" style="margin-top:10px; display:block;">Usable fabric width (inches)</label>
+        <input type="number" id="fabricWidthInput" value="42" min="20" max="120" step="0.5">
+        <span class="swatch-hint">Standard quilting cotton is ~44" off the bolt, ~42" usable after trimming selvages. Change this if you're working with wider fabric.</span>
+      </fieldset>
+    </details>
+
+    <details class="collapsible-section">
+      <summary>Target Quilt Size</summary>
+      <fieldset class="pro-feature" id="proFeatureTargetSize">
+        <div class="pro-lock-banner">🔒 Auto-fit to a target size is part of Quilt Designer Pro.</div>
+        <label for="targetSizeSelect">Quilt size</label>
+        <select id="targetSizeSelect">
+          <option value="">Custom (set blocks manually)</option>
+          <option value="potholder">Potholder (approx 9×9")</option>
+          <option value="placemat">Placemat (approx 12×18")</option>
+          <option value="tablerunner">Table Runner (approx 16×40")</option>
+          <option value="baby">Baby / Crib (approx 36×52")</option>
+          <option value="throw">Throw / Lap (approx 50×65")</option>
+          <option value="twin">Twin mattress (39×75")</option>
+          <option value="full">Full / Double mattress (54×75")</option>
+          <option value="queen">Queen mattress (60×80")</option>
+          <option value="king">King mattress (76×80")</option>
+        </select>
+
+        <div class="field-row" id="bedDropRow" style="margin-top:10px; display:none;">
+          <div>
+            <label for="sideDropInput">Side drop (in)</label>
+            <input type="number" id="sideDropInput" value="12" min="0" max="30" step="1">
+          </div>
+          <div>
+            <label for="footDropInput">Foot drop (in)</label>
+            <input type="number" id="footDropInput" value="12" min="0" max="30" step="1">
+          </div>
+        </div>
+        <div id="pillowTuckWrap" style="margin-top:10px; display:none;">
+          <label for="pillowTuckInput">Pillow tuck (in) — extra length at the head to tuck over pillows</label>
+          <input type="number" id="pillowTuckInput" value="0" min="0" max="24" step="1">
+        </div>
+        <span class="swatch-hint" id="bedDropHint" style="display:none;">Side and foot drop are how far the quilt hangs down past the mattress edge on each side. Adjust these and the target size below updates automatically.</span>
+
+        <div class="field-row" style="margin-top:10px;">
+          <div>
+            <label for="targetWidthInput">Target width (in)</label>
+            <input type="number" id="targetWidthInput" min="10" max="200" step="1">
+          </div>
+          <div>
+            <label for="targetHeightInput">Target height (in)</label>
+            <input type="number" id="targetHeightInput" min="10" max="200" step="1">
+          </div>
+        </div>
+        <button type="button" class="swatch-clear-btn" id="fitBlocksBtn" style="margin-top:10px;">Fit blocks to this size</button>
+        <span class="swatch-hint" id="actualSizeNote"></span>
+      </fieldset>
+    </details>
     <details class="collapsible-section" open>
       <summary>Fabric Colors</summary>
       <fieldset class="pro-feature" id="proFeatureColors">
@@ -961,76 +1031,6 @@
           <label for="swatchScaleInput">Fabric print scale (inches per repeat)</label>
           <input type="number" id="swatchScaleInput" value="4" min="1" max="12" step="0.5">
         </div>
-      </fieldset>
-    </details>
-
-    <details class="collapsible-section" open>
-      <summary>Size &amp; Layout</summary>
-      <fieldset>
-        <label for="blockSizeInchesInput">Block size (inches)</label>
-        <input type="number" id="blockSizeInchesInput" value="12" min="4" max="24">
-        <div class="field-row">
-          <div>
-            <label for="blocksAcrossInput">Blocks across</label>
-            <input type="number" id="blocksAcrossInput" value="3" min="1" max="10">
-          </div>
-          <div>
-            <label for="blocksDownInput">Blocks down</label>
-            <input type="number" id="blocksDownInput" value="3" min="1" max="10">
-          </div>
-        </div>
-        <label for="fabricWidthInput" style="margin-top:10px; display:block;">Usable fabric width (inches)</label>
-        <input type="number" id="fabricWidthInput" value="42" min="20" max="120" step="0.5">
-        <span class="swatch-hint">Standard quilting cotton is ~44" off the bolt, ~42" usable after trimming selvages. Change this if you're working with wider fabric.</span>
-      </fieldset>
-    </details>
-
-    <details class="collapsible-section">
-      <summary>Target Quilt Size</summary>
-      <fieldset class="pro-feature" id="proFeatureTargetSize">
-        <div class="pro-lock-banner">🔒 Auto-fit to a target size is part of Quilt Designer Pro.</div>
-        <label for="targetSizeSelect">Quilt size</label>
-        <select id="targetSizeSelect">
-          <option value="">Custom (set blocks manually)</option>
-          <option value="potholder">Potholder (approx 9×9")</option>
-          <option value="placemat">Placemat (approx 12×18")</option>
-          <option value="tablerunner">Table Runner (approx 16×40")</option>
-          <option value="baby">Baby / Crib (approx 36×52")</option>
-          <option value="throw">Throw / Lap (approx 50×65")</option>
-          <option value="twin">Twin mattress (39×75")</option>
-          <option value="full">Full / Double mattress (54×75")</option>
-          <option value="queen">Queen mattress (60×80")</option>
-          <option value="king">King mattress (76×80")</option>
-        </select>
-
-        <div class="field-row" id="bedDropRow" style="margin-top:10px; display:none;">
-          <div>
-            <label for="sideDropInput">Side drop (in)</label>
-            <input type="number" id="sideDropInput" value="12" min="0" max="30" step="1">
-          </div>
-          <div>
-            <label for="footDropInput">Foot drop (in)</label>
-            <input type="number" id="footDropInput" value="12" min="0" max="30" step="1">
-          </div>
-        </div>
-        <div id="pillowTuckWrap" style="margin-top:10px; display:none;">
-          <label for="pillowTuckInput">Pillow tuck (in) — extra length at the head to tuck over pillows</label>
-          <input type="number" id="pillowTuckInput" value="0" min="0" max="24" step="1">
-        </div>
-        <span class="swatch-hint" id="bedDropHint" style="display:none;">Side and foot drop are how far the quilt hangs down past the mattress edge on each side. Adjust these and the target size below updates automatically.</span>
-
-        <div class="field-row" style="margin-top:10px;">
-          <div>
-            <label for="targetWidthInput">Target width (in)</label>
-            <input type="number" id="targetWidthInput" min="10" max="200" step="1">
-          </div>
-          <div>
-            <label for="targetHeightInput">Target height (in)</label>
-            <input type="number" id="targetHeightInput" min="10" max="200" step="1">
-          </div>
-        </div>
-        <button type="button" class="swatch-clear-btn" id="fitBlocksBtn" style="margin-top:10px;">Fit blocks to this size</button>
-        <span class="swatch-hint" id="actualSizeNote"></span>
       </fieldset>
     </details>
 
