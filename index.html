@@ -97,31 +97,41 @@
        anything else. */
     .controls-panel > details:nth-of-type(1) { order: 1; }
 
-    /* Stage 2: the design preview and its actions, right after Pattern,
-       for immediate visual feedback. */
+    /* Stage 2: the design preview itself, right after Pattern, for
+       immediate visual feedback. */
     #sizeMismatchBanner,
     .canvas-panel > .checkbox-row,
-    svg#quilt-canvas,
-    button#downloadBtn,
-    button#printSheetBtn,
-    #shareButtonsRow,
-    #shareStatusNote {
+    svg#quilt-canvas {
       order: 2;
     }
 
-    /* Stage 3: the rest of the design controls (everything in
-       controls-panel except Pattern, which already claimed order 1). */
-    .controls-panel > * { order: 3; }
-    .controls-panel > details:nth-of-type(1) { order: 1; }
+    /* Stage 3: Undo/Redo, right below the image, for quick iteration. */
+    #undoRedoRow { order: 3; }
 
-    /* Stage 4: yardage, materials, and the cut list — reviewed once
+    /* Stage 4: the download actions. */
+    #downloadButtonsRow { order: 4; }
+
+    /* Stage 5: sharing. */
+    #shareButtonsRow,
+    #shareStatusNote {
+      order: 5;
+    }
+
+    /* Stage 6: the rest of the design controls (everything in
+       controls-panel except Pattern and Undo/Redo, which already claimed
+       their own order values above). */
+    .controls-panel > * { order: 6; }
+    .controls-panel > details:nth-of-type(1) { order: 1; }
+    #undoRedoRow { order: 3; }
+
+    /* Stage 7: yardage, materials, and the cut list — reviewed once
        you're happy with the design, not before you've made one. */
     #yardageResults,
     #backingResults,
     #otherMaterialsResults,
     #costCalculatorResults,
     #proFeatureCutList {
-      order: 4;
+      order: 7;
     }
   }
 
@@ -337,6 +347,7 @@
   .icon-btn:active { transform: translateY(0); box-shadow: 0 1px 3px rgba(42, 40, 37, 0.15); }
   .icon-btn-pinterest { background: #E60023; }
   .icon-btn-facebook { background: #1877F2; font-weight: 700; font-family: Georgia, serif; font-style: italic; font-size: 18px; }
+  #shareButtonsRow .tool-btn { padding: 9px 16px; flex-shrink: 0; }
 
   .fabric-swatch-grid {
     display: grid;
@@ -498,11 +509,11 @@
   }
 
   button#downloadBtn {
-    margin-top: 20px;
+    flex: 1;
     background: var(--navy);
     color: #fff;
     border: none;
-    padding: 11px 22px;
+    padding: 11px 12px;
     border-radius: 3px;
     font-family: 'Work Sans', sans-serif;
     font-weight: 600;
@@ -618,12 +629,11 @@
   }
 
   button#printSheetBtn {
-    margin-top: 12px;
-    margin-left: 8px;
+    flex: 1;
     background: #fff;
     color: var(--navy);
     border: 1px solid var(--navy);
-    padding: 10px 20px;
+    padding: 10px 12px;
     border-radius: 3px;
     font-family: 'Work Sans', sans-serif;
     font-weight: 600;
@@ -863,7 +873,7 @@
 
   <div class="panel controls-panel">
 
-    <div style="display:flex; gap:8px; margin-bottom:14px;">
+    <div id="undoRedoRow" style="display:flex; gap:8px; margin-bottom:14px;">
       <button type="button" id="undoBtn" class="tool-btn" style="flex:1;" disabled>↶ Undo</button>
       <button type="button" id="redoBtn" class="tool-btn" style="flex:1;" disabled>↷ Redo</button>
     </div>
@@ -1158,10 +1168,12 @@
       <label for="valueCheckerInput" style="margin:0; font-size:12px;">Show value (grayscale) — check contrast before you cut</label>
     </div>
     <svg id="quilt-canvas"></svg>
-    <button id="downloadBtn">Download design</button>
-    <button id="printSheetBtn">Download pattern sheet 🔒</button>
+    <div id="downloadButtonsRow" style="display:flex; gap:8px; margin-top:12px;">
+      <button id="downloadBtn">Download</button>
+      <button id="printSheetBtn">Pattern sheet 🔒</button>
+    </div>
     <div id="shareButtonsRow" style="display:flex; align-items:center; justify-content:center; gap:10px; margin-top:12px; flex-wrap:wrap;">
-      <button id="shareDesignBtn" class="tool-btn">Share design</button>
+      <button id="shareDesignBtn" class="tool-btn">Share</button>
       <button id="pinterestBtn" class="icon-btn icon-btn-pinterest" aria-label="Pin on Pinterest" title="Pin on Pinterest">📌</button>
       <button id="facebookBtn" class="icon-btn icon-btn-facebook" aria-label="Share on Facebook" title="Share on Facebook">f</button>
     </div>
@@ -4539,7 +4551,7 @@
     updateFourColorAvailability();
     updatePatternOptionLabels();
     updateSettingTriangleCalculator();
-    printSheetBtn.textContent = pro ? 'Download pattern sheet' : 'Download pattern sheet 🔒';
+    printSheetBtn.textContent = pro ? 'Pattern sheet' : 'Pattern sheet 🔒';
 
     if (pro && localStorage.getItem(ROOM_CREDITS_INITIALIZED_KEY) !== 'true') {
       localStorage.setItem(ROOM_CREDITS_INITIALIZED_KEY, 'true');
