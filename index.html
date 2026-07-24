@@ -651,7 +651,16 @@
   #printSheet { display: none; }
 
   @media print {
-    header, .layout > .controls-panel, button#downloadBtn, button#printSheetBtn { display: none !important; }
+    html, body { background: #fff !important; }
+    header,
+    .pro-banner,
+    .layout > .controls-panel,
+    button#downloadBtn,
+    button#printSheetBtn,
+    #proFeatureRoomPreview,
+    #proFeatureSettingTriangles {
+      display: none !important;
+    }
     .layout { display: block !important; }
     .canvas-panel { display: none !important; }
     #printSheet { display: block !important; }
