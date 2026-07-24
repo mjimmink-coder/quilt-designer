@@ -4007,7 +4007,21 @@
   // plus adjustable side drop, foot drop, and pillow tuck — recalculated any time
   // the preset or any drop/tuck value changes.
   function updateTargetSizeFromPreset() {
-    const preset = QUILT_SIZE_PRESETS[targetSizeSelect.value];
+    const presetKey = targetSizeSelect.value;
+    const preset = QUILT_SIZE_PRESETS[presetKey];
+
+    // If this preset has a matching AI Room Preview scene, default that
+    // dropdown to match — someone who's already said "this is a queen
+    // quilt" shouldn't have to specify the size again for the room preview.
+    // ("full" maps to "queen" since Room Preview combines Full/Queen into
+    // one scene.) This only sets a starting default; the room preview
+    // dropdown stays fully independent afterward if someone wants to
+    // preview a different scene than the quilt's actual target size.
+    const roomPreviewKey = presetKey === 'full' ? 'queen' : presetKey;
+    if ([...roomPreviewSelect.options].some((opt) => opt.value === roomPreviewKey)) {
+      roomPreviewSelect.value = roomPreviewKey;
+    }
+
     if (!preset) {
       bedDropRow.style.display = 'none';
       pillowTuckWrap.style.display = 'none';
