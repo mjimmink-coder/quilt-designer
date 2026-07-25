@@ -1284,7 +1284,24 @@
 
 <div id="printSheet"></div>
 
-<script defer>
+
+<footer style="text-align:center; padding:24px; font-size:13px; color:var(--stitch); border-top:2px dashed var(--stitch); margin-top:20px;">
+  <a href="/terms-of-service.html" style="color:var(--stitch);">Terms of Service</a> ·
+  <a href="/privacy-policy.html" style="color:var(--stitch);">Privacy Policy</a> ·
+  <a href="/refund-policy.html" style="color:var(--stitch);">Refund Policy</a> ·
+  <a href="mailto:hello@quiltdesigners.app" style="color:var(--stitch);">Contact</a>
+  <details class="restore-purchase-details" style="margin-top:12px;">
+    <summary class="restore-purchase-summary">Already purchased on another device?</summary>
+    <div class="promo-row" id="restoreRow">
+      <label for="restoreEmailInput" style="margin:0; font-size:11px;">Email used at checkout</label>
+      <input type="email" id="restoreEmailInput" placeholder="you@example.com">
+      <button type="button" class="tool-btn" id="restorePurchaseBtn">Restore purchase</button>
+      <span class="swatch-hint" id="restoreStatusNote"></span>
+    </div>
+  </details>
+</footer>
+
+<script>
   const svg = document.getElementById('quilt-canvas');
   const valueCheckerInput = document.getElementById('valueCheckerInput');
   valueCheckerInput.addEventListener('change', () => {
@@ -4724,21 +4741,6 @@
   }
 </script>
 
-<footer style="text-align:center; padding:24px; font-size:13px; color:var(--stitch); border-top:2px dashed var(--stitch); margin-top:20px;">
-  <a href="/terms-of-service.html" style="color:var(--stitch);">Terms of Service</a> ·
-  <a href="/privacy-policy.html" style="color:var(--stitch);">Privacy Policy</a> ·
-  <a href="/refund-policy.html" style="color:var(--stitch);">Refund Policy</a> ·
-  <a href="mailto:hello@quiltdesigners.app" style="color:var(--stitch);">Contact</a>
-  <details class="restore-purchase-details" style="margin-top:12px;">
-    <summary class="restore-purchase-summary">Already purchased on another device?</summary>
-    <div class="promo-row" id="restoreRow">
-      <label for="restoreEmailInput" style="margin:0; font-size:11px;">Email used at checkout</label>
-      <input type="email" id="restoreEmailInput" placeholder="you@example.com">
-      <button type="button" class="tool-btn" id="restorePurchaseBtn">Restore purchase</button>
-      <span class="swatch-hint" id="restoreStatusNote"></span>
-    </div>
-  </details>
-</footer>
 
 </body>
 </html>
