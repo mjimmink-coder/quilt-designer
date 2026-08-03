@@ -1360,7 +1360,7 @@
   // needed elsewhere. To remove the promotion early, just set
   // TRIAL_END_TIMESTAMP to a date in the past.
   const TRIAL_END_TIMESTAMP = new Date('2026-08-10T23:59:59').getTime();
-  const TRIAL_FEATURE_IDS = new Set(['proFeatureColors', 'proFeatureStash', 'proFeatureCutList']);
+  const TRIAL_FEATURE_IDS = new Set(['proFeatureColors', 'proFeatureStash', 'proFeatureCutList', 'proFeatureRoomPreview']);
 
   function isTrialActive() {
     return Date.now() < TRIAL_END_TIMESTAMP;
@@ -1427,6 +1427,8 @@
   const ROOM_CREDITS_KEY = 'quiltDesignerRoomCredits';
   const ROOM_CREDITS_INITIALIZED_KEY = 'quiltDesignerRoomCreditsInitialized';
   const FREE_ROOM_CREDITS = 12;
+  const TRIAL_ROOM_CREDITS_INITIALIZED_KEY = 'quiltDesignerTrialRoomCreditsInitialized';
+  const TRIAL_ROOM_CREDITS = 5;
   let currentRoomPreviewUrl = null;
 
   const ROOM_PROMPTS = {
@@ -1564,7 +1566,7 @@
   }
 
   generateRoomPreviewBtn.addEventListener('click', async () => {
-    if (!isPro()) {
+    if (!isPro() && !isTrialActive()) {
       flashUnlockPrompt('AI room previews are part of Quilt Designer Pro.');
       return;
     }
@@ -4698,7 +4700,7 @@
 
     if (!pro && isTrialActive()) {
       const endDateLabel = new Date(TRIAL_END_TIMESTAMP).toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
-      trialBannerText.textContent = `🎉 For a limited time, Fabric Colors (including 4-color piecing), the Fabric Stash, and the full Cut List are free for everyone — no purchase needed, through ${endDateLabel}. Explore first, then decide if Pro's worth it for you!`;
+      trialBannerText.textContent = `🎉 For a limited time, Fabric Colors (including 4-color piecing), the Fabric Stash, the full Cut List, and 5 free AI Room Previews are free for everyone — no purchase needed, through ${endDateLabel}. Explore first, then decide if Pro's worth it for you!`;
       trialBanner.style.display = 'block';
     } else {
       trialBanner.style.display = 'none';
@@ -4714,6 +4716,13 @@
     if (pro && localStorage.getItem(ROOM_CREDITS_INITIALIZED_KEY) !== 'true') {
       localStorage.setItem(ROOM_CREDITS_INITIALIZED_KEY, 'true');
       setRoomCredits(FREE_ROOM_CREDITS);
+    }
+    // Separate, one-time grant for trial visitors — deliberately its own key so a
+    // real Pro purchase later still correctly grants the full FREE_ROOM_CREDITS
+    // amount above, unaffected by whether this trial grant already happened.
+    if (!pro && isTrialActive() && localStorage.getItem(TRIAL_ROOM_CREDITS_INITIALIZED_KEY) !== 'true') {
+      localStorage.setItem(TRIAL_ROOM_CREDITS_INITIALIZED_KEY, 'true');
+      setRoomCredits(getRoomCredits() + TRIAL_ROOM_CREDITS);
     }
     updateRoomCreditsUI();
 
