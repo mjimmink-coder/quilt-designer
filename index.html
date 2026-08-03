@@ -882,6 +882,22 @@
   <p>Piece a pattern, choose your fabrics, see what it takes to sew</p>
 </header>
 
+<div class="pro-banner" id="howToUseBanner" style="display:none;">
+  <div class="pro-banner-inner" style="border-color:var(--navy); background:var(--panel); position:relative; padding-right:36px;">
+    <button type="button" id="howToUseCloseBtn" aria-label="Close" style="position:absolute; top:6px; right:8px; background:none; border:none; font-size:16px; color:var(--stitch); cursor:pointer; line-height:1;">✕</button>
+    <span class="pro-banner-text" style="color:var(--ink); text-align:left; display:block;">
+      <strong>New here? Here's the quick version:</strong><br>
+      1. Pick a pattern &nbsp; 2. Try colors and fabrics &nbsp; 3. Check your yardage and cut list &nbsp; 4. Download or print when you're happy with it.
+    </span>
+  </div>
+</div>
+
+<div class="pro-banner" id="trialBanner" style="display:none;">
+  <div class="pro-banner-inner" style="border-color:#7d9c6b; background:#eef3e9;">
+    <span class="pro-banner-text" id="trialBannerText" style="color:#33472e;"></span>
+  </div>
+</div>
+
 <div class="pro-banner">
   <div class="pro-banner-inner" id="proBannerInner">
     <span class="pro-banner-text" id="proBannerText">🔒 Unlock Quilt Designer Pro — 24 block patterns, custom colors, cut lists & piecing steps, calculators, and more, $19.99 one time (not a subscription)</span>
@@ -1021,7 +1037,7 @@
     <details class="collapsible-section" open>
       <summary>Fabric Colors</summary>
       <fieldset class="pro-feature" id="proFeatureColors">
-        <div class="pro-lock-banner">🔒 Choosing your own colors is part of Quilt Designer Pro. Free designs use the default Navy &amp; Cream palette.</div>
+        <div class="pro-lock-banner" id="proLockBannerColors">🔒 Choosing your own colors is part of Quilt Designer Pro. Free designs use the default Navy &amp; Cream palette.</div>
         <div class="palette-grid" id="presetContainer"></div>
         <div class="fabric-swatch-grid" style="margin-top:14px;">
           <div class="fabric-swatch">
@@ -1140,7 +1156,7 @@
     <details class="collapsible-section">
       <summary>Fabric Stash</summary>
       <fieldset class="pro-feature" id="proFeatureStash">
-        <div class="pro-lock-banner">🔒 The fabric stash is part of Quilt Designer Pro.</div>
+        <div class="pro-lock-banner" id="proLockBannerStash">🔒 The fabric stash is part of Quilt Designer Pro.</div>
         <span class="swatch-hint">Save fabric photos here once, then reuse them across any design without re-uploading — pick a saved fabric below, or save one you're currently using above.</span>
         <div id="fabricStashGrid" class="fabric-stash-grid" style="margin-top:10px;"></div>
         <div style="margin-top:12px;">
@@ -1209,7 +1225,7 @@
     <div id="otherMaterialsResults"></div>
     <div id="costCalculatorResults"></div>
     <div class="pro-feature" id="proFeatureCutList">
-      <div class="pro-lock-banner">🔒 The piece-by-piece cut list is part of Quilt Designer Pro.</div>
+      <div class="pro-lock-banner" id="proLockBannerCutList">🔒 The piece-by-piece cut list is part of Quilt Designer Pro.</div>
       <div id="cutListResults"></div>
       <div style="margin-top:14px;">
         <label for="precutSelect">Check compatibility with a precut</label>
@@ -1243,11 +1259,11 @@
         <option value="queen">Full / Queen bed</option>
         <option value="king">King bed</option>
       </select>
+      <span class="swatch-hint">AI-generated image for inspiration — not a precise reproduction. Colors, exact block shapes, and grid count may not perfectly match your design.</span>
       <div class="field-row" style="margin-top:12px; align-items:center;">
         <button type="button" class="swatch-clear-btn" id="generateRoomPreviewBtn" style="margin-top:0;">Generate preview</button>
         <span class="swatch-hint" id="roomCreditsNote" style="margin-top:0;"></span>
       </div>
-      <span class="swatch-hint">AI-generated image — a realistic mockup, not a pixel-exact reproduction of your design.</span>
     </fieldset>
     <div style="text-align:center; margin-top:16px;">
       <div id="roomPreviewStatus" class="swatch-hint" style="display:none;"></div>
@@ -1335,9 +1351,46 @@
 
   const PRO_STORAGE_KEY = 'quiltDesignerProUnlocked';
   const PRO_PATTERNS = new Set(['ohiostar', 'flyinggeese', 'bearspaw', 'shoofly', 'churndash', 'friendshipstar', 'sawtoothstar', 'courthousesteps', 'snowball', 'brokendishes', 'bowtie', 'jacobsladder', 'squareinsquare', 'doublefourpatch', 'trianglesquares', 'doubleninepatch', 'dutchmanspuzzle', 'irishchain']);
+
+  // Temporary launch promotion: Cut List, Fabric Colors (including 4-color
+  // piecing), and Fabric Stash are free for everyone through this date, so
+  // early visitors from Facebook groups can try the app's real
+  // differentiators before deciding whether to buy Pro. Automatically
+  // reverts to normal Pro-gating once the date passes — no manual cleanup
+  // needed elsewhere. To remove the promotion early, just set
+  // TRIAL_END_TIMESTAMP to a date in the past.
+  const TRIAL_END_TIMESTAMP = new Date('2026-08-10T23:59:59').getTime();
+  const TRIAL_FEATURE_IDS = new Set(['proFeatureColors', 'proFeatureStash', 'proFeatureCutList']);
+
+  function isTrialActive() {
+    return Date.now() < TRIAL_END_TIMESTAMP;
+  }
+
+  // Whether a specific pro-feature element should currently be unlocked: a
+  // real Pro purchase always wins; otherwise, true only for one of the 3
+  // trial features while the promotion window is still active.
+  function isFeatureUnlocked(el, pro) {
+    if (pro) return true;
+    if (!el) return false;
+    return isTrialActive() && TRIAL_FEATURE_IDS.has(el.id);
+  }
+
   const unlockProBtn = document.getElementById('unlockProBtn');
   const proBannerInner = document.getElementById('proBannerInner');
   const proBannerText = document.getElementById('proBannerText');
+  const trialBanner = document.getElementById('trialBanner');
+  const trialBannerText = document.getElementById('trialBannerText');
+  const howToUseBanner = document.getElementById('howToUseBanner');
+  const howToUseCloseBtn = document.getElementById('howToUseCloseBtn');
+  const HOW_TO_USE_DISMISSED_KEY = 'quiltDesignerHowToUseDismissed';
+
+  if (localStorage.getItem(HOW_TO_USE_DISMISSED_KEY) !== 'true') {
+    howToUseBanner.style.display = 'block';
+  }
+  howToUseCloseBtn.addEventListener('click', () => {
+    howToUseBanner.style.display = 'none';
+    localStorage.setItem(HOW_TO_USE_DISMISSED_KEY, 'true');
+  });
   const proFeatureTargetSize = document.getElementById('proFeatureTargetSize');
   const proFeatureColors = document.getElementById('proFeatureColors');
   const proFeatureStash = document.getElementById('proFeatureStash');
@@ -1483,7 +1536,7 @@
     const colorBName = nameColorFromHex(colorBInput.value);
     const across = parseInt(blocksAcrossInput.value, 10) || 3;
     const down = parseInt(blocksDownInput.value, 10) || 3;
-    const use4Color = isPro() && FOUR_COLOR_PATTERNS.has(patternSelect.value) && use4ColorInput.checked;
+    const use4Color = (isPro() || isTrialActive()) && FOUR_COLOR_PATTERNS.has(patternSelect.value) && use4ColorInput.checked;
     const colorDescription = use4Color
       ? `${colorAName}, ${colorBName}, ${nameColorFromHex(colorCInput.value)}, and ${nameColorFromHex(colorDInput.value)} fabric`
       : `${colorAName} and ${colorBName} fabric`;
@@ -3380,7 +3433,7 @@
   };
 
   function renderCutList(patternKey, blockSizeInches, blocksAcross, blocksDown, use4Color, sashingWidthPx, borderWidthPx) {
-    if (!isPro()) {
+    if (!isPro() && !isTrialActive()) {
       cutListResults.innerHTML = '';
       return;
     }
@@ -3727,7 +3780,7 @@
     const borderColor = borderColorInput.value;
     const colorA = swatchImages.colorA ? 'url(#fabricPatternA)' : colorAInput.value;
     const colorB = swatchImages.colorB ? 'url(#fabricPatternB)' : colorBInput.value;
-    const use4Color = isPro() && FOUR_COLOR_PATTERNS.has(patternSelect.value) && use4ColorInput.checked;
+    const use4Color = (isPro() || isTrialActive()) && FOUR_COLOR_PATTERNS.has(patternSelect.value) && use4ColorInput.checked;
     const colorC = swatchImages.colorC ? 'url(#fabricPatternC)' : colorCInput.value;
     const colorD = swatchImages.colorD ? 'url(#fabricPatternD)' : colorDInput.value;
     const alternateBlockDrawFn = patternSelect.value === 'irishchain' ? drawPlainBlock : null;
@@ -3761,7 +3814,7 @@
   // Keeps the "Use 4 colors" checkbox in sync with whether the current pattern
   // actually has a 4-color variant, and whether Pro is unlocked.
   function updateFourColorAvailability() {
-    const available = FOUR_COLOR_PATTERNS.has(patternSelect.value) && isPro();
+    const available = FOUR_COLOR_PATTERNS.has(patternSelect.value) && (isPro() || isTrialActive());
     use4ColorInput.disabled = !available;
     if (!available) {
       use4ColorInput.checked = false;
@@ -4515,7 +4568,7 @@
     const generator = CUT_LIST_GENERATORS[patternSelect.value];
     if (generator) {
       const totalBlocks = parseInt(blocksAcross, 10) * parseInt(blocksDown, 10);
-      const printUse4Color = isPro() && FOUR_COLOR_PATTERNS.has(patternSelect.value) && use4ColorInput.checked;
+      const printUse4Color = (isPro() || isTrialActive()) && FOUR_COLOR_PATTERNS.has(patternSelect.value) && use4ColorInput.checked;
       const colorLabel = { colorA: 'Color A', colorB: 'Color B', colorC: 'Color C', colorD: 'Color D' };
       const headerRow = document.createElement('tr');
       headerRow.innerHTML = '<th colspan="4">Cut list</th>';
@@ -4539,7 +4592,7 @@
     }
 
     const piecingSection = printSheet.querySelector('.piecing-section-print');
-    const printUse4ColorSteps = isPro() && FOUR_COLOR_PATTERNS.has(patternSelect.value) && use4ColorInput.checked;
+    const printUse4ColorSteps = (isPro() || isTrialActive()) && FOUR_COLOR_PATTERNS.has(patternSelect.value) && use4ColorInput.checked;
     const piecingSteps = printUse4ColorSteps && ASSEMBLY_STEPS_4COLOR[patternSelect.value] ? ASSEMBLY_STEPS_4COLOR[patternSelect.value] : ASSEMBLY_STEPS[patternSelect.value];
     if (piecingSteps) {
       const ol = piecingSection.querySelector('ol');
@@ -4623,7 +4676,8 @@
       const summary = details ? details.querySelector('summary') : null;
       if (!summary) return;
       if (!summary.dataset.baseLabel) summary.dataset.baseLabel = summary.textContent.trim();
-      summary.textContent = pro ? summary.dataset.baseLabel : `${summary.dataset.baseLabel} 🔒`;
+      const unlocked = isFeatureUnlocked(el, pro);
+      summary.textContent = unlocked ? summary.dataset.baseLabel : `${summary.dataset.baseLabel} 🔒`;
     });
   }
 
@@ -4642,7 +4696,15 @@
       unlockProBtn.textContent = 'Unlock Pro';
     }
 
-    [proFeatureTargetSize, proFeatureColors, proFeatureStash, proFeatureDesigns, proFeatureBacking, proFeatureCutList, proFeatureRoomPreview, proFeatureSettingTriangles].forEach(el => setFeatureLock(el, !pro));
+    if (!pro && isTrialActive()) {
+      const endDateLabel = new Date(TRIAL_END_TIMESTAMP).toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+      trialBannerText.textContent = `🎉 For a limited time, Fabric Colors (including 4-color piecing), the Fabric Stash, and the full Cut List are free for everyone — no purchase needed, through ${endDateLabel}. Explore first, then decide if Pro's worth it for you!`;
+      trialBanner.style.display = 'block';
+    } else {
+      trialBanner.style.display = 'none';
+    }
+
+    [proFeatureTargetSize, proFeatureColors, proFeatureStash, proFeatureDesigns, proFeatureBacking, proFeatureCutList, proFeatureRoomPreview, proFeatureSettingTriangles].forEach(el => setFeatureLock(el, !isFeatureUnlocked(el, pro)));
     updateSectionLockIndicators(pro);
     updateFourColorAvailability();
     updatePatternOptionLabels();
