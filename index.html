@@ -1359,7 +1359,7 @@
   // reverts to normal Pro-gating once the date passes — no manual cleanup
   // needed elsewhere. To remove the promotion early, just set
   // TRIAL_END_TIMESTAMP to a date in the past.
-  const TRIAL_END_TIMESTAMP = new Date('2026-08-10T23:59:59').getTime();
+  const TRIAL_END_TIMESTAMP = new Date('2026-08-09T23:59:59').getTime();
   const TRIAL_FEATURE_IDS = new Set(['proFeatureColors', 'proFeatureStash', 'proFeatureCutList', 'proFeatureRoomPreview']);
 
   function isTrialActive() {
