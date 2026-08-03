@@ -1534,15 +1534,26 @@
     const patternLabel = patternSelect.options[patternSelect.selectedIndex].dataset.baseLabel || patternSelect.options[patternSelect.selectedIndex].text;
     const shapeDescription = PATTERN_SHAPE_DESCRIPTIONS[patternSelect.value] || `a "${patternLabel}" quilt block pattern`;
     const roomDescription = ROOM_PROMPTS[roomPreviewSelect.value];
-    const colorAName = nameColorFromHex(colorAInput.value);
-    const colorBName = nameColorFromHex(colorBInput.value);
     const across = parseInt(blocksAcrossInput.value, 10) || 3;
     const down = parseInt(blocksDownInput.value, 10) || 3;
     const use4Color = (isPro() || isTrialActive()) && FOUR_COLOR_PATTERNS.has(patternSelect.value) && use4ColorInput.checked;
+
+    // Pairs each fabric with both a plain-language name and its exact hex code —
+    // current guidance for this model specifically recommends tying hex codes to
+    // named elements for accurate color reproduction, rather than relying on a
+    // color name alone.
+    function describeFabric(hex) {
+      return `${nameColorFromHex(hex)} (hex ${hex})`;
+    }
     const colorDescription = use4Color
-      ? `${colorAName}, ${colorBName}, ${nameColorFromHex(colorCInput.value)}, and ${nameColorFromHex(colorDInput.value)} fabric`
-      : `${colorAName} and ${colorBName} fabric`;
-    return `A professional interior photograph of ${roomDescription}. The quilt is made of many small identical blocks repeated across the whole quilt in a grid of roughly ${across} blocks wide by ${down} blocks tall — it is NOT one single large motif covering the whole quilt, it is a tessellated grid of small repeating blocks separated by visible seam lines. Each individual block shows this exact design: ${shapeDescription}. The quilt is pieced in ${colorDescription}, with sharp precise geometric machine-pieced seams, crisp straight edges and points, no rounded or soft shapes. Realistic quilted fabric texture, soft natural lighting, photorealistic, high quality home decor photography.`;
+      ? `Color A fabric in ${describeFabric(colorAInput.value)}, Color B fabric in ${describeFabric(colorBInput.value)}, Color C fabric in ${describeFabric(colorCInput.value)}, and Color D fabric in ${describeFabric(colorDInput.value)}`
+      : `Color A fabric in ${describeFabric(colorAInput.value)} and Color B fabric in ${describeFabric(colorBInput.value)}`;
+
+    // Quilt-specific details (colors, block shape, grid) come first, since this
+    // model weights earlier prompt elements more heavily — the room/photography
+    // context matters far less to us than the quilt itself rendering accurately,
+    // so it's pushed to the end.
+    return `A patchwork quilt pieced from ${colorDescription}. Each individual block shows this exact design: ${shapeDescription}. The quilt is made of many small identical blocks repeated across the whole quilt in a grid of roughly ${across} blocks wide by ${down} blocks tall — it is NOT one single large motif covering the whole quilt, it is a tessellated grid of small repeating blocks separated by visible seam lines, with sharp precise geometric machine-pieced seams, crisp straight edges and points, no rounded or soft shapes, realistic quilted fabric texture. A professional interior photograph of this quilt in ${roomDescription}, soft natural lighting, photorealistic, high quality home decor photography.`;
   }
 
   async function pollRoomPreview(predictionId) {
