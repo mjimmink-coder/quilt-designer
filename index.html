@@ -879,7 +879,7 @@
     </svg>
     <h1>Quilt Designer</h1>
   </div>
-  <p>Piece a pattern, choose your fabrics, see what it takes to sew</p>
+  <p>Piece a pattern, choose your fabrics, see what it takes to sew — free to start</p>
 </header>
 
 <div class="pro-banner" id="howToUseBanner" style="display:none;">
@@ -898,18 +898,6 @@
   </div>
 </div>
 
-<div class="pro-banner">
-  <div class="pro-banner-inner" id="proBannerInner">
-    <span class="pro-banner-text" id="proBannerText">🔒 Unlock Quilt Designer Pro — 24 block patterns, custom colors, cut lists & piecing steps, calculators, and more, $19.99 one time (not a subscription)</span>
-    <button id="unlockProBtn">Unlock Pro</button>
-  </div>
-  <div class="promo-row" id="promoRow">
-    <label for="promoCodeInput" style="margin:0; font-size:11px;">Have a promo code?</label>
-    <input type="text" id="promoCodeInput" placeholder="Enter code" style="text-transform:uppercase;">
-    <button type="button" class="tool-btn" id="applyPromoBtn">Apply</button>
-    <span class="swatch-hint" id="promoStatusNote"></span>
-  </div>
-</div>
 
 <div class="layout">
 
@@ -1241,6 +1229,19 @@
     </div>
   </div>
 
+</div>
+
+<div class="pro-banner">
+  <div class="pro-banner-inner" id="proBannerInner">
+    <span class="pro-banner-text" id="proBannerText">🔓 Free to design and preview. Unlock 24 patterns, custom colors, cut lists, and more for $19.99 — one time, not a subscription.</span>
+    <button id="unlockProBtn">Unlock Pro</button>
+  </div>
+  <div class="promo-row" id="promoRow">
+    <label for="promoCodeInput" style="margin:0; font-size:11px;">Have a promo code?</label>
+    <input type="text" id="promoCodeInput" placeholder="Enter code" style="text-transform:uppercase;">
+    <button type="button" class="tool-btn" id="applyPromoBtn">Apply</button>
+    <span class="swatch-hint" id="promoStatusNote"></span>
+  </div>
 </div>
 
 <div style="max-width:1100px; margin:0 auto 40px; padding:0 24px;">
@@ -4703,7 +4704,7 @@
       unlockProBtn.style.display = 'none';
     } else {
       proBannerInner.classList.remove('is-unlocked');
-      proBannerText.textContent = '🔒 Unlock Quilt Designer Pro — 24 block patterns, custom colors, cut lists & piecing steps, calculators, and more, $19.99 one time (not a subscription)';
+      proBannerText.textContent = '🔓 Free to design and preview. Unlock 24 patterns, custom colors, cut lists, and more for $19.99 — one time, not a subscription.';
       unlockProBtn.style.display = 'inline-block';
       unlockProBtn.disabled = false;
       unlockProBtn.textContent = 'Unlock Pro';
@@ -4751,7 +4752,7 @@
     proBannerInner.style.borderColor = 'var(--rust)';
     setTimeout(() => {
       proBannerInner.style.borderColor = '';
-      if (!isPro()) proBannerText.textContent = '🔒 Unlock Quilt Designer Pro — 24 block patterns, custom colors, cut lists & piecing steps, calculators, and more, $19.99 one time (not a subscription)';
+      if (!isPro()) proBannerText.textContent = '🔓 Free to design and preview. Unlock 24 patterns, custom colors, cut lists, and more for $19.99 — one time, not a subscription.';
     }, 3000);
   }
 
